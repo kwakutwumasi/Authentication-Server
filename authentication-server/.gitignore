@@ -1,0 +1,12 @@
+/target/
+/.settings
+/.project
+/.classpath
+/*.log
+/mainDS/
+/mainDS2/
+/MyDs/
+/MyLiveDs/
+/webservers/
+/authentication-server-store/
+.DS_Store

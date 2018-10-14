@@ -1,0 +1,80 @@
+package com.quakearts.auth.server.rest;
+
+import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.infinispan.Cache;
+
+import com.quakearts.auth.server.rest.models.Secret;
+import com.quakearts.auth.server.store.annotation.SecretsStore;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+@Path("secrets")
+@Produces(MediaType.APPLICATION_JSON)
+public class SecretsResource {
+	
+	@Inject @SecretsStore
+	private Cache<String, String> secretStore;
+	
+	@Operation(summary="List all keys for secrets")
+	@ApiResponse(responseCode="200", 
+		description="The request was successful",
+		content=@Content(array=@ArraySchema(
+				schema=@Schema(implementation=String.class, description="The key for a secret value"))))
+	@GET
+	public void listAllSecretKeys(@Suspended AsyncResponse asyncResponse){
+		CompletableFuture.runAsync(()->asyncResponse.resume(new ArrayList<>(secretStore.keySet())));
+	}
+	
+	@Operation(summary="Store a secret key and value",
+				requestBody=@RequestBody(content=
+								@Content(schema=
+									@Schema(description="The secret key and value", 
+											example="{\n" + 
+													"	\"key\":\"{database.password}\",\n" + 
+													"	\"value\":\"#$dfskKJI3@##$2dfsd\"\n" + 
+													"}"))))
+	@ApiResponse(responseCode="204", 
+		description="Request was successful")
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void addSecret(@NotNull @Valid final Secret secret, @Suspended final AsyncResponse asyncResponse) {
+		CompletableFuture.runAsync(()->{
+			secretStore.put(secret.getKey(), secret.getValue());
+			asyncResponse.resume(Response.noContent().build());
+		});
+	}
+	
+	@Operation(summary="Remove a secret key and value")
+	@ApiResponse(responseCode="204", 
+		description="Request was successful")
+	@DELETE
+	@Path("{key}")
+	public void removeKey(@PathParam("key") final String key, @Suspended final AsyncResponse asyncResponse) {
+		CompletableFuture.runAsync(()->{
+			secretStore.remove(key);
+			asyncResponse.resume(Response.noContent().build());	
+		});
+	}
+}

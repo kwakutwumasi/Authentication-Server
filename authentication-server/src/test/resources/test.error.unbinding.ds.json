@@ -1,0 +1,6 @@
+{
+	"jndi.name":"TestDSUnbindError",
+	"driverClassName":"org.apache.derby.jdbc.EmbeddedDriver",
+	"url":"jdbc:derby:mainDS",
+	"connectionProperties":"create=true;"
+}
