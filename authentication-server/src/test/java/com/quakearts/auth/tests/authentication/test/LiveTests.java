@@ -157,10 +157,14 @@ public class LiveTests {
 					.contains("A registration with the provided ID could not be found"), is(true));
 		}
 		
-		Map<String, String> configuration = new HashMap<>();
+		Map<String, Object> configuration = new HashMap<>();
 		configuration.put("jndi.name","MyLiveDs");
 		configuration.put("driverClassName","org.apache.derby.jdbc.EmbeddedDriver");
 		configuration.put("url","jdbc:derby:MyLiveDs");
+		configuration.put("defaultAutoCommit",true);
+		configuration.put("initialSize", 5);
+		configuration.put("maxActive", 10);
+		configuration.put("minIdle", 1);
 		configuration.put("connectionProperties","create=true;");
 
 		client.createDataSource("testcreatedatasource", configuration);

@@ -56,13 +56,17 @@ public class OptionsServiceImplTest {
 	@Test
 	public void testResolveSecrets() {
 		secretsStore.put("{secret.password1}", "123456789");
-		Map<String, String> testMap = new HashMap<>();
+		Map<String, Object> testMap = new HashMap<>();
 		testMap.put("password", "{secret.password2}");
 		testMap.put("database.password","{secret.password1}");
+		testMap.put("count", 1);
+		testMap.put("resolve", Boolean.TRUE);
 		
 		serviceImpl.resolveSecrets(testMap);
 		assertThat(testMap.get("password"), is("{secret.password2}"));
 		assertThat(testMap.get("database.password"), is("123456789"));
+		assertThat(testMap.get("count"), is(1));
+		assertThat(testMap.get("resolve"), is(Boolean.TRUE));
 	}
 
 }

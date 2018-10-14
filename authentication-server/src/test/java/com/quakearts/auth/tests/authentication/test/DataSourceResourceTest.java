@@ -50,7 +50,7 @@ public class DataSourceResourceTest {
 		AsyncResponse asyncResponse = getOrCreateAsyncResponse();
 		
 		secretStore.put("{connection.properties.secret}", "create=true;");
-		Map<String, String> configuration = newMap()
+		Map<String, Object> configuration = newMap()
 				.add("jndi.name","MyDs")
 				.add("driverClassName","org.apache.derby.jdbc.EmbeddedDriver")
 				.add("url","jdbc:derby:MyDs")
@@ -244,14 +244,14 @@ public class DataSourceResourceTest {
 	}
 
 	class MapBuilder {
-		Map<String, String> map = new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 			
 		MapBuilder add(String key, String value) {
 			map.put(key, value);
 			return this;
 		}
 		
-		Map<String, String> thenBuld(){
+		Map<String, Object> thenBuld(){
 			return map;
 		}
 	}

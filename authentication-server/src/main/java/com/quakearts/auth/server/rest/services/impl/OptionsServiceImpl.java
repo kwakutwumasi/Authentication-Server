@@ -3,6 +3,7 @@ package com.quakearts.auth.server.rest.services.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -81,13 +82,18 @@ public class OptionsServiceImpl implements OptionsService {
 		return options;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	public void resolveSecrets(Map<String, String> parameters){
+	public void resolveSecrets(Map<String, ? extends Object> parameters){
 		parameters.entrySet().forEach(entry->{
-			if(entry.getValue().startsWith("{")
-					&& entry.getValue().endsWith("}")
-					&& secretsStore.containsKey(entry.getValue()))
-				entry.setValue(secretsStore.get(entry.getValue()));
+			if(entry.getValue() instanceof String && entry.getValue()
+						.toString().startsWith("{")
+					&& entry.getValue()
+						.toString().endsWith("}")
+					&& secretsStore.containsKey(entry.getValue().toString())) {
+				Entry<String, String> stringEntry = (Entry<String, String>) entry;
+				stringEntry.setValue(secretsStore.get(entry.getValue()));
+			}
 		});
 	}
 

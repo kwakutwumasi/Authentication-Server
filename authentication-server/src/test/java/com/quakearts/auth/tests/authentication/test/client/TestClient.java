@@ -129,7 +129,7 @@ public class TestClient extends HttpClient {
 		}
 	}
 	
-	public void createDataSource(String dataSourceKey, Map<String, String> configuration) 
+	public void createDataSource(String dataSourceKey, Map<String, Object> configuration) 
 			throws IOException, HttpClientException {
 		httpResponse = sendRequest("/datasource/"+dataSourceKey, 
 				objectMapper.writeValueAsString(configuration), 

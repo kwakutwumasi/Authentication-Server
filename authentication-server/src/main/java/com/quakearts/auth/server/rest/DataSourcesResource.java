@@ -89,7 +89,7 @@ public class DataSourcesResource {
 	@Path("{datasourcekey}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void addDatasource(@ValidDataSourceKey @PathParam("datasourcekey") final String datasourcekey,
-			final Map<String, String> configuration, @Suspended final AsyncResponse asyncResponse) {
+			final Map<String, Object> configuration, @Suspended final AsyncResponse asyncResponse) {
 		CompletableFuture.runAsync(()->{
 			optionsService.resolveSecrets(configuration);
 			File dataSourceFile = createDataSourceFile(datasourcekey);
@@ -104,7 +104,7 @@ public class DataSourcesResource {
 		return fileService.createFile(Main.DSLOCATION, datasourcekey+"."+Main.DS_EXTENSTION);
 	}
 
-	private boolean saveDataSourceFile(final File dataSourceFile , final String datasourcekey, final Map<String, String> configuration,
+	private boolean saveDataSourceFile(final File dataSourceFile , final String datasourcekey, final Map<String, Object> configuration,
 			final AsyncResponse asyncResponse) {
 		if(fileService.fileExists(dataSourceFile)) {
 			return respondWithError(asyncResponse, new Exception("The datasource key already exists"));
@@ -127,7 +127,7 @@ public class DataSourcesResource {
 		}
 	}
 
-	private boolean testDataSource(final Map<String, String> configuration, final AsyncResponse asyncResponse,
+	private boolean testDataSource(final Map<String, Object> configuration, final AsyncResponse asyncResponse,
 			File dataSourceFile) {
 		
 		String dataSourceName = "java:/jdbc/"+configuration.get("jndi.name");
