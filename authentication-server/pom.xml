@@ -23,7 +23,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>repo</classpathPrefix>
 							<classpathLayoutType>repository</classpathLayoutType>
-							<mainClass>com.quakearts.appbase.Main</mainClass>
+							<mainClass>com.quakearts.auth.server.Main</mainClass>
 						</manifest>
 						<manifestEntries>
 							<Class-Path>etc/</Class-Path>
@@ -40,11 +40,11 @@
 					<programs>
 						<program>
 							<id>webapp</id>
-							<mainClass>com.b_one.microservices.Main</mainClass>
+							<mainClass>com.quakearts.auth.server.Main</mainClass>
 						</program>
 						<program>
 							<id>webapptest</id>
-							<mainClass>com.b_one.microservices.Main</mainClass>
+							<mainClass>com.quakearts.auth.server.Main</mainClass>
 							<jvmSettings>
 								<extraArgument>-agentlib:jdwp=transport=dt_socket,address=localhost:4000,server=y,suspend=y</extraArgument>
 							</jvmSettings>
@@ -253,12 +253,6 @@
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-restsecurity</artifactId>
 			<version>1.0.2</version>
-		</dependency>
-	<!-- MySql Drivers -->
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.46</version>
 		</dependency>
 	<!-- Swagger -->
 		<dependency>
