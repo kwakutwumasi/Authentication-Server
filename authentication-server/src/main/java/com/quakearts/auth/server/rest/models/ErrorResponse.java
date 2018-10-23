@@ -41,7 +41,7 @@ public class ErrorResponse implements Serializable {
 		return explanations;
 	}
 
-	public void setExplanation(List<String> explanations) {
+	public void setExplanations(List<String> explanations) {
 		this.explanations = explanations;
 	}
 	
