@@ -10,7 +10,7 @@ public class ErrorServiceImpl implements ErrorService {
 
 	@Override
 	public ErrorResponse createErrorResponse(String code, Exception... exceptions) {
-		ErrorResponse errorResponse = new ErrorResponse().setCodeAs(code);
+		ErrorResponse errorResponse = new ErrorResponse().withCodeAs(code);
 		for(Exception exception:exceptions) {
 			errorResponse.addExplanation(exception.getMessage());			
 			if(exception.getCause()!=null) {
@@ -22,7 +22,7 @@ public class ErrorServiceImpl implements ErrorService {
 
 	@Override
 	public ErrorResponse createErrorResponse(String code, String explanation) {
-		return new ErrorResponse().setCodeAs(code).addExplanation(explanation);			
+		return new ErrorResponse().withCodeAs(code).addExplanation(explanation);			
 	}
 
 }

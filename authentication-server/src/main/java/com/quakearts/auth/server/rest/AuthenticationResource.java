@@ -200,9 +200,9 @@ public class AuthenticationResource {
 				.iterator().next();
 		
 		asyncResponse.resume(new TokenResponse()
-				.setIdTokenAs(principal.getName())
-				.setTokenTypeAs("bearer")
-				.setExpiresInAs(pack.getExpiresIn()));
+				.withIdTokenAs(principal.getName())
+				.withTokenTypeAs("bearer")
+				.withExpiresInAs(pack.getExpiresIn()));
 	}
 
 	private void respondWithError(AsyncResponse asyncResponse) {

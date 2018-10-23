@@ -42,7 +42,7 @@ public class FileServiceImplTest {
 	@Test
 	public void testSaveObjectToFile() throws Exception {
 		File file = File.createTempFile("test.file.", ".json");
-		Registration registration = new Registration().setIdAs("test");
+		Registration registration = new Registration().withIdAs("test");
 		serviceImpl.saveObjectToFile(registration, file);
 		
 		StringBuilder builder = new StringBuilder();

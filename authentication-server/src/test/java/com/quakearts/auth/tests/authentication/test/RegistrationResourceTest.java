@@ -75,8 +75,8 @@ public class RegistrationResourceTest {
 		AsyncResponse asyncResponse = getOrCreateAsyncResponse();
 		
 		Registration registration = new Registration()
-				.setIdAs("test-register-1")
-				.setAliasAs("test-register-alias-1")
+				.withIdAs("test-register-1")
+				.withAliasAs("test-register-alias-1")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -107,8 +107,8 @@ public class RegistrationResourceTest {
 				is(true));
 		
 		Registration anotherRegistration = new Registration()
-				.setIdAs("test-another")
-				.setAliasAs("test-register-alias-1")
+				.withIdAs("test-another")
+				.withAliasAs("test-register-alias-1")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -124,8 +124,8 @@ public class RegistrationResourceTest {
 				is(true));
 
 		anotherRegistration = new Registration()
-				.setIdAs("test-another")
-				.setAliasAs("test-another-alias")
+				.withIdAs("test-another")
+				.withAliasAs("test-another-alias")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -151,7 +151,7 @@ public class RegistrationResourceTest {
 		assertThat(anotherRegistration.getOptions().get("grace.period"), is("1"));
 		
 		Registration updateRegistration = new Registration()
-				.setAliasAs("test-register-alias-1")
+				.withAliasAs("test-register-alias-1")
 				.createConfiguration()
 				.setNameAs("Test-Config")
 					.createEntry()
@@ -175,7 +175,7 @@ public class RegistrationResourceTest {
 		assertThat(gottenRegistration, is(updateRegistration));
 		
 		updateRegistration = new Registration()
-					.setAliasAs("test-register-changed-alias")
+					.withAliasAs("test-register-changed-alias")
 					.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -256,8 +256,8 @@ public class RegistrationResourceTest {
 		AsyncResponse asyncResponse = getOrCreateAsyncResponse();
 		
 		Registration registration = new Registration()
-				.setIdAs("test-register-2")
-				.setAliasAs("test-register-2-alias")
+				.withIdAs("test-register-2")
+				.withAliasAs("test-register-2-alias")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -642,7 +642,7 @@ public class RegistrationResourceTest {
 			assertThat(violation.getMessage(), is("Parameter 'registration.id' cannot be null"));
 		}	
 		
-		registration.setIdAs("test-register-3");
+		registration.withIdAs("test-register-3");
 		
 		try {
 			registrationResource.register(registration, asyncResponse);			
@@ -945,8 +945,8 @@ public class RegistrationResourceTest {
 		assertThat(response.getStatus(), is(204));
 		
 		registration = new Registration()
-				.setIdAs("test-register-4")
-				.setAliasAs("test-register-4-alias")
+				.withIdAs("test-register-4")
+				.withAliasAs("test-register-4-alias")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -961,8 +961,8 @@ public class RegistrationResourceTest {
 		assertThat(response.getStatus(), is(204));
 		
 		registration = new Registration()
-				.setIdAs("test-register-5")
-				.setAliasAs("test-register-5-alias")
+				.withIdAs("test-register-5")
+				.withAliasAs("test-register-5-alias")
 				.createConfiguration()
 					.setNameAs("Test-Config")
 						.createEntry()
@@ -985,7 +985,7 @@ public class RegistrationResourceTest {
 		AsyncResponse response = getOrCreateAsyncResponse();
 
 		Registration updateRegistration = new Registration()
-				.setAliasAs("test7alias")
+				.withAliasAs("test7alias")
 				.createConfiguration()
 				.setNameAs("Test-Config")
 					.createEntry()
@@ -1008,8 +1008,8 @@ public class RegistrationResourceTest {
 		AsyncResponse response = getOrCreateAsyncResponse();
 
 		Registration updateRegistration = new Registration()
-				.setIdAs("test-already-existing")
-				.setAliasAs("test5Alias")
+				.withIdAs("test-already-existing")
+				.withAliasAs("test5Alias")
 				.createConfiguration()
 				.setNameAs("Test-Config")
 					.createEntry()
@@ -1022,7 +1022,7 @@ public class RegistrationResourceTest {
 		aliases.put("test6Alias", "test-another-existing");
 		
 		updateRegistration = new Registration()
-				.setAliasAs("test6Alias")
+				.withAliasAs("test6Alias")
 				.createConfiguration()
 				.setNameAs("Test-Config")
 					.createEntry()

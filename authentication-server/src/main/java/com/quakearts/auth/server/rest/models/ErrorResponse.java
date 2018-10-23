@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -29,7 +31,8 @@ public class ErrorResponse implements Serializable {
 		this.code = code;
 	}
 
-	public ErrorResponse setCodeAs(String code) {
+	@JsonIgnore
+	public ErrorResponse withCodeAs(String code) {
 		setCode(code);
 		return this;
 	}
