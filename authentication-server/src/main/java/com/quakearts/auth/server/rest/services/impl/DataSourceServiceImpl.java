@@ -49,8 +49,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	}
 
 	private ConfigurationPropertyMap loadConfiguration(AppBasePropertiesLoader loader, File propertyFile) {
-		ConfigurationPropertyMap propertyMap = loader.loadParametersFromFile(propertyFile);
-		return propertyMap;
+		return loader.loadParametersFromFile(propertyFile);
 	}
 	
 	private void createDataSource(ConfigurationPropertyMap propertyMap, String propertyfile) {
@@ -110,8 +109,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 	private String getDataSourceName(File dataSourceFile) {
 		ConfigurationPropertyMap configuration = Main.getInstance()
 				.getLoader().loadParametersFromFile(dataSourceFile);
-		String dataSourceName = configuration.getString("jndi.name");
-		return dataSourceName;
+		return configuration.getString("jndi.name");
 	}
 
 	private void unbindDataSource(String jndiName) throws NamingException {

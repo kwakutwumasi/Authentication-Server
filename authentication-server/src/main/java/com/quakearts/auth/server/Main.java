@@ -38,8 +38,9 @@ public class Main {
     	instance = new Main();    	
     	long start = System.currentTimeMillis();
 		instance.startServices(DSLOCATION);
-		LOGGER.info(MessageFormat.format("Started in {0, time, ss.S} seconds",
-				System.currentTimeMillis()-start));
+		String message = MessageFormat.format("Started in {0, time, ss.S} seconds",
+				System.currentTimeMillis()-start);
+		LOGGER.info(message);
     }
 
     public AppBasePropertiesLoader getLoader() {
@@ -91,9 +92,7 @@ public class Main {
 	}
 
 	private List<File> loadConfigurationFiles(String dsLocation) {
-		List<File> propertyFiles = 
-				loader.listConfigurationFiles(dsLocation, DS_EXTENSTION, AUTHENTICATION_SERVER);
-		return propertyFiles;
+		return loader.listConfigurationFiles(dsLocation, DS_EXTENSTION, AUTHENTICATION_SERVER);
 	}
 
 	private void initiateServletContainer() {

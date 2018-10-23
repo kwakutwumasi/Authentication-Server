@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import javax.inject.Singleton;
 
@@ -20,8 +21,7 @@ public class FileServiceImpl implements FileService {
 	@Override
 	public File createFile(String root, String filename) {
 		File dsLocation = new File(root);
-		File dataSourceFile = new File(dsLocation, filename);
-		return dataSourceFile;
+		return new File(dsLocation, filename);
 	}
 
 	@Override
@@ -33,8 +33,7 @@ public class FileServiceImpl implements FileService {
 
 	@Override
 	public void deleteFile(File file) throws IOException {
-		if(!file.delete())
-			throw new IOException("File "+file.getName()+" could not be deleted");
+		Files.delete(file.toPath());
 	}
 
 	@Override
