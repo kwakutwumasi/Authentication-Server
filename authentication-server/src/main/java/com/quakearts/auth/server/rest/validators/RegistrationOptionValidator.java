@@ -31,7 +31,7 @@ public class RegistrationOptionValidator implements ConstraintValidator<ValidReg
 		validOptions.add(HSSigner.SECRETPARAMETER);
 		validOptions.add(KeyStoreSignerBase.ALIASPARAMETER);
 		validOptions.add(KeyStoreSignerBase.FILEPARAMETER);
-		validOptions.add(KeyStoreSignerBase.PASSWORDPARAMETER);
+		validOptions.add(KeyStoreSignerBase.STORECREDENTIALSPARAMETER);
 		validOptions.add(KeyStoreSignerBase.STORE_TYPEPARAMETER);
 	}
 
