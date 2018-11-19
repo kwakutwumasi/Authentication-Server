@@ -211,4 +211,9 @@ public class AuthenticationResource {
 						"The provided credentials could not be authenticated")).build()));
 	}
 
+	public void resetAuthenticationPack(String id) {
+		if(authenticationPackCache.containsKey(id)) {
+			authenticationPackCache.remove(id);
+		}
+	}
 }

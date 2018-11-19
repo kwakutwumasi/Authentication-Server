@@ -53,6 +53,9 @@ public class RegistrationResource {
 	@Inject
 	private ErrorService errorService;
 	
+	@Inject
+	private AuthenticationResource authenticationResource;
+	
 	@Operation(summary="Read the configuration values of a registered application.")
 	@ApiResponse(responseCode="200",
 				 description="The id was found and has been retrieved",
@@ -260,6 +263,7 @@ public class RegistrationResource {
 			} else {
 				prepareParameters(id, registration, oldRegistration, switcher);
 				storeRegistration(registration, switcher);
+				authenticationResource.resetAuthenticationPack(id);
 				asyncResponse.resume(Response.noContent().build());
 			}
 		});
