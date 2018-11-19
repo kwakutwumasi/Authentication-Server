@@ -10,7 +10,7 @@ public class Configuration
 	
 	public Configuration(Registration registration) {
 		for(LoginConfiguration configuration:registration.getConfigurations()) {
-			AppConfigurationEntry[] entries = new AppConfigurationEntry[registration.getConfigurations().size()];
+			AppConfigurationEntry[] entries = new AppConfigurationEntry[configuration.getEntries().size()];
 			int index = 0;
 			for(LoginConfigurationEntry entry:configuration.getEntries()) {
 				entries[index] = new AppConfigurationEntry(entry.getModuleClassname(), 
