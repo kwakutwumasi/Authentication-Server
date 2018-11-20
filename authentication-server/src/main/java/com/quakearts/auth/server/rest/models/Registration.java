@@ -150,5 +150,11 @@ public class Registration implements Serializable {
 			configurationBuilder.configuration.getEntries().add(entry);
 			return configurationBuilder;
 		}
-	}	
+	}
+
+	@Override
+	public String toString() {
+		return "Registration [id=" + id + ", alias=" + alias + ", configurations=" + configurations + ", options="
+				+ options + "]";
+	}
 }

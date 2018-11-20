@@ -61,4 +61,11 @@ public class LoginConfigurationEntry implements Serializable {
 	public void setOptions(Map<String, String> options) {
 		this.options = options;
 	}
+
+	@Override
+	public String toString() {
+		return "LoginConfigurationEntry [moduleClassname=" + moduleClassname + ", moduleFlag=" + moduleFlag
+				+ ", options=" + options + "]";
+	}
+
 }

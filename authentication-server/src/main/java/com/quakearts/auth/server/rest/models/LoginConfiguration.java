@@ -39,4 +39,9 @@ public class LoginConfiguration implements Serializable {
 	public void setEntries(List<LoginConfigurationEntry> entries) {
 		this.entries = entries;
 	}
+
+	@Override
+	public String toString() {
+		return "LoginConfiguration [name=" + name + ", entries=" + entries + "]";
+	}
 }
