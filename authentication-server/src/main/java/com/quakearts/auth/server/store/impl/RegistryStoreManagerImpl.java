@@ -16,11 +16,11 @@ import com.quakearts.auth.server.store.annotation.RegistryStore;
 import com.quakearts.auth.server.store.annotation.SecretsStore;
 
 public class RegistryStoreManagerImpl implements RegistryStoreManager {
-	private static EmbeddedCacheManager cache_container;
+	private static EmbeddedCacheManager cacheContainer;
 
 	private static CacheContainer getCacheContainer() {
-		if (cache_container == null) {
-			cache_container = new DefaultCacheManager(new ConfigurationBuilder()
+		if (cacheContainer == null) {
+			cacheContainer = new DefaultCacheManager(new ConfigurationBuilder()
 					.memory()
 						.evictionType(EvictionType.COUNT)
 						.size(10)
@@ -34,15 +34,15 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 								.shared(false)
 					.build());
 
-			cache_container.start();
+			cacheContainer.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-				if (cache_container != null) {
-					cache_container.stop();
+				if (cacheContainer != null) {
+					cacheContainer.stop();
 				}
 			}));
 
 		}
-		return cache_container;
+		return cacheContainer;
 	}
 
 	@Override

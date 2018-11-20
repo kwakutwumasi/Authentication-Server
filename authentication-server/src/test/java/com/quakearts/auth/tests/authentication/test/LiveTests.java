@@ -59,8 +59,8 @@ public class LiveTests {
 	
 	@Test
 	public void testAll() throws Exception {
-		client.addSecretValue(new Secret().setKeyAs("{secret}")
-				.setValueAs("1234567890"));
+		client.addSecretValue(new Secret().withKeyAs("{secret}")
+				.withValueAs("1234567890"));
 
 		assertThat(client.getHttpResponse().getHeader("Access-Control-Allow-Origin"),
 				is("*"));
@@ -74,8 +74,8 @@ public class LiveTests {
 		assertThat(keys.size(), is(1));
 		assertThat(keys.contains("{secret}"), is(true));
 		
-		client.addSecretValue(new Secret().setKeyAs("{secret.two}")
-				.setValueAs("0987654321"));
+		client.addSecretValue(new Secret().withKeyAs("{secret.two}")
+				.withValueAs("0987654321"));
 		
 		keys = client.listSecretValues();
 		

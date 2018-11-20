@@ -93,7 +93,7 @@ public class DataSourcesResource {
 		CompletableFuture.runAsync(()->{
 			optionsService.resolveSecrets(configuration);
 			File dataSourceFile = createDataSourceFile(datasourcekey);
-			if(saveDataSourceFile(dataSourceFile, datasourcekey, configuration, asyncResponse) 
+			if(saveDataSourceFile(dataSourceFile, configuration, asyncResponse) 
 					&& createDataSource(asyncResponse, dataSourceFile)
 					&& testDataSource(configuration, asyncResponse, dataSourceFile))
 				asyncResponse.resume(Response.noContent().build());
@@ -104,7 +104,7 @@ public class DataSourcesResource {
 		return fileService.createFile(Main.DSLOCATION, datasourcekey+"."+Main.DS_EXTENSTION);
 	}
 
-	private boolean saveDataSourceFile(final File dataSourceFile , final String datasourcekey, final Map<String, Object> configuration,
+	private boolean saveDataSourceFile(final File dataSourceFile, final Map<String, Object> configuration,
 			final AsyncResponse asyncResponse) {
 		if(fileService.fileExists(dataSourceFile)) {
 			return respondWithError(asyncResponse, new Exception("The datasource key already exists"));
@@ -138,11 +138,11 @@ public class DataSourcesResource {
 			return deleteFileAndReturnErrorResponse(asyncResponse, dataSourceFile, e);
 		}
 		
-		return testConnection(asyncResponse, dataSourceFile, dataSourceName, dataSource);
+		return testConnection(asyncResponse, dataSourceFile, dataSource);
 	}
 
 	private boolean testConnection(final AsyncResponse asyncResponse, File dataSourceFile,
-			String dataSourceName, DataSource dataSource) {
+			DataSource dataSource) {
 		try(Connection connection = dataSource.getConnection()) {
 			connection.getCatalog();
 			return true;
@@ -211,13 +211,13 @@ public class DataSourcesResource {
 			if(!fileService.fileExists(dataSourceFile)) {
 				respondNotFound(asyncResponse);
 			} else {
-				if(removeDataSource(asyncResponse, dataSourceFile))
+				if(doRemoveDataSource(asyncResponse, dataSourceFile))
 					asyncResponse.resume(Response.noContent().build());
 			}
 		});
 	}
 
-	private boolean removeDataSource(final AsyncResponse asyncResponse, File dataSourceFile) {
+	private boolean doRemoveDataSource(final AsyncResponse asyncResponse, File dataSourceFile) {
 		return removeDataSourceFromService(asyncResponse, dataSourceFile) 
 				&& deleteFile(asyncResponse, dataSourceFile);
 	}

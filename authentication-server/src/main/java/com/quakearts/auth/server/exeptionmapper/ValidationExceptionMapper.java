@@ -14,7 +14,7 @@ public class ValidationExceptionMapper
 
 	@Override
 	public Response toResponse(ConstraintViolationException exception) {
-		ErrorResponse errorResponse = new ErrorResponse().setCodeAs("invalid-data");
+		ErrorResponse errorResponse = new ErrorResponse().withCodeAs("invalid-data");
 		for(ConstraintViolation<?> violation:exception.getConstraintViolations()) {
 			errorResponse.addExplanation(violation.getMessage());
 		}

@@ -52,8 +52,8 @@ public class AuthenticationResourceTest {
 	public void createCacheItems() {
 		if(!store.containsKey("66F96690A81BF8296FE7BF8BD56E3D10FA0A27AF87B709C9F4BF62266DA7800F")) {
 			store.put("66F96690A81BF8296FE7BF8BD56E3D10FA0A27AF87B709C9F4BF62266DA7800F", new Registration()
-					.setIdAs("66F96690A81BF8296FE7BF8BD56E3D10FA0A27AF87B709C9F4BF62266DA7800F")
-					.setAliasAs("test-main")
+					.withIdAs("66F96690A81BF8296FE7BF8BD56E3D10FA0A27AF87B709C9F4BF62266DA7800F")
+					.withAliasAs("test-main")
 					.createConfiguration()
 						.setNameAs("Test")
 							.createEntry()
@@ -74,8 +74,8 @@ public class AuthenticationResourceTest {
 		
 		if(!store.containsKey("05F01D5F71DAD94DB2F136027275C3CA5AE70D9226FA580A58EEAFB33A1C2FF9")) {
 			store.put("05F01D5F71DAD94DB2F136027275C3CA5AE70D9226FA580A58EEAFB33A1C2FF9", new Registration()
-				.setIdAs("05F01D5F71DAD94DB2F136027275C3CA5AE70D9226FA580A58EEAFB33A1C2FF9")
-				.setAliasAs("test-options")
+				.withIdAs("05F01D5F71DAD94DB2F136027275C3CA5AE70D9226FA580A58EEAFB33A1C2FF9")
+				.withAliasAs("test-options")
 				.createConfiguration()
 					.setNameAs("Test")
 						.createEntry()

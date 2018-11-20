@@ -55,7 +55,7 @@ public class Registration implements Serializable {
 		this.id = id;
 	}
 
-	public Registration setIdAs(String id) {
+	public Registration withIdAs(String id) {
 		setId(id);
 		return this;
 	}
@@ -68,7 +68,7 @@ public class Registration implements Serializable {
 		this.alias = alias;
 	}
 
-	public Registration setAliasAs(String alias) {
+	public Registration withAliasAs(String alias) {
 		setAlias(alias);
 		return this;
 	}

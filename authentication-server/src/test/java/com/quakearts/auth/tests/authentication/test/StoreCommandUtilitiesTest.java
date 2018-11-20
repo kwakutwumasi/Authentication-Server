@@ -29,8 +29,8 @@ public class StoreCommandUtilitiesTest {
 		impl.getSecretsCache().put("Secrets2", Integer.toHexString("Secrets2".hashCode()));
 		
 		impl.getCache().clear();
-		Registration registration1 = new Registration().setIdAs("YB293SJ")
-					.setAliasAs("Test1")
+		Registration registration1 = new Registration().withIdAs("YB293SJ")
+					.withAliasAs("Test1")
 					.createConfiguration()
 						.setNameAs("Test-Config1")
 						.createEntry()
@@ -40,8 +40,8 @@ public class StoreCommandUtilitiesTest {
 						.thenAdd()
 					.thenAdd();
 		
-		Registration registration2 = new Registration().setIdAs("YB283SJ")
-				.setAliasAs("Test1")
+		Registration registration2 = new Registration().withIdAs("YB283SJ")
+				.withAliasAs("Test1")
 				.createConfiguration()
 					.setNameAs("Test-Config1")
 					.createEntry()
@@ -51,8 +51,8 @@ public class StoreCommandUtilitiesTest {
 					.thenAdd()
 				.thenAdd();
 		
-		Registration registration3 = new Registration().setIdAs("YB593SJ")
-				.setAliasAs("Test1")
+		Registration registration3 = new Registration().withIdAs("YB593SJ")
+				.withAliasAs("Test1")
 				.createConfiguration()
 					.setNameAs("Test-Config1")
 					.createEntry()

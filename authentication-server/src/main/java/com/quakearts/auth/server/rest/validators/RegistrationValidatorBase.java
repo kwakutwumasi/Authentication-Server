@@ -47,14 +47,14 @@ public class RegistrationValidatorBase {
 	private boolean checkPeriod(Registration value, ConstraintValidatorContext context) {
 		if(value.getOptions().containsKey(JWTLoginModule.VALIDITY_PERIODPARAMETER)
 				&& checkPeriodValue(value.getOptions()
-				.get(JWTLoginModule.VALIDITY_PERIODPARAMETER), context)) {
+				.get(JWTLoginModule.VALIDITY_PERIODPARAMETER))) {
 			context.buildConstraintViolationWithTemplate("{validity.period.invalid}")
 			.addConstraintViolation();
 			return false;
 		}
 		if(value.getOptions().containsKey(JWTLoginModule.ACTIVATEAFTERPERIODPARAMETER)
 				&& checkPeriodValue(value.getOptions()
-				.get(JWTLoginModule.ACTIVATEAFTERPERIODPARAMETER), context)) {
+				.get(JWTLoginModule.ACTIVATEAFTERPERIODPARAMETER))) {
 			context.buildConstraintViolationWithTemplate("{activate.after.period.invalid}")
 			.addConstraintViolation();
 			return false;
@@ -62,7 +62,7 @@ public class RegistrationValidatorBase {
 		return true;
 	}
 	
-	private boolean checkPeriodValue(String value, ConstraintValidatorContext context) {
+	private boolean checkPeriodValue(String value) {
 		String[] expiresInStringParts = value.split("[\\s]+", 2);
 		return expiresInStringParts.length != 2 
 				|| expiresInStringParts[0].trim().isEmpty()

@@ -5,9 +5,9 @@ import static org.junit.Assert.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.NoSuchFileException;
 
 import javax.inject.Inject;
 import static org.hamcrest.core.Is.*;
@@ -42,7 +42,7 @@ public class FileServiceImplTest {
 	@Test
 	public void testSaveObjectToFile() throws Exception {
 		File file = File.createTempFile("test.file.", ".json");
-		Registration registration = new Registration().setIdAs("test");
+		Registration registration = new Registration().withIdAs("test");
 		serviceImpl.saveObjectToFile(registration, file);
 		
 		StringBuilder builder = new StringBuilder();
@@ -62,8 +62,8 @@ public class FileServiceImplTest {
 
 	@Test
 	public void testDeleteFileException() throws Exception {
-		expectedException.expect(IOException.class);
-		expectedException.expectMessage(is("File doesnotexist.txt could not be deleted"));
+		expectedException.expect(NoSuchFileException.class);
+		expectedException.expectMessage(is("doesnotexist.txt"));
 
 		serviceImpl.deleteFile(new File("doesnotexist.txt"));
 	}

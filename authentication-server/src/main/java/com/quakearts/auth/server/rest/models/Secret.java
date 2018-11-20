@@ -23,7 +23,7 @@ public class Secret {
 		this.key = key;
 	}
 
-	public Secret setKeyAs(String key) {
+	public Secret withKeyAs(String key) {
 		setKey(key);
 		return this;
 	}
@@ -36,7 +36,7 @@ public class Secret {
 		this.value = value;
 	}
 
-	public Secret setValueAs(String value) {
+	public Secret withValueAs(String value) {
 		setValue(value);
 		return this;
 	}

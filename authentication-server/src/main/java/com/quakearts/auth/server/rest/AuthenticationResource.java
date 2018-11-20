@@ -130,7 +130,7 @@ public class AuthenticationResource {
 			generateToken(clientId, pack, subject);
 			respondWithToken(asyncResponse, pack, subject);
 		} catch (LoginException e) {
-			respondWithError(asyncResponse, e);
+			respondWithError(asyncResponse);
 		}
 	}
 
@@ -146,9 +146,9 @@ public class AuthenticationResource {
 	private void authenticateCredentials(final String application, final String clientId, 
 			final String credential, AuthenticationPack pack, Subject subject)
 			throws LoginException {
-		LoginContext context = new LoginContext(application, subject, callbacks->{
-			handleCallbacks(clientId, credential, callbacks);
-		}, pack.getConfiguration());
+		LoginContext context = new LoginContext(application, subject, callbacks->
+			handleCallbacks(clientId, credential, callbacks)
+		, pack.getConfiguration());
 		context.login();
 	}
 
@@ -200,12 +200,12 @@ public class AuthenticationResource {
 				.iterator().next();
 		
 		asyncResponse.resume(new TokenResponse()
-				.setIdTokenAs(principal.getName())
-				.setTokenTypeAs("bearer")
-				.setExpiresInAs(pack.getExpiresIn()));
+				.withIdTokenAs(principal.getName())
+				.withTokenTypeAs("bearer")
+				.withExpiresInAs(pack.getExpiresIn()));
 	}
 
-	private void respondWithError(AsyncResponse asyncResponse, Exception e) {
+	private void respondWithError(AsyncResponse asyncResponse) {
 		asyncResponse.resume(new WebApplicationException(Response.status(Status.BAD_REQUEST)
 				.entity(errorService.createErrorResponse("invalid-credentials",
 						"The provided credentials could not be authenticated")).build()));

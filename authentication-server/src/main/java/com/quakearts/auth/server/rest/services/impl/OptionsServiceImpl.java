@@ -37,14 +37,14 @@ public class OptionsServiceImpl implements OptionsService {
 	private final Map<String, String> defaultOptions = getDefault();
 
 	private Map<String, String> getDefault() {
-		Map<String, String> defaultOptions = new HashMap<>();
-		defaultOptions.put("algorithm", HMac.HSAlgorithmType.HS256.toString());
-		defaultOptions.put("secret", generateRandom());
-		defaultOptions.put("issuer", "https://quakearts.com");
-		defaultOptions.put("audience", "https://quakearts.com");
-		defaultOptions.put("validity.period", "15 Minutes");
-		defaultOptions.put("grace.period", "1");
-		return Collections.unmodifiableMap(defaultOptions);
+		Map<String, String> options = new HashMap<>();
+		options.put("algorithm", HMac.HSAlgorithmType.HS256.toString());
+		options.put("secret", generateRandom());
+		options.put("issuer", "https://quakearts.com");
+		options.put("audience", "https://quakearts.com");
+		options.put("validity.period", "15 Minutes");
+		options.put("grace.period", "1");
+		return Collections.unmodifiableMap(options);
 	}
 	
 	private String generateRandom() {
@@ -52,14 +52,11 @@ public class OptionsServiceImpl implements OptionsService {
 		SecureRandom random = new SecureRandom();
 		while (randomString.length()<32) {
 			int charOrSymbol = random.nextInt(4);			
-			switch (charOrSymbol) {
-			case 3:
+			if(charOrSymbol == 3) {
 				int set = random.nextInt(symbolSet.length);
 				generateRandomChar(randomString, random, symbolSet[set]);
-				break;
-			default:
+			} else {
 				generateRandomChar(randomString, random, charSet[charOrSymbol]);
-				break;
 			}
 		}
 		return randomString.substring(0, 32);

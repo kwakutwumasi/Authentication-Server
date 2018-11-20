@@ -25,7 +25,7 @@ public class TokenResponse implements Serializable {
 		this.tokenType = tokenType;
 	}
 	
-	public TokenResponse setTokenTypeAs(String tokenType) {
+	public TokenResponse withTokenTypeAs(String tokenType) {
 		setTokenType(tokenType);
 		return this;
 	}
@@ -38,7 +38,7 @@ public class TokenResponse implements Serializable {
 		this.expiresIn = expiresIn;
 	}
 	
-	public TokenResponse setExpiresInAs(long expiresIn) {
+	public TokenResponse withExpiresInAs(long expiresIn) {
 		setExpiresIn(expiresIn);
 		return this;
 	}
@@ -51,7 +51,7 @@ public class TokenResponse implements Serializable {
 		this.idToken = idToken;
 	}
 
-	public TokenResponse setIdTokenAs(String idToken) {
+	public TokenResponse withIdTokenAs(String idToken) {
 		setIdToken(idToken);
 		return this;
 	}

@@ -10,7 +10,7 @@ public class AuthenticationPack {
 	long expiresIn;
 	
 	public AuthenticationPack(Registration registration) {
-		configuration = new com.quakearts.auth.server.rest.models.Configuration(registration);
+		configuration = new com.quakearts.auth.server.rest.models.AuthConfiguration(registration);
 		moduleOptions = registration.getOptions();
 		String expiresInString = registration.getOptions().get("validity.period");
 		String[] expiresInStringParts = expiresInString.split("[\\s]+", 2);		

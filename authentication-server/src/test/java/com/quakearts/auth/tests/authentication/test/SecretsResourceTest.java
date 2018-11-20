@@ -48,8 +48,8 @@ public class SecretsResourceTest {
 	@Test
 	public void testAddListAllRemoveSecretKeys() throws Exception {
 		AsyncResponse asyncResponse = getOrCreateAsyncResponse();
-		secretsResource.addSecret(new Secret().setKeyAs("{database.password}")
-				.setValueAs("HJsm;w92N(uds-aSsm"), asyncResponse);
+		secretsResource.addSecret(new Secret().withKeyAs("{database.password}")
+				.withValueAs("HJsm;w92N(uds-aSsm"), asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
 		
 		secretsResource.listAllSecretKeys(asyncResponse);
@@ -78,20 +78,20 @@ public class SecretsResourceTest {
 		}
 
 		try {
-			secretsResource.addSecret(new Secret().setKeyAs("{key}"), asyncResponse);
+			secretsResource.addSecret(new Secret().withKeyAs("{key}"), asyncResponse);
 			fail("Violation was not thrown");
 		} catch (ConstraintViolationException e) {
 		}
 		
 		try {
-			secretsResource.addSecret(new Secret().setValueAs("value"), asyncResponse);
+			secretsResource.addSecret(new Secret().withValueAs("value"), asyncResponse);
 			fail("Violation was not thrown");
 		} catch (ConstraintViolationException e) {
 		}
 
 		try {
-			secretsResource.addSecret(new Secret().setKeyAs("key")
-					.setValueAs("value"), asyncResponse);
+			secretsResource.addSecret(new Secret().withKeyAs("key")
+					.withValueAs("value"), asyncResponse);
 			fail("Violation was not thrown");
 		} catch (ConstraintViolationException e) {
 		}
