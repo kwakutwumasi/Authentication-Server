@@ -13,19 +13,21 @@ import com.quakearts.utilities.annotation.CommandMetadata;
 import com.quakearts.utilities.annotation.CommandParameterMetadata;
 import com.quakearts.utilities.exception.CommandParameterException;
 
-@CommandMetadata(value="server-store", description="Utility for reading authentication server store contents",
-		parameters= {@CommandParameterMetadata(value="store", alias="s",
+@CommandMetadata(value="storeutilities", description="Utility for reading authentication server store contents",
+		parameters= {@CommandParameterMetadata(value=StoreCommandUtilities.STORE, alias="s",
+			format="storename",
 			description="The store to read. Must be one of Registrations, Aliases and Secrets"),
-		@CommandParameterMetadata(value="list", alias="l",
-			format="one of all|key|value", description="the data to show"),
-		@CommandParameterMetadata(value="key", alias="k",
-			linkedParameters="store",
+		@CommandParameterMetadata(value=StoreCommandUtilities.LIST, alias="l",
+			format="all|key|value", description="One of all, key or value. The type of data to show."
+					+ " all lists key and value pairs. key lists only keys. value lists only values"),
+		@CommandParameterMetadata(value=StoreCommandUtilities.KEY, alias="k",
+			linkedParameters="store", format="keyname",
 			description="The key of the entry to display")})
 public class StoreCommandUtilities implements Command {
 	
-	private static final String STORE = "store";
-	private static final String KEY = "key";
-	private static final String LIST = "list";
+	protected static final String STORE = "store";
+	protected static final String KEY = "key";
+	protected static final String LIST = "list";
 	private Map<String, CommandParameter> commandParameterMap;
 	private boolean indent = false;
 	private RegistryStoreManagerImpl impl = new RegistryStoreManagerImpl();
