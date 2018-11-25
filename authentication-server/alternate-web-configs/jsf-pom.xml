@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.b_one.microservices</groupId>
+	<groupId>com.quakearts.auth.server</groupId>
 	<artifactId>authentication-server</artifactId>
 	<version>0.0.1</version>
 	<build>
@@ -23,7 +23,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>repo</classpathPrefix>
 							<classpathLayoutType>repository</classpathLayoutType>
-							<mainClass>com.b_one.microservices.Main</mainClass>
+							<mainClass>com.b1africa.microservices.Main</mainClass>
 						</manifest>
 						<manifestEntries>
 							<Class-Path>etc/</Class-Path>
@@ -40,11 +40,11 @@
 					<programs>
 						<program>
 							<id>webapp</id>
-							<mainClass>com.b_one.microservices.Main</mainClass>
+							<mainClass>com.b1africa.microservices.Main</mainClass>
 						</program>
 						<program>
 							<id>webapptest</id>
-							<mainClass>com.b_one.microservices.Main</mainClass>
+							<mainClass>com.b1africa.microservices.Main</mainClass>
 							<jvmSettings>
 								<extraArgument>-agentlib:jdwp=transport=dt_socket,address=localhost:4000,server=y,suspend=y</extraArgument>
 							</jvmSettings>
