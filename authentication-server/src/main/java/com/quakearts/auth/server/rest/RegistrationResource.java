@@ -31,6 +31,7 @@ import com.quakearts.auth.server.store.annotation.AliasStore;
 import com.quakearts.auth.server.store.annotation.RegistryStore;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -55,6 +56,17 @@ public class RegistrationResource {
 	
 	@Inject
 	private AuthenticationResource authenticationResource;
+	
+	@Operation(summary="List all aliases registered on the server")
+	@ApiResponse(responseCode="200",
+	 description="The aliases were successfully listed",
+	 content=@Content(array=@ArraySchema(schema=@Schema(implementation=String.class))))
+	@GET
+	public void getAllAliases(@Suspended final AsyncResponse asyncResponse) {
+		CompletableFuture.runAsync(()->{
+			asyncResponse.resume(aliases.keySet());
+		});
+	}
 	
 	@Operation(summary="Read the configuration values of a registered application.")
 	@ApiResponse(responseCode="200",

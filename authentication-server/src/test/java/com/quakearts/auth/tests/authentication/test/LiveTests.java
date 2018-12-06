@@ -116,6 +116,11 @@ public class LiveTests {
 		assertThat(registration.getOptions().get("validity.period"), is("15 Minutes"));
 		assertThat(registration.getOptions().get("secret"), is("1234567890"));
 		
+		List<String> aliasesList = client.getAllAliases();
+		assertThat(aliasesList.isEmpty(), is(false));
+		assertThat(aliasesList.size(), is(1));
+		assertThat(aliasesList.contains("test-rest"), is(true));
+		
 		client.update("test-rest", new Registration()
 						.setAliasAs("test-rest")
 						.addOption("secret", "W@h8237HksIhfmsd2Nl94WNCA")

@@ -45,6 +45,8 @@ public class RegistrationResourceTest {
 	private final ArrayBlockingQueue<Registration> registrations = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<Response> responses = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<ErrorResponse> errorResponses = new ArrayBlockingQueue<>(1);
+	private final ArrayBlockingQueue<Set<String>> aliasesResponses = new ArrayBlockingQueue<>(1);
+	
 	private AsyncResponse asyncResponse;
 	
 	@Rule
@@ -98,8 +100,14 @@ public class RegistrationResourceTest {
 		assertThat(registration.getOptions().get("validity.period"), is("15 Minutes"));
 		assertThat(registration.getOptions().get("grace.period"), is("1"));
 
-		errorResponses.clear();
+		registrationResource.getAllAliases(asyncResponse);
+		Set<String> aliasesResponse = aliasesResponses.take();
 		
+		assertThat(aliasesResponse.isEmpty(), is(false));
+		assertThat(aliasesResponse.size(), is(1));
+		assertThat(aliasesResponse.contains("test-register-alias-1"), is(true));
+		
+		errorResponses.clear();
 		registrationResource.register(registration, asyncResponse);
 		ErrorResponse actualErrorResponse = errorResponses.take();
 		assertThat(actualErrorResponse.getCode(), is("existing-id"));
@@ -232,6 +240,9 @@ public class RegistrationResourceTest {
 							registrations.put(arguments.get(0));
 						if(arguments.get(0) instanceof Response)
 							responses.put(arguments.get(0));
+						if(arguments.get(0) instanceof Set)
+							aliasesResponses.put(arguments.get(0));
+							
 						return true;
 					})
 					.mock("toString").withEmptyMethod(()->"AsyncResponse").thenBuild();

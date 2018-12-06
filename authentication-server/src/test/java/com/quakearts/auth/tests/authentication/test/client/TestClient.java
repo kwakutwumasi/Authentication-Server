@@ -47,6 +47,18 @@ public class TestClient extends HttpClient {
 		}
 	}
 	
+	public List<String> getAllAliases() 
+			throws IOException, HttpClientException {
+		httpResponse = sendRequest("/registration", 
+				null, HttpVerb.GET, null);
+		if(httpResponse.getHttpCode()==200) {
+			return objectMapper.readValue(httpResponse.getOutput(), 
+					new TypeReference<List<String>>() {});
+		} else {
+			throw processError(httpResponse);
+		}
+	}
+	
 	public Registration getById(String id) throws IOException, HttpClientException {
 		httpResponse = sendRequest("/registration/"+id, 
 				null, HttpVerb.GET, null);
