@@ -1,6 +1,5 @@
 package com.quakearts.auth.server.rest;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
@@ -8,7 +7,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,7 +22,6 @@ import com.quakearts.auth.server.rest.models.Secret;
 import com.quakearts.auth.server.store.annotation.SecretsStore;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -36,16 +33,6 @@ public class SecretsResource {
 	
 	@Inject @SecretsStore
 	private Cache<String, String> secretStore;
-	
-	@Operation(summary="List all keys for secrets")
-	@ApiResponse(responseCode="200", 
-		description="The request was successful",
-		content=@Content(array=@ArraySchema(
-				schema=@Schema(implementation=String.class, description="The key for a secret value"))))
-	@GET
-	public void listAllSecretKeys(@Suspended AsyncResponse asyncResponse){
-		CompletableFuture.runAsync(()->asyncResponse.resume(new ArrayList<>(secretStore.keySet())));
-	}
 	
 	@Operation(summary="Store a secret key and value",
 				requestBody=@RequestBody(content=

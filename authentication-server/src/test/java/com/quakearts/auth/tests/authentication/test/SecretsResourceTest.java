@@ -2,8 +2,8 @@ package com.quakearts.auth.tests.authentication.test;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsNull.*;
 
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +30,6 @@ public class SecretsResourceTest {
 	@Rule
 	public Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
 
-	private final ArrayBlockingQueue<List<String>> secretKeys = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<Response> responses = new ArrayBlockingQueue<>(1);
 	private AsyncResponse asyncResponse;
 
@@ -52,14 +51,12 @@ public class SecretsResourceTest {
 				.withValueAs("HJsm;w92N(uds-aSsm"), asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
 		
-		secretsResource.listAllSecretKeys(asyncResponse);
-		assertThat(secretKeys.take().contains("{database.password}"), is(true));
+		assertThat(secrets.get("{database.password}"), is("HJsm;w92N(uds-aSsm"));
 		
 		secretsResource.removeKey("{database.password}", asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
 
-		secretsResource.listAllSecretKeys(asyncResponse);
-		assertThat(secretKeys.take().isEmpty(), is(true));
+		assertThat(secrets.get("{database.password}"), is(nullValue()));
 	}
 	
 	@Test
@@ -101,8 +98,6 @@ public class SecretsResourceTest {
 		if(asyncResponse == null)
 			asyncResponse = MockingProxyBuilder.createMockingInvocationHandlerFor(AsyncResponse.class)
 					.mock("resume(Object)").with(arguments->{
-						if(arguments.get(0) instanceof List)
-							secretKeys.put(arguments.get(0));
 						if(arguments.get(0) instanceof Response)
 							responses.put(arguments.get(0));
 						return true;

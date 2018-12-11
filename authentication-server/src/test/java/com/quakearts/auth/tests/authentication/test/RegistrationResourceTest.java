@@ -42,7 +42,6 @@ import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 
 @RunWith(MainRunner.class)
 public class RegistrationResourceTest {
-	private final ArrayBlockingQueue<Registration> registrations = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<Response> responses = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<ErrorResponse> errorResponses = new ArrayBlockingQueue<>(1);
 	private final ArrayBlockingQueue<Set<String>> aliasesResponses = new ArrayBlockingQueue<>(1);
@@ -73,7 +72,6 @@ public class RegistrationResourceTest {
 	
 	@Test
 	public void testRegisterGetByIdUpdateRegistrationUnregister() throws Exception {
-		registrations.clear();
 		AsyncResponse asyncResponse = getOrCreateAsyncResponse();
 		
 		Registration registration = new Registration()
@@ -89,8 +87,7 @@ public class RegistrationResourceTest {
 		
 		registrationResource.register(registration, asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
-		registrationResource.getById("test-register-1", asyncResponse);
-		Registration gottenRegistration = registrations.take();
+		Registration gottenRegistration = store.get("test-register-1");
 		assertThat(gottenRegistration, is(registration));
 		assertThat(aliases.get("test-register-alias-1"), is("test-register-1"));
 		assertThat(registration.getOptions().get("algorithm"), is("HS256"));
@@ -177,8 +174,7 @@ public class RegistrationResourceTest {
 		
 		registrationResource.updateRegistration("test-register-1", updateRegistration, asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
-		registrationResource.getById("test-register-1", asyncResponse);
-		gottenRegistration = registrations.take();
+		gottenRegistration = store.get("test-register-1");
 		assertThat(registration, is(not(updateRegistration)));
 		assertThat(gottenRegistration, is(updateRegistration));
 		
@@ -219,11 +215,6 @@ public class RegistrationResourceTest {
 		
 		registrationResource.unregister("test-register-1", asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
-		registrationResource.getById("test-register-1", asyncResponse);
-		actualErrorResponse = errorResponses.take();
-		assertThat(actualErrorResponse.getCode(), is("invalid-id"));
-		assertThat(actualErrorResponse.getExplanations()
-				.contains("A registration with the provided ID could not be found"), is(true));
 		assertThat(aliases.containsKey("test-register-changed-alias"), is(false));
 	}
 	
@@ -236,8 +227,6 @@ public class RegistrationResourceTest {
 						return true;
 					})
 					.mock("resume(Object)").with(arguments->{
-						if(arguments.get(0) instanceof Registration)
-							registrations.put(arguments.get(0));
 						if(arguments.get(0) instanceof Response)
 							responses.put(arguments.get(0));
 						if(arguments.get(0) instanceof Set)
@@ -248,18 +237,6 @@ public class RegistrationResourceTest {
 					.mock("toString").withEmptyMethod(()->"AsyncResponse").thenBuild();
 		
 		return asyncResponse;
-	}
-	
-	@Test
-	public void testGetByIdNotFound() throws Exception {
-		errorResponses.clear();
-		AsyncResponse response = getOrCreateAsyncResponse();
-		
-		registrationResource.getById("test-not-found", response);
-		ErrorResponse actualErrorResponse = errorResponses.take();
-		assertThat(actualErrorResponse.getCode(), is("invalid-id"));
-		assertThat(actualErrorResponse.getExplanations()
-				.contains("A registration with the provided ID could not be found"), is(true));
 	}
 
 	@Test

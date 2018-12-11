@@ -67,59 +67,6 @@ public class RegistrationResource {
 			asyncResponse.resume(aliases.keySet());
 		});
 	}
-	
-	@Operation(summary="Read the configuration values of a registered application.")
-	@ApiResponse(responseCode="200",
-				 description="The id was found and has been retrieved",
-				 content=@Content(schema=@Schema(implementation=Registration.class, 
-				 								 description="A JSON Object containing the configuration values",
-				 								 example="{\n" + 
-				 								 		"   \"id\":\"9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08\",\n" + 
-				 								 		"   \"alias\":\"test-rest\",\n" + 
-				 								 		"   \"configurations\":[\n" + 
-				 								 		"      {\n" + 
-				 								 		"         \"name\":\"Test\",\n" + 
-				 								 		"         \"entries\":[\n" + 
-				 								 		"            {\n" + 
-				 								 		"               \"moduleClassname\":\"com.quakearts.auth.server.test.TestLoginModule\",\n" + 
-				 								 		"               \"moduleFlag\":\"REQUIRED\",\n" + 
-				 								 		"               \"options\":{\n" + 
-				 								 		"                  \"test\":\"value\"\n" + 
-				 								 		"               }\n" + 
-				 								 		"            }\n" + 
-				 								 		"         ]\n" + 
-				 								 		"      }\n" + 
-				 								 		"   ],\n" + 
-				 								 		"   \"options\":{\n" + 
-				 								 		"      \"audience\":\"https://demo.quakearts.com\",\n" + 
-				 								 		"      \"validity.period\":\"1 Day\",\n" + 
-				 								 		"      \"secret\":\"W@h8237HksIhfmsd2Nl94WNCA\",\n" + 
-				 								 		"      \"issuer\":\"https://quakearts.com\"\n" + 
-				 								 		"   }\n" + 
-				 								 		"}")))
-	@ApiResponse(responseCode="404",
-				description="Authentication ID is not valid",
-				content=@Content(schema=@Schema(
-						implementation=com.quakearts.auth.server.rest.models.ErrorResponse.class,
-				description="A JSON object describing and explaining the error",
-				example="{\n" + 
-						"    \"code\": \"invalid-id\",\n" + 
-						"    \"explanations\": [\n" + 
-						"        \"A registration with the provided ID could not be found\"\n" + 
-						"    ]\n" + 
-						"}")))
-	@GET
-	@Path("{id}")
-	public void getById(@PathParam("id") final String id, @Suspended final AsyncResponse asyncResponse) {
-		CompletableFuture.runAsync(()->{
-			Registration registration = store.get(id);
-			if(registration==null) {
-				respondNotFound(asyncResponse);
-			} else {
-				asyncResponse.resume(registration);
-			}
-		});
-	}
 
 	private void respondNotFound(final AsyncResponse asyncResponse) {
 		asyncResponse.resume(new WebApplicationException(Response.status(Status.NOT_FOUND)

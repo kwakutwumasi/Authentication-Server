@@ -69,26 +69,21 @@ public class LiveTests {
 		assertThat(client.getHttpResponse().getHeader("Access-Control-Allow-Headers"),
 				is("*"));
 		
-		List<String> keys = client.listSecretValues();
-		
-		assertThat(keys.size(), is(1));
-		assertThat(keys.contains("{secret}"), is(true));
+		assertThat(secrets.size(), is(1));
+		assertThat(secrets.get("{secret}"), is("1234567890"));
 		
 		client.addSecretValue(new Secret().withKeyAs("{secret.two}")
 				.withValueAs("0987654321"));
 		
-		keys = client.listSecretValues();
-		
-		assertThat(keys.size(), is(2));
-		assertThat(keys.contains("{secret}"), is(true));
-		assertThat(keys.contains("{secret.two}"), is(true));
+		assertThat(secrets.size(), is(2));
+		assertThat(secrets.get("{secret}"), is("1234567890"));
+		assertThat(secrets.get("{secret.two}"), is("0987654321"));
 		
 		client.removeSecretValue("{secret.two}");
 		
-		keys = client.listSecretValues();
-		
-		assertThat(keys.size(), is(1));
-		assertThat(keys.contains("{secret}"), is(true));
+		assertThat(secrets.size(), is(1));
+		assertThat(secrets.get("{secret}"), is("1234567890"));
+		assertThat(secrets.get("{secret.two}"), is(nullValue()));
 		
 		client.register(new Registration()
 				.setIdAs("test-rest")
@@ -103,7 +98,7 @@ public class LiveTests {
 					.thenAdd()
 				.thenAdd());
 		
-		Registration registration = client.getById("test-rest");
+		com.quakearts.auth.server.rest.models.Registration registration = store.get("test-rest");
 		assertThat(registration.getAlias(), is("test-rest"));
 		assertThat(registration.getId(), is("test-rest"));
 		assertThat(registration.getConfigurations().get(0).getName(), is("Test"));
@@ -133,7 +128,7 @@ public class LiveTests {
 							.thenAdd()
 						.thenAdd());
 		
-		registration = client.getById("test-rest");
+		registration = store.get("test-rest");
 		assertThat(registration.getOptions().get("secret"), is("W@h8237HksIhfmsd2Nl94WNCA"));
 
 		TokenResponse response = client.authenticate(new AuthenticationRequest()
@@ -153,14 +148,7 @@ public class LiveTests {
 		
 		client.delete("test-rest");
 		
-		try {
-			client.getById("test-rest");
-			fail("did not throw exception");
-		} catch (TestClientException e) {
-			assertThat(e.getErrorResponse().getCode(), is("invalid-id"));
-			assertThat(e.getErrorResponse().getExplanations()
-					.contains("A registration with the provided ID could not be found"), is(true));
-		}
+		assertThat(store.get("test-rest"), is(nullValue()));
 		
 		Map<String, Object> configuration = new HashMap<>();
 		configuration.put("jndi.name","MyLiveDs");

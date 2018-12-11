@@ -59,34 +59,11 @@ public class TestClient extends HttpClient {
 		}
 	}
 	
-	public Registration getById(String id) throws IOException, HttpClientException {
-		httpResponse = sendRequest("/registration/"+id, 
-				null, HttpVerb.GET, null);
-		
-		if(httpResponse.getHttpCode()==200) {
-			return objectMapper.readValue(httpResponse.getOutput(), Registration.class);
-		} else {
-			throw processError(httpResponse);
-		}
-	}
-	
 	public void addSecretValue(Secret secret) throws IOException, HttpClientException {
 		httpResponse = sendRequest("/secrets", objectMapper
 				.writeValueAsString(secret), HttpVerb.PUT, "application/json");
 		
 		if(httpResponse.getHttpCode()>299) {
-			throw processError(httpResponse);
-		}
-	}
-	
-	TypeReference<List<String>> reference = new TypeReference<List<String>>() {};
-	
-	public List<String> listSecretValues() throws IOException, HttpClientException {
-		httpResponse = sendRequest("/secrets", null, HttpVerb.GET, null);
-		
-		if(httpResponse.getHttpCode() == 200) {
-			return objectMapper.readValue(httpResponse.getOutput(), reference);
-		} else {
 			throw processError(httpResponse);
 		}
 	}
