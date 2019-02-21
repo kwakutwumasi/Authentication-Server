@@ -1,6 +1,0 @@
-{
-	"jndi.name":"    ",
-	"driverClassName":"org.apache.derby.jdbc.EmbeddedDriver",
-	"url":"jdbc:derby:testDS",
-	"connectionProperties":"create=true;"
-}

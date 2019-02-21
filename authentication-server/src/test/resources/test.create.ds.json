@@ -1,6 +1,0 @@
-{
-	"jndi.name":"MainDS2",
-	"driverClassName":"org.apache.derby.jdbc.EmbeddedDriver",
-	"url":"jdbc:derby:mainDS2",
-	"connectionProperties":"create=true;"
-}
