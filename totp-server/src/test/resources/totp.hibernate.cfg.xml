@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+                                         "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.connection.datasource">java:/jdbc/TOTPDS</property>
+		<property name="hibernate.dialect">org.hibernate.dialect.DerbyTenSixDialect</property>
+		<property name="hibernate.transaction.jta.platform">com.quakearts.webapp.hibernate.appbase.AppBaseJTAPlatform</property>
+		<property name="hibernate.transaction.coordinator_class">jta</property>
+		<property name="com.quakearts.cryptoname">main</property>
+		<property name="hibernate.bytecode.use_reflection_optimizer">true</property>
+		<property name="com.quakearts.cryptoname">totp</property>
+		<mapping class="com.quakearts.auth.server.totp.model.Administrator" />
+		<mapping class="com.quakearts.auth.server.totp.model.Alias" />
+		<mapping class="com.quakearts.auth.server.totp.model.Device" />
+	</session-factory>
+</hibernate-configuration>

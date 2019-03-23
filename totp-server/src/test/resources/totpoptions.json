@@ -1,0 +1,17 @@
+{
+	"data.store.name":"totp",
+	"mac.algorithm":"HmacSHA256",
+	"mac.provider":"SunJCE",
+	"otp.length":6,
+	"seed.length":32,
+	"secure.random.instance":"SHA1PRNG",
+	"secure.random.provider":"SUN",
+	"time.step":5,
+	"grace.period":1,
+	"max.attempts":3,
+	"lockout.time":30000,
+	"installed.administrators":{
+		"map":{"testadministrator1":"Adminstrator 1","testadministrator2":"Adminstrator 2"}
+	},
+	"count.query":"SELECT COUNT(ID) AS TOTAL FROM DEVICE"
+}

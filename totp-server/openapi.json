@@ -1,0 +1,1032 @@
+{
+  "openapi" : "3.0.1",
+  "info": {
+    "title": "TOTP Server API",
+    "description": "# TOTP-Server \r\n A Server implementing time based one time PINs (TOTP's) as described in [RFC 6238](https://tools.ietf.org/html/rfc6238). It can be integrated into Authentication Server with some minor adjustments, or deployed as a standalone service using QA-Appbase or any fully certified JEE 7 server. \r\n  \r\n ### Operation \r\n  \r\n The server has a REST interface for management and provisioning. The management interface allows administrators to  \r\n * create device aliases, \r\n * lock and unlock devices,  \r\n * create additional administrator devices, and \r\n * deactivate devices \r\n  \r\n ### Devices \r\n  \r\n A device is defined as any software or hardware capable of generating tokens using the [RFC 6238](https://tools.ietf.org/html/rfc6238) algorithm. The HMAC algorithm and expected length must be set to the same values, or else tokens will not match. An example Android Implementation is provided in a separate project. \r\n  \r\n Devices must be provisioned before usage. Provisioning involves the generation of a cryptographic seed and the initial counter. These are transmitted to the device for secure storage over a secure communication channel. \r\n  \r\n Once provisioned, a device must be activated by sending a generated token to the server. The server validates the token and sets the device to active. The device can then be authenticated by the server with a new time based token. \r\n  \r\n The devices provide their own ID's during provisioning. ID's are checked for uniqueness, and as such it is important to use unique identifiers. An example of a unique identifier would be the Android Device ID or the IMIE number (for smartphones). Device creators should take this into account when programming their device for provisioning. The sample application uses the Android Device ID as the unique identifier. \r\n  \r\n ### Aliases \r\n  \r\n Aliases can be used to associate an application specific identifier to a device.  \r\n As an example a bank may want its customers to log on to an Internet Banking platform using a bank account numbers. If the device ID in use is not the same as this account number, clients would have to enter the device id during login. The account number can be setup on the TOTP server as an alias for the customer specific device. During authentication, the account number can be used in place of the device id. The server will look for the device record using the alias. \r\n  \r\n Multiple aliases can be assigned to a single device.  \r\n  \r\n Aliases must be unique. \r\n  \r\n ### The TOTPLoginModule \r\n  \r\n The TOTPLoginModule is a Java Authentication and Authorization Service (JAAS) module. It can be used by any system that supports the usage of JAAS login modules. The Authentication Server is one such service. \r\n  \r\n The module has no required setup parameters.  \r\n  \r\n Optional parameters are  \r\n  \r\n ``` \r\n totp.rolename - This parameter is for use in JAAS modules that are  \r\n  integrated with Jboss/Wildfly's authentication system. All roles are  \r\n  grouped within a java.security.acl.Group with a specific name. This  \r\n  defaults to Roles \r\n  \r\n use_first_pass - A string that evaluates to the Boolean value of true or  \r\n  false. If true, and multiple modules are used, it will attempt to use the  \r\n  username and password from the previous module, if any, rather than  \r\n  perform a callback \r\n   \r\n totp.defaultroles - A comma separated list of the default roles to  \r\n  assign to all authenticated subjects \r\n   \r\n ``` \r\n  \r\n ### Encryption \r\n  \r\n The server uses encryption to store seeds and other security values in a database. See QA-Crypto for more information on how to setup encryption. \r\n  \r\n For the highest level of security, a Hardware Security Module (HSM) should be used. Any HSM that provides a Java Cryptography Extension (JCE) module can be used with QA-Crypto. A HSM will protect the encryption keys from being pulled off the server, ensuring that only authorized applications on the server can encrypt and decrypt secured information. \r\n  \r\n ### Security Features \r\n  \r\n Aside from encryption the server has some security features to prevent tampering. \r\n  \r\n To protect against device ID switching, an encrypted check value is stored in the database. This check value is verified each time the device is retrieved. If an attacker manages to gain access to the database and tries to switch their device ID with that of a target, they would need to generate and encrypt the check value. If the encryption key is stored securely, this will not be feasible. \r\n  \r\n The same protection exists for aliases and administrator accounts. This  \r\n  \r\n ### Setup and Configuration \r\n  \r\n ###### Using Authentication Server \r\n  \r\n The libraries for the TOTP server must be included in the Authentication Server class path. Since Authentication Server uses the QA-Appbase, the basic platform for running the login module is in place. Authentication Server uses JAX-RS to provide its interface. The web server within Authentication Server will automatically load the REST interfaces for TOTP.  \r\n  \r\n The server will require an implementation of QA-ORM, specifically a Java Persistent Architecture compatible implementation. Non JPA implementations will work. However they must support transparent encryption and decryption of the secured fields, using QA-Crypto's _com.quakearts.security.cryptography.jpa.EncryptedValueConverter_ and _com.quakearts.security.cryptography.jpa.EncryptedValueStringConverter_.  \r\n  \r\n The reference implementation uses QA-ORM-Hibernate as its ORM implementation. QA-ORM-Hibernate requires a Java Connectivity Architecure (JCA) datasource. Since Authentication server excludes these libraries, they would need to be explicitly added. The Java Transacton Architecture (JTA) libraries can also be added to simplify transaction management. \r\n  \r\n Two other files need to be on the classpath: \r\n 1. login.config - this is a JAAS login configuration for authenticating tokens used to access the management interface. It must be configured with an appropriate _com.quakearts.webapp.security.auth.JWTLoginModule_ named 'TOTP-JWT-Login'. See QA-Auth for more information on configuring _JWTLoginModule_. \r\n  \r\n 2. totpoptions.json - This file contains important setup information for the TOTP server: \r\n  \r\n ``` \r\n data.store.name - The name of the QA-ORM datastore for the TOTP server \r\n mac.algorithm - The specific HMAC algorithm to use to generate the tokens  \r\n mac.provider - The JCE provider of the MAC generation algorithm \r\n otp.length - the OTP string length \r\n seed.length - the length of the seed to generate, in bytes. It must be appropriate for the selected MAC algorithm \r\n secure.random.instance - The secure random instance to use when generating the seed \r\n secure.random.provider - the JCE provider of the secure random instance \r\n time.step - the amount of time in seconds that the token is valid for \r\n grace.period - the amount time in seconds to consider tokens generated in the previous time step. This is to allow for network latency and un-syncronized clocks \r\n max.attempts - the maximum number of tries before a device is locked \r\n lockout.time - the amount of time, in microseconds before the lockout tries are reset. If a device has been locked, the reset will have no effect. \r\n installed.administrators - the initial list of device administrators. These must be setup prior to server initiation and prior to provisioning of the devices. \r\n count.query - The SQL server query to use to when pulling the total device count (Only necessary for SQL server based QA-ORM implementations) \r\n  \r\n ``` \r\n  \r\n ###### Setup Notes \r\n  \r\n Prior to the first server initialization, a minimum of two (2) devices must be selected as administrators. One device is used to create records. The other is used to approve the record creation.  \r\n  \r\n The selected devices will need to generate device ID's prior to provisioning. These device ID's are configured in the applications setup file _totpoptions.json_ in the 'installed.administrators' section of the configuration. Below is an example of the entries:  \r\n  \r\n ``` \r\n 	'installed.administrators':{ \r\n 		'map':{'testadministrator1':'Adminstrator 1','testadministrator2':'Adminstrator 2'} \r\n 	} \r\n ``` \r\n  \r\n The map key is the device ID and the value is the name given to that device. It should be descriptive such as 'Kofi Babone's iPhone 6S' or 'John Smith's Samsung Galaxy 5' to make it easy for administrators to know the owner and the specific device. \r\n  \r\n Once this and other parameters have been set, the server can be started and the administrator device provisioned. The devices will be added to the set of administrator devices during provisioning. \r\n  \r\n It is important to follow these steps in order. Failing to do so, the TOTP server will not have any administrator devices, and any modification to the system through the Management interface will be impossible. \r\n  \r\n ### The API \r\n  \r\n The API is divided into four Operations: \r\n  \r\n 1. Provisioning Operations \r\n 2. Security Operations \r\n 3. Management Operations \r\n 4. Report Operations \r\n  \r\n ###### API flow for Provisioning \r\n  \r\n A call is made to the [/provision](#/Provisioning%20Operations/provision) endpoint to create a device. The ProvisioningResponse returned will contain the secret seed and the initial counter for the device. The secret seed is a Hex-Encoded String of the secret seed bytes. \r\n A call is made to the [/activate](#/Provisioning%20Operations/activate) endpoint with the first generated token. Once the token is verified, the device will be activated, and can be used for authentication. \r\n The [/sync](#/Provisioning%20Operations/synchronize) endpoint can be used to verify that the device time is in sync with the server time, ensuring that TOTP tokens will match, as long as all other parameters are equal. \r\n  \r\n ###### API flow for Management Operations \r\n  \r\n All Management Operations need at least one authorization to execute. The first authorization is a Json Web Token (JWT). This is an encrypted token generated by calling the [/login](#/Security%20Operations/login) endpoint with the device ID or alias of an administrator device and a generated TOTP token. The token is valid for a system defined amount of time (see _JWTLoginModule_ settings for more information), and so will not be required for every call. GUI developers can store this token upon initial login and use it to call Management Operations that don't require a second authorization.  \r\n  \r\n API endpoints that use the ManagementRequest object in their POST parameters are required to contain a second authorization. The alias or device ID of a second administrator device must be passed along with a generated token for the device in the AuthorizationRequest field. \r\n  \r\n ### The Authentication Algorithm \r\n  \r\n See [RFC 6238](https://tools.ietf.org/html/rfc6238) for more details on how the algorithm works. \r\n ",
+    "contact": {
+      "name": "Kwaku Twumasi-Afriyie",
+      "email": "kwaku.twumasi@quakearts.com"
+    },
+    "license": {
+      "name": "MIT License https://opensource.org/licenses/MIT"
+    },
+    "version": "0.0.1"
+  },
+  "tags": [
+    {
+      "name": "Provisioning Operations",
+      "description": "These operations create a device for authentication"
+    },
+    {
+      "name": "Security Operations",
+      "description": "These operations retrieve security tokens for authorizing restricted operations"
+    },
+    {
+      "name": "Management Operations",
+      "description": "These operations manage the devices on the TOTP server"
+    },
+    {
+      "name": "Report Operations",
+      "description": "These operations fetch Device Reports"
+    }
+  ],
+  "paths" : {
+    "/login" : {
+      "post" : {
+        "tags": [
+          "Security Operations"
+        ],
+        "operationId" : "login",
+        "summary": "Generate a JWT for authorizing management requests",
+        "description":"Every request to modify a device requires two authorizations. This is the first. A JWT must be sent for all Management Operations. All POST operations require a second authorization: the device ID and OTP token for a second administrator. The administrator that generates this JWT cannot be the same as the administrator that provides the second authorization",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AuthorizationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Login is successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/lock" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "lock",
+        "summary": "Lock a set of devices",
+        "description":"Lock a set of devices, to prevent them from being used for authentication. Note: the 'alias' field of the ManagementRequest is not required, and should be left empty, or not passed at all",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/unlock" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "unlock",
+        "summary": "Lock a set of devices",
+        "description":"Unlock a set of devices, that were previously locked either by the system or by an administrator. Note: the 'alias' field of the ManagementRequest is not required, and should be left empty, or not passed at all",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/count-devices" : {
+      "get" : {
+        "tags": [
+          "Report Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "countDevices",
+        "summary": "Return a count of all devices on the server",
+        "description":"Return a count of all devices. This includes devices that have been provisioned, but not activated",
+        "responses" : {
+          "200" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResponse"
+                }
+              }
+            },
+            "403" : {
+              "description" : "Authentication failed",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "$ref" : "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "400" : {
+              "description" : "Data source error",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "$ref" : "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500" : {
+              "description" : "General internal server error",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "$ref" : "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/deactivate" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "deactivate",
+        "summary": "Permanently deactivate a set of devices",
+        "description":"Deactivate a device permanently. The device will be kept in the database for historical purposes. To temporarily prevent a device from usage, lock the device instead. Note: the 'alias' field of the ManagementRequest is not required, and should be left empty, or not passed at all",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/unassign-alias" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "unassignAliases",
+        "summary": "Unassign aliases from devices",
+        "description":"Remove aliases that were previously assigned to devices. Note: the 'deviceId' field of the ManagementRequest is not required, and should be left empty, or not passed at all",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/assign-alias" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "assignAliases",
+        "summary": "Assign aliases to devices",
+        "description":"Assign aliases to devices. The alias can be used in place of the device id during authentication. Note: both the 'alias' and the 'deviceId' fields of the ManagementRequest are required.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/add-as-admin" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "addAsAdmin",
+        "summary": "Add a set of devices as administrators",
+        "description":"Add a set of devices to the list of device administrators. Note: both the 'alias' and the 'deviceId' fields of the ManagementRequest are required. The alias here refers to the name of the person assigned the device. It is not required to be unique, and can be as descriptive as possible.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/remove-as-admin" : {
+      "post" : {
+        "tags": [
+          "Management Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "removeAsAdmin",
+        "summary": "Remove a set of devices from the list of administrators",
+        "description":"This operation prevents a device from operating as an administrator. Note: the 'alias' field of the ManagementRequest is not required, and should be left empty, or not passed at all",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManagementRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The operation has been received and processed. The result of each operation on each of the devices is returned in the order in which the devices were submitted",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/get-devices" : {
+      "get" : {
+        "tags": [
+          "Report Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "getDevices",
+        "summary": "Get device Id and status information on the devices in the system",
+        "description":"This operation provides information such as device ID and status. This operation can be used to get the neccessary information to auto-complete device selection during management operations in GUI. The lastid field can be used for paging. It is set to the last id passed from a previous call. It defaults to 0. The max rows limits the results returned. It can also be used for paging",
+        "parameters" : [ {
+          "name" : "status",
+          "in" : "query",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "INITIATED", "ACTIVE", "INACTIVE", "LOCKED" ]
+          }
+        }, {
+          "name" : "lastid",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "maxrows",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DeviceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage/list-administrators" : {
+      "get" : {
+        "tags": [
+          "Report Operations"
+        ],
+        "security": [
+          {
+            "totp-login": []
+          }
+        ],
+        "operationId" : "listAdministrators",
+        "summary": "List the set of administrator devices",
+        "description":"List all devices that have been setup as administrators, along with the name assigned to them",
+        "responses" : {
+          "200" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AdministratorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/provisioning/{deviceid}" : {
+      "put" : {
+        "tags": [
+          "Provisioning Operations"
+        ],
+        "operationId" : "activate",
+        "summary": "Activate a previously provisioned device.",
+        "description":"This is the last step of device provisioning and is required to activate the device for authentication.",
+        "parameters" : [ {
+          "name" : "deviceid",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Provisioning is successful response",
+            "content" : {
+              "*/*" : { }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags": [
+          "Provisioning Operations"
+        ],
+        "operationId" : "provision",
+        "summary": "Provision a new device.",
+        "description":"This is the first step of device provisioning. A cryptographic seed and an inital counter will be generated and returned. The two peices of information, along with the previously (offline) shared time step and HMAC algorithm are used to generate TOTP tokens to authenticate the device and by extension its user.",
+        "parameters" : [ {
+          "name" : "deviceid",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProvisioningResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sync" : {
+      "get" : {
+        "tags": [
+          "Provisioning Operations"
+        ],
+        "operationId" : "synchronize",
+        "summary": "Get the current epoch milliseconds on the server",
+        "description":"This operation allows devices to compare their internal clock times with that of the server. If the clocks are off by more than a predetermined maximum delay (taking into account network latency), the internal clock can be synchronized by using the device specific API's. It is important that the time synchronization server used for the device be the same as that of the server. The TOTP server has a grace period parameter. This setting makes it possible to set an appropriate interval to allow for unsynchronized devices and network latency",
+        "responses" : {
+          "200" : {
+            "description" : "default response",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncResponse"
+                }
+              }
+            },
+            "500" : {
+              "description" : "General internal server error",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "$ref" : "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "TokenResponse" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ErrorResponse" : {
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AuthorizationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "deviceId" : {
+            "type" : "string"
+          },
+          "otp" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ManagementResponse" : {
+        "type" : "object",
+        "properties" : {
+          "response" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "DeviceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "deviceId" : {
+            "type" : "string"
+          },
+          "alias" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ManagementRequest" : {
+        "type" : "object",
+        "properties" : {
+          "requests" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRequest"
+            }
+          },
+          "authorizationRequest" : {
+            "$ref" : "#/components/schemas/AuthorizationRequest"
+          }
+        }
+      },
+      "CountResponse" : {
+        "type" : "object",
+        "properties" : {
+          "count" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "DeviceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "deviceId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "INITIATED", "ACTIVE", "INACTIVE", "LOCKED" ]
+          },
+          "itemCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "AdministratorResponse" : {
+        "type" : "object",
+        "properties" : {
+          "deviceId" : {
+            "type" : "string"
+          },
+          "commonName" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ActivationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ProvisioningResponse" : {
+        "type" : "object",
+        "properties" : {
+          "seed" : {
+            "type" : "string"
+          },
+          "initialCounter" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "SyncResponse" : {
+        "type" : "object",
+        "properties" : {
+          "time" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "totp-login": {
+        "type": "http",
+        "description": "A JWT bearer obtained from the TOTP Server",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
