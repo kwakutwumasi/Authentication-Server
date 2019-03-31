@@ -63,9 +63,9 @@ public class RegistrationResource {
 	 content=@Content(array=@ArraySchema(schema=@Schema(implementation=String.class))))
 	@GET
 	public void getAllAliases(@Suspended final AsyncResponse asyncResponse) {
-		CompletableFuture.runAsync(()->{
-			asyncResponse.resume(aliases.keySet());
-		});
+		CompletableFuture.runAsync(()->
+			asyncResponse.resume(aliases.keySet())
+		);
 	}
 
 	private void respondNotFound(final AsyncResponse asyncResponse) {
