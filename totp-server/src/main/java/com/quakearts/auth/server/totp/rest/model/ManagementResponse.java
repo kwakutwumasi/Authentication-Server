@@ -1,13 +1,13 @@
 package com.quakearts.auth.server.totp.rest.model;
 
 public class ManagementResponse {
-	private String[] response;
+	private ManagementResponseEntry[] responses;
 	
-	public String[] getResponse() {
-		return response;
+	public ManagementResponseEntry[] getResponses() {
+		return responses;
 	}
 	
-	public void setResponse(String[] response) {
-		this.response = response;
+	public void setResponses(ManagementResponseEntry[] response) {
+		this.responses = response;
 	}
 }

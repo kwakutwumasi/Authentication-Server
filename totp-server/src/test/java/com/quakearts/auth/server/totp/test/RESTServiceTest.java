@@ -101,16 +101,24 @@ public class RESTServiceTest {
 		deviceRequest3.setAlias("testalias1");
 		deviceRequest3.setDeviceId("testdevice1");
 		
+		DeviceRequest deviceRequest4 = new DeviceRequest();
+		deviceRequest4.setDeviceId("testdevice1");
+		
 		ManagementRequest assignRequest = new ManagementRequest();
 		assignRequest.setAuthorizationRequest(authorizationRequest);
-		assignRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3});
+		assignRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3, deviceRequest4});
 		
 		ManagementResponse response = client.assignAliases(assignRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(3));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: Device was not found"));
-		assertThat(response.getResponse()[2], is("Error: The alias testalias1 has already been assigned"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(4));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[1].isError(), is(true));
+		assertThat(response.getResponses()[2].getMessage(), is("Error: The alias testalias1 has already been assigned"));
+		assertThat(response.getResponses()[2].isError(), is(true));
+		assertThat(response.getResponses()[3].getMessage(), is("Error: The alias null is not valid"));
+		assertThat(response.getResponses()[3].isError(), is(true));
 		
 		deviceRequest1.setDeviceId(null);
 		deviceRequest2.setDeviceId(null);
@@ -123,10 +131,12 @@ public class RESTServiceTest {
 		unassignRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.unassignAliases(unassignRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(2));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The alias testrestassignnonexistentdevice1 was not assigned"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(2));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The alias testrestassignnonexistentdevice1 was not assigned"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
 
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
@@ -143,11 +153,14 @@ public class RESTServiceTest {
 		lockRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.lock(lockRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(3));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The device testinactivedevice1 was not locked"));
-		assertThat(response.getResponse()[2], is("Error: Device was not found"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 was not locked"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[2].isError(), is(true));		
 
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
@@ -156,11 +169,14 @@ public class RESTServiceTest {
 		unlockRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.unlock(unlockRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(3));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The device testinactivedevice1 cannot be unlocked. It is INACTIVE"));
-		assertThat(response.getResponse()[2], is("Error: Device was not found"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 cannot be unlocked. It is INACTIVE"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[2].isError(), is(true));		
 
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
@@ -171,7 +187,6 @@ public class RESTServiceTest {
 		deviceRequest2.setAlias("Administrator 4");
 		deviceRequest3.setAlias("Administrator 5");
 		
-		DeviceRequest deviceRequest4 = new DeviceRequest();
 		deviceRequest4.setDeviceId("testinactivedevice1");
 
 		DeviceRequest deviceRequest5 = new DeviceRequest();
@@ -184,13 +199,18 @@ public class RESTServiceTest {
 		addAsAdminRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.addAsAdmin(addAsAdminRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(5));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The device testadministrator2 is already an administrator device"));
-		assertThat(response.getResponse()[2], is("Error: Device was not found"));
-		assertThat(response.getResponse()[3], is("Error: Common name was missing"));
-		assertThat(response.getResponse()[4], is("Error: The device is not in a valid state. Status is INACTIVE"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(5));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testadministrator2 is already an administrator device"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[2].isError(), is(true));		
+		assertThat(response.getResponses()[3].getMessage(), is("Error: Common name was missing"));
+		assertThat(response.getResponses()[3].isError(), is(true));		
+		assertThat(response.getResponses()[4].getMessage(), is("Error: The device is not in a valid state. Status is INACTIVE"));
+		assertThat(response.getResponses()[4].isError(), is(true));		
 
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
@@ -205,11 +225,14 @@ public class RESTServiceTest {
 		removeAsAdminRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.removeAsAdmin(removeAsAdminRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(3));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The device testinactivedevice1 is not an administrator device"));
-		assertThat(response.getResponse()[2], is("Error: Device was not found"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 is not an administrator device"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[2].isError(), is(true));		
 		
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
@@ -219,11 +242,14 @@ public class RESTServiceTest {
 		deactivateRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.deactivate(deactivateRequest);
-		assertThat(response.getResponse(), is(notNullValue()));
-		assertThat(response.getResponse().length, is(3));
-		assertThat(response.getResponse()[0], is("Success"));
-		assertThat(response.getResponse()[1], is("Error: The device testinactivedevice1 cannot be deactivated. It is INACTIVE"));
-		assertThat(response.getResponse()[2], is("Error: Device was not found"));
+		assertThat(response.getResponses(), is(notNullValue()));
+		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses()[0].getMessage(), is("Success"));
+		assertThat(response.getResponses()[0].isError(), is(false));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 cannot be deactivated. It is INACTIVE"));
+		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
+		assertThat(response.getResponses()[2].isError(), is(true));		
 
 		List<AdministratorResponse> administrators = client.listAdministrators();
 		assertThat(administrators.size(), is(4));
@@ -235,7 +261,7 @@ public class RESTServiceTest {
 		assertThat(deviceResponses.size(),is(1));
 		
 		deviceResponses = client.getDevices();
-		assertThat(deviceResponses.size(),is(11));	
+		assertThat(deviceResponses.size(),is(10));	
 		
 		SyncResponse syncResponse = client.synchronize();
 		assertThat(syncResponse, is(notNullValue()));

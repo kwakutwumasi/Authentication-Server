@@ -22,6 +22,7 @@ import com.quakearts.appbase.cdi.annotation.Transactional.TransactionType;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.device.impl.DeviceServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.model.Administrator;
@@ -104,6 +105,29 @@ public class DeviceServiceImplTest {
 		deviceService.assign("testassign1", device);
 	}
 
+	@Test
+	@Transactional(TransactionType.SINGLETON)
+	public void testAssignWithNullName() throws Exception {
+		Optional<Device> optionalDevice = deviceService.findDevice("testdevice1");
+		assertThat(optionalDevice.isPresent(), is(true));
+		Device device = optionalDevice.get();
+		
+		expectedException.expect(InvalidAliasException.class);
+		deviceService.assign(null, device);
+	}
+
+	@Test
+	@Transactional(TransactionType.SINGLETON)
+	public void testAssignWithEmptyName() throws Exception {
+		Optional<Device> optionalDevice = deviceService.findDevice("testdevice1");
+		assertThat(optionalDevice.isPresent(), is(true));
+		Device device = optionalDevice.get();
+		
+		expectedException.expect(InvalidAliasException.class);
+		deviceService.assign("  ", device);
+	}
+
+	
 	@Test
 	@Transactional(TransactionType.SINGLETON)
 	public void testUnassign() throws Exception {
@@ -281,7 +305,7 @@ public class DeviceServiceImplTest {
 	@Test
 	@Transactional(TransactionType.SINGLETON)
 	public void testFetchDevices() throws Exception {
-		assertThat(deviceService.fetchDevices(null, 0l, 10).size(), is(8));
+		assertThat(deviceService.fetchDevices(Status.LOCKED, 0l, 1).size(), is(1));
 		assertThat(deviceService.fetchDevices(null, 0l, 5).size(), is(5));
 		assertThat(deviceService.fetchDevices(Status.INITIATED, 0l, 5).size(), is(1));
 	}

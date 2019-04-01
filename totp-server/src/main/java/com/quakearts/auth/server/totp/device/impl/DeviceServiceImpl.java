@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import com.quakearts.auth.server.totp.device.DeviceService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.model.Administrator;
@@ -25,6 +26,7 @@ import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
 import com.quakearts.webapp.orm.query.ListBuilder;
+import com.quakearts.webapp.orm.query.QueryOrder;
 
 @Singleton
 public class DeviceServiceImpl implements DeviceService {
@@ -57,7 +59,11 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public void assign(String name, Device device) throws DuplicateAliasException {
+	public void assign(String name, Device device) 
+			throws DuplicateAliasException, InvalidAliasException {
+		if(name==null || name.trim().isEmpty())
+			throw new InvalidAliasException();
+		
 		DataStore dataStore = getTOTPDataStore();
 		if(dataStore.get(Alias.class, name) == null){
 			Alias alias = new Alias();
@@ -185,8 +191,9 @@ public class DeviceServiceImpl implements DeviceService {
 	public List<Device> fetchDevices(Status status, long lastId, int maxRows) {
 		ListBuilder<Device> builder = getTOTPDataStore()
 				.find(Device.class)
-				.filterBy("itemCount").withValues().startingFrom(lastId)
-				.useAResultLimitOf(maxRows);
+				.filterBy("itemCount").withValues().startingFrom(lastId+1)
+				.useAResultLimitOf(maxRows)
+				.orderBy(new QueryOrder("itemCount", true));
 		
 		if(status!=null)
 			builder.filterBy("status").withAValueEqualTo(status);

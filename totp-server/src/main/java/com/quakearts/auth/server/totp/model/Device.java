@@ -1,11 +1,15 @@
 package com.quakearts.auth.server.totp.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import com.quakearts.security.cryptography.CryptoResource;
 import com.quakearts.security.cryptography.jpa.EncryptedValue;
@@ -34,6 +38,8 @@ public class Device implements Serializable {
 	private Status status;
 	@Column(nullable = false, unique=true, insertable=false, updatable=false)
 	private long itemCount;
+	@OneToMany(mappedBy="device", fetch=FetchType.LAZY)
+	private Set<Alias> aliases = new HashSet<>();
 
 	public enum Status {
 		INITIATED, ACTIVE, INACTIVE, LOCKED
@@ -107,5 +113,13 @@ public class Device implements Serializable {
 		encryptedValue.setStringValue(new HashPassword(id, "SHA-256", 3, 
 				CryptoResource.byteAsHex(seed.getValue())).toString());
 		return encryptedValue;
+	}
+
+	public Set<Alias> getAliases() {
+		return aliases;
+	}
+	
+	public void setAliases(Set<Alias> aliases) {
+		this.aliases = aliases;
 	}
 }

@@ -1,5 +1,5 @@
 # TOTP-Server
-A Server implementing time based one time PINs (TOTP's) as described in [RFC 6238](https://tools.ietf.org/html/rfc6238). It can be integrated into Authentication Server with some minor adjustments, or deployed as a standalone service using QA-Appbase or any fully certified JEE 7 server.
+A Server implementing time based one time PINs (TOTP's) as described in [RFC 6238](https://tools.ietf.org/html/rfc6238). It can be integrated into Authentication Server with some minor adjustments, or deployed as a standalone service using QA-Appbase or any fully certified JEE 7+ server.
 
 ### Operation
 
@@ -64,7 +64,7 @@ Aside from encryption the server has some security features to prevent tampering
 
 To protect against device ID switching, an encrypted check value is stored in the database. This check value is verified each time the device is retrieved. If an attacker manages to gain access to the database and tries to switch their device ID with that of a target, they would need to generate and encrypt the check value. If the encryption key is stored securely, this will not be feasible.
 
-The same protection exists for aliases and administrator accounts. This 
+The same protection exists for aliases and administrator accounts. 
 
 ### Setup and Configuration
 
@@ -84,9 +84,9 @@ Two other files need to be on the classpath:
 ```
 data.store.name - The name of the QA-ORM datastore for the TOTP server
 mac.algorithm - The specific HMAC algorithm to use to generate the tokens 
-mac.provider - The JCE provider of the MAC generation algorithm
+mac.provider - The JCE provider of the HMAC generation algorithm
 otp.length - the OTP string length
-seed.length - the length of the seed to generate, in bytes. It must be appropriate for the selected MAC algorithm
+seed.length - the length of the seed to generate, in bytes. It must be appropriate for the selected MMAC algorithm
 secure.random.instance - The secure random instance to use when generating the seed
 secure.random.provider - the JCE provider of the secure random instance
 time.step - the amount of time in seconds that the token is valid for
@@ -118,4 +118,35 @@ It is important to follow these steps in order. Failing to do so, the TOTP serve
 
 ### The Authentication Algorithm
 
-See [RFC 6238](https://tools.ietf.org/html/rfc6238) for more details on how the algorithm works.
+See [RFC 6238](https://tools.ietf.org/html/rfc6238) for more details on how the algorithm works. The TOTP server implementation is as follows:
+
+1) Calculate time count T by subtracting current time Tn from initial counter/time T0, then integer divide by the time step value TS. For languages that can't do integer division natively (like Javascript) use a floor function to round the remainder down to the first integer less than the remainder.
+
+2) Convert the integer to an eight byte value, and append the character bytes of the device ID
+
+3) Use the selected HMAC algorithm and the secret seed value to generate the HMAC of the value from step 2
+
+4) Calculate an offset value using the absolute value of the last byte of the HMAC result modulo the length of the HMAC result minus four (4) i.e.
+
+```
+	offset = absolute(hmacresult[0]) mod (hmacresult.length - 4)
+```
+
+5) Combine the four byte values starting from the offset into an integer. An example from the TOTP server code (Java):
+
+```java
+int code = (hmacresult[offset] & 0x7f) << 24 |
+				(hmacresult[offset+1] & 0xff) << 16 |
+				(hmacresult[offset+2] & 0xff) << 8 |
+				hmacresult[offset+3] & 0xff;
+```
+
+6) Calculate the OTP token as the resulting integer mod 10 raised to the power of the selected token length i.e.
+
+```
+int tokencode = code mod 10^(otp length)
+```
+
+The last step will shorten the (possibly) longer integer to at most the length required.
+
+A reference implementation of an authentication device is provided in this repository. It is developed using the Codenameone crossplatform mobile application development platform.

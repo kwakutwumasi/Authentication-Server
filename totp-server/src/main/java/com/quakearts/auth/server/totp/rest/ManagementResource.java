@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.quakearts.auth.server.totp.device.DeviceService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.ManagementException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
@@ -27,6 +28,7 @@ import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceRequest;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
+import com.quakearts.auth.server.totp.rest.model.ManagementResponseEntry;
 import com.quakearts.auth.server.totp.rest.model.ManagementResponse;
 import com.quakearts.webapp.security.rest.cdi.RequireAuthorization;
 
@@ -35,6 +37,8 @@ import com.quakearts.webapp.security.rest.cdi.RequireAuthorization;
 @RequireAuthorization(allow="Administrator")
 public class ManagementResource {
 	
+	private static final String THE_ALIAS = "The alias ";
+
 	private static final String DEVICE_WAS_NOT_FOUND = "Device was not found";
 
 	private static final String THE_DEVICE = "The device ";
@@ -61,7 +65,9 @@ public class ManagementResource {
 			try {
 				deviceService.assign(alias, device);
 			} catch (DuplicateAliasException e) {
-				throw new ManagementException("The alias "+alias+" has already been assigned");
+				throw new ManagementException(THE_ALIAS+alias+" has already been assigned");
+			} catch (InvalidAliasException e) {
+				throw new ManagementException(THE_ALIAS+alias+" is not valid");
 			}
 		} else {
 			throw new ManagementException(DEVICE_WAS_NOT_FOUND);
@@ -78,7 +84,7 @@ public class ManagementResource {
 
 	private void unassignAlias(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(!deviceService.unassign(alias)){
-			throw new ManagementException("The alias "+alias+" was not assigned");
+			throw new ManagementException(THE_ALIAS+alias+" was not assigned");
 		}
 	}
 	
@@ -185,22 +191,23 @@ public class ManagementResource {
 	}
 
 	private ManagementResponse execute(ManagementRequest managementRequest, RequestProcessor processor){
-		String[] response = new String[managementRequest.getRequests().length];
+		ManagementResponseEntry[] response = new ManagementResponseEntry[managementRequest.getRequests().length];
 		int index = 0;
 		for(DeviceRequest deviceRequest:managementRequest.getRequests()){
 			Optional<Device> optionalDevice = deviceRequest.getDeviceId()!=null? deviceService.findDevice(deviceRequest.getDeviceId())
 					: Optional.empty();
 			try {
 				processor.process(deviceRequest.getAlias(), optionalDevice);					
-				response[index] = "Success";					
+				response[index] = new ManagementResponseEntry().withMessageAs("Success");					
 			} catch (Throwable e) {
-				response[index] = "Error: "+ e.getMessage();
+				response[index] = new ManagementResponseEntry().withMessageAs("Error: "+ e.getMessage())
+						.withErrorAs(true);
 			}
 			index++;
 		}
 		
 		ManagementResponse managementResponse = new ManagementResponse();
-		managementResponse.setResponse(response);
+		managementResponse.setResponses(response);
 		return managementResponse;
 	}
 	

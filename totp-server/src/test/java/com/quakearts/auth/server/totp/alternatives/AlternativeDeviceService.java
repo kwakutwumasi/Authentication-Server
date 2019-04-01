@@ -12,6 +12,7 @@ import javax.interceptor.Interceptor;
 import com.quakearts.auth.server.totp.device.DeviceService;
 import com.quakearts.auth.server.totp.device.impl.DeviceServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.model.Administrator;
@@ -60,7 +61,8 @@ public class AlternativeDeviceService implements DeviceService {
 	}
 
 	@Override
-	public void assign(String name, Device device) throws DuplicateAliasException {
+	public void assign(String name, Device device) 
+			throws DuplicateAliasException, InvalidAliasException {
 		deviceService.assign(name, device);
 	}
 

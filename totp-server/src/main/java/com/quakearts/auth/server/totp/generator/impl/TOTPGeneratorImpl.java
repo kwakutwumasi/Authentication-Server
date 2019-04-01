@@ -65,7 +65,7 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 	}
 
 	private String getTemplate() {
-		if(format==null)
+		if(format == null)
 			format = "%0"+totpOptions.getOtpLength()+"d";
 		
 		return format;

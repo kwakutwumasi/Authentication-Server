@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.model.Administrator;
@@ -12,7 +13,8 @@ import com.quakearts.auth.server.totp.model.Device.Status;
 
 public interface DeviceService {
 	Optional<Device> findDevice(String id);
-	void assign(String name, Device device) throws DuplicateAliasException;
+	void assign(String name, Device device) 
+			throws DuplicateAliasException, InvalidAliasException;
 	boolean unassign(String name);
 	boolean lock(Device device);
 	boolean unlock(Device device);
