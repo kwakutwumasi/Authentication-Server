@@ -103,9 +103,9 @@ public class Device implements Serializable {
 	}
 	
 	public boolean notTamperedWith(){
-		return id!=null && seed!=null && checkValue!=null
-				&& checkValue.getStringValue()
-				.equals(generateCheck().getStringValue());
+		return checkValue!=null && id!=null && seed!=null
+				&& generateCheck().getStringValue()
+					.equals(checkValue.getStringValue());
 	}
 	
 	private EncryptedValue generateCheck() {

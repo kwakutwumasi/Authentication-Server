@@ -40,22 +40,87 @@
                     </execution>
                 </executions>
             </plugin-->
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>repo</classpathPrefix>
+							<classpathLayoutType>repository</classpathLayoutType>
+							<mainClass>com.quakearts.auth.server.totp.TOTPMain</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>etc/</Class-Path>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<configuration>
+					<assembleDirectory>target</assembleDirectory>
+					<extraJvmArguments></extraJvmArguments>
+					<programs>
+						<program>
+							<id>webapp</id>
+							<mainClass>com.quakearts.appbase.Main</mainClass>
+							<commandLineArguments>
+								<commandLineArgument>com.quakearts.auth.server.totp.Main</commandLineArgument>
+							</commandLineArguments>
+						</program>
+						<program>
+							<id>webapptest</id>
+							<mainClass>com.quakearts.appbase.Main</mainClass>
+							<commandLineArguments>
+								<commandLineArgument>com.quakearts.auth.server.totp.Main</commandLineArgument>
+							</commandLineArguments>
+							<jvmSettings>
+								<extraArgument>-agentlib:jdwp=transport=dt_socket,address=localhost:4000,server=y,suspend=y</extraArgument>
+							</jvmSettings>
+						</program>
+					</programs>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>assemble</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>Copy Folders</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="Copy WARS">
+								<echo>Creating /etc</echo>
+								<mkdir dir="target/etc"></mkdir>
+								<echo>Creating server folders and files</echo>
+								<copy file="live-config/main-webapp.config.json" toDir="target/etc"></copy>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
-	<!-- JAX-RS -->
-		<dependency>
-			<groupId>org.jboss.spec.javax.ws.rs</groupId>
-			<artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-			<version>1.0.0.Final</version>
-			<scope>provided</scope>
-		</dependency>
 	<!-- QA-Appbase -->
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-appbase</artifactId>
 			<version>2.1.1</version>
-			<scope>provided</scope>
 		</dependency>
 	<!-- QA-Auth -->
 		<dependency>
@@ -77,14 +142,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
-			<artifactId>qa-orm</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-orm-hibernate</artifactId>
 			<version>2.3.1</version>
-			<scope>test</scope>
 		</dependency>
 	<!-- QA-Crypto -->
 		<dependency>
@@ -95,16 +154,40 @@
 	<!-- SLF4J -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
+			<artifactId>slf4j-jdk14</artifactId>
 			<version>1.7.25</version>
-			<scope>test</scope>
 		</dependency>
-	<!-- QA-Test Tools -->
+	<!--REST Easy-->
 		<dependency>
-			<groupId>com.quakearts.webtools.test</groupId>
-			<artifactId>qa-appbase-test-helper</artifactId>
-			<version>2.0.0</version>
-			<scope>test</scope>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-servlet-initializer</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+			</exclusions>
+			<version>3.5.1.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>3.5.1.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.json</groupId>
+			<artifactId>javax.json-api</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.quakearts.webtools</groupId>
+			<artifactId>qa-resteasy-cdi</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 	<!-- JUnit -->
 		<dependency>
@@ -120,43 +203,7 @@
 			<version>10.13.1.1</version>
 			<scope>test</scope>
 		</dependency>
-	<!--REST Test-->
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-servlet-initializer</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-			</exclusions>
-			<version>3.5.1.Final</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson2-provider</artifactId>
-			<version>3.5.1.Final</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.json</groupId>
-			<artifactId>javax.json-api</artifactId>
-			<version>1.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>javax.json</artifactId>
-			<version>1.0.4</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.quakearts.webtools</groupId>
-			<artifactId>qa-resteasy-cdi</artifactId>
-			<version>1.0.1</version>
-			<scope>test</scope>
-		</dependency>
+	<!-- QA-Test Tools -->
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resttools</artifactId>
@@ -165,8 +212,20 @@
 		</dependency>
 		<dependency>
 			<groupId>com.quakearts.webtools.test</groupId>
+			<artifactId>qa-appbase-test-helper</artifactId>
+			<version>2.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.quakearts.webtools.test</groupId>
 			<artifactId>qa-testtools</artifactId>
 			<version>1.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>3.1.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

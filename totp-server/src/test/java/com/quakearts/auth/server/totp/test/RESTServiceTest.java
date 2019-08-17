@@ -3,12 +3,17 @@ package com.quakearts.auth.server.totp.test;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 
+import org.jboss.weld.exceptions.IllegalArgumentException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
@@ -19,13 +24,20 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceConnectionService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
+import com.quakearts.auth.server.totp.exception.MessageGenerationException;
+import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
+import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequestInterceptor;
 import com.quakearts.auth.server.totp.rest.model.ActivationRequest;
 import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
-import com.quakearts.auth.server.totp.rest.model.AuthorizationRequest;
+import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceRequest;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
@@ -42,6 +54,8 @@ import com.quakearts.security.cryptography.CryptoResource;
 import com.quakearts.security.cryptography.exception.IllegalCryptoActionException;
 import com.quakearts.security.cryptography.jpa.EncryptedValue;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
+import com.quakearts.webapp.orm.exception.DataStoreException;
+import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webapp.security.rest.exception.RestSecurityException;
 import com.quakearts.webtools.test.AllServicesRunner;
 
@@ -68,16 +82,44 @@ public class RESTServiceTest {
 	public ExpectedException expectedException = ExpectedException.none();
 	private static Device device1;
 		
+	@Inject
+	private JWTGenerator jwtGenerator;
+	
 	@Test
 	public void run200OkRequests() throws Exception {
-		provisionTestProvisionDevice1();
+		Device device1 = provisionTestProvisionDevice1();
+		
+		AlternativeAuthenticationService.returnLocked(null);
+		AlternativeAuthenticationService.returnAuthenticate(null);
+		
+		String[] totp1 = totpGenerator.generateFor(device1, System.currentTimeMillis());
+		
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		
+		authenticateRequest.setDeviceId("testprovisiondevice1");
+		authenticateRequest.setOtp(totp1[0]);
+		
+		client.authenticate(authenticateRequest);
+		AlternativeDeviceConnectionService.throwException(null);
+		AlternativeConnectionManager.run(bite->{
+			Map<String, String> responseMap = new HashMap<>();
+			String[] direct = totpGenerator.generateFor(device1, System.currentTimeMillis());
+			responseMap.put("otp", direct[0]);
+			try {
+				return jwtGenerator.generateJWT(responseMap).getBytes();
+			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+				throw new AssertionError(e);
+			}
+		});
+		
+		client.authenticateDirect(device1.getId());
 		
 		Device device2 = provisionAdministrator1();
 		Device device3 = provisionAdministrator2();
 		
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
 
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
 		authorizationRequest.setOtp(totp2[0]);
 				
@@ -85,7 +127,7 @@ public class RESTServiceTest {
 		assertThat(tokenResponse.getToken(), is(notNullValue()));
 		
 		String[] totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
-		authorizationRequest = new AuthorizationRequest();
+		authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator2");
 		authorizationRequest.setOtp(totp3[0]);
 		
@@ -255,7 +297,7 @@ public class RESTServiceTest {
 		assertThat(administrators.size(), is(4));
 		
 		CountResponse countResponse = client.countDevices();
-		assertThat(countResponse.getCount(), is(11l));
+		assertThat(countResponse.getCount(), is(10l));
 		
 		List<DeviceResponse> deviceResponses = client.getDevices(Status.ACTIVE, 3, 1);
 		assertThat(deviceResponses.size(),is(1));
@@ -285,6 +327,7 @@ public class RESTServiceTest {
 			
 			ActivationRequest activationRequest = new ActivationRequest();
 			activationRequest.setToken(totp1[0]);
+			activationRequest.setAlias("testActivationAlias1");
 			
 			client.activate("testprovisiondevice1", activationRequest);
 		}
@@ -345,15 +388,30 @@ public class RESTServiceTest {
 	@Test
 	public void testLoginWithNullDeviceId() throws Exception {
 		expectedException.expect(HttpClientException.class);
-		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"AuthorizationRequest is required\"}"));
-		client.login(new AuthorizationRequest());
+		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"AuthenticationRequest is required\"}"));
+		client.login(new AuthenticationRequest());
+	}
+	
+	@Test
+	public void testActivationWithExistingAlias() throws Exception {
+		Device device = provisionTestProvisionDevice1();
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 400; {\"message\":\"The alias supplied is not valid\"}"));
+		
+		String[] totp1 = totpGenerator.generateFor(device, System.currentTimeMillis());
+
+		ActivationRequest activationRequest = new ActivationRequest();
+		activationRequest.setToken(totp1[0]);
+		activationRequest.setAlias("testActivationAlias1");
+		
+		client.activate("testprovisiondevice1", activationRequest);
 	}
 
 	@Test
 	public void testLoginWithNonAdministratorDeviceId() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"Device is not an administrator\"}"));
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("nonexistantdevice1");
 		client.login(authorizationRequest);
 	}
@@ -362,7 +420,7 @@ public class RESTServiceTest {
 	public void testLoginWithWrongAdministratorDeviceOtp() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"Authentication failed\"}"));
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadmindevice1");
 		authorizationRequest.setOtp("invalidotp");
 		client.login(authorizationRequest);
@@ -409,7 +467,7 @@ public class RESTServiceTest {
 		Device device2 = provisionAdministrator1();
 		
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
 		authorizationRequest.setOtp(totp2[0]);
 				
@@ -435,7 +493,7 @@ public class RESTServiceTest {
 		Device device2 = provisionAdministrator1();
 		
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
 		authorizationRequest.setOtp(totp2[0]);
 		
@@ -459,12 +517,12 @@ public class RESTServiceTest {
 	@Test
 	public void testLoginAndAuthorizeWithNoDeviceId() throws Exception {
 		expectedException.expect(HttpClientException.class);
-		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"AuthorizationRequest is required\"}"));
+		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"AuthenticationRequest is required\"}"));
 				
 		Device device2 = provisionAdministrator1();
 		
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
-		AuthorizationRequest authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
 		authorizationRequest.setOtp(totp2[0]);
 		
@@ -493,8 +551,8 @@ public class RESTServiceTest {
 		
 		String[] totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 
-		AuthorizationRequest authorizationRequest;
-		authorizationRequest = new AuthorizationRequest();
+		AuthenticationRequest authorizationRequest;
+		authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator2");
 		authorizationRequest.setOtp(totp3[0]);
 				
@@ -505,5 +563,79 @@ public class RESTServiceTest {
 				.createMockingInvocationHandlerFor(InvocationContext.class)
 				.mock("getParameters").with(arguments->new Object[]{assignRequest})
 				.thenBuild());
+	}
+	
+	@Test
+	public void testDataStoreExceptionMapper() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"DataStoreException\"}"));
+		AlternativeDeviceService.throwError(new DataStoreException("DataStoreException"));
+		
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		
+		authenticateRequest.setDeviceId("testdevice1");
+		authenticateRequest.setOtp("123456");
+		
+		client.authenticate(authenticateRequest);
+	}
+	
+	@Test
+	public void testDataStoreExceptionMapperWithCause() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"DataStoreExceptionOtherException\"}"));
+		AlternativeDeviceService.throwError(new DataStoreException("DataStoreException", new Exception("OtherException")));
+		
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		
+		authenticateRequest.setDeviceId("testdevice1");
+		authenticateRequest.setOtp("123456");
+		
+		client.authenticate(authenticateRequest);
+	}
+	
+	@Test
+	public void testGeneralExceptionMapper() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"IllegalArgumentException\"}"));
+		AlternativeDeviceService.throwError(new IllegalArgumentException("IllegalArgumentException"));
+		
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		
+		authenticateRequest.setDeviceId("testdevice1");
+		authenticateRequest.setOtp("123456");
+		
+		client.authenticate(authenticateRequest);
+	}
+	
+	@Test
+	public void testGeneralExceptionMapperWithCause() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"IllegalArgumentExceptionOtherException\"}"));
+		AlternativeDeviceService.throwError(new IllegalArgumentException("IllegalArgumentException", new Exception("OtherException")));
+		
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		
+		authenticateRequest.setDeviceId("testdevice1");
+		authenticateRequest.setOtp("123456");
+		
+		client.authenticate(authenticateRequest);
+	}
+	
+	@Test
+	public void testMessageGenerationException() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"Message generation failed. IllegalArgumentException\"}"));
+		AlternativeDeviceConnectionService.throwException(new MessageGenerationException(new IllegalArgumentException("IllegalArgumentException")));
+				
+		client.authenticateDirect("testdevice1");
+	}
+		
+	@Test
+	public void testUnconnectedDeviceException() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. IllegalArgumentException\"}"));
+		AlternativeDeviceConnectionService.throwException(new UnconnectedDeviceException("IllegalArgumentException"));
+				
+		client.authenticateDirect("testdevice1");
 	}
 }

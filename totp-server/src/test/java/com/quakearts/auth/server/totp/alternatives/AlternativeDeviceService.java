@@ -9,8 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
-import com.quakearts.auth.server.totp.device.DeviceService;
-import com.quakearts.auth.server.totp.device.impl.DeviceServiceImpl;
+import com.quakearts.auth.server.totp.device.DeviceManagementService;
+import com.quakearts.auth.server.totp.device.impl.DeviceManagementServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
@@ -22,7 +22,7 @@ import com.quakearts.auth.server.totp.model.Device.Status;
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
 @Singleton
-public class AlternativeDeviceService implements DeviceService {
+public class AlternativeDeviceService implements DeviceManagementService {
 
 	private static TestLockFunction returnLock;
 	
@@ -46,11 +46,22 @@ public class AlternativeDeviceService implements DeviceService {
 		AlternativeDeviceService.returnDevice = returnDevice;
 	}
 	
+	private static RuntimeException throwException;
+	
+	public static void throwError(RuntimeException newThrowException) {
+		throwException = newThrowException;
+	}
+	
 	@Inject
-	private DeviceServiceImpl deviceService;
+	private DeviceManagementServiceImpl deviceService;
 	
 	@Override
 	public Optional<Device> findDevice(String id) {
+		if(throwException != null) {
+			RuntimeException toThrow = throwException;
+			throwException = null;
+			throw toThrow;
+		}
 		if(returnDevice!=null){
 			TestFindDeviceFunction toreturn = returnDevice;
 			returnDevice = null;

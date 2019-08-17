@@ -995,6 +995,9 @@
         "properties" : {
           "token" : {
             "type" : "string"
+          },
+          "alias" : {
+            "type" : "string"
           }
         }
       },

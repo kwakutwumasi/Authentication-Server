@@ -12,8 +12,7 @@ public class RestSecurityExceptionMapper implements ExceptionMapper<RestSecurity
 	public Response toResponse(RestSecurityException exception) {
 		return Response.status(403)
 				.entity(new ErrorResponse()
-						.withMessageAs(exception.getMessage()
-								+(exception.getCause()!=null?exception.getCause().getMessage():"")))
+						.withMessageAs(exception.getMessage()))
 				.build();
 	}
 

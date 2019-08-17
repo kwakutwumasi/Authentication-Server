@@ -53,6 +53,7 @@ public class Administrator implements Serializable {
 
 	public void setCommonName(String commonName) {
 		this.commonName = commonName;
+		addCheckValue();
 	}
 
 	public Device getDevice() {
@@ -61,11 +62,20 @@ public class Administrator implements Serializable {
 
 	public void setDevice(Device device) {
 		this.device = device;
+		addCheckValue();
 	}
 	
+	private void addCheckValue() {
+		if(checkValue == null && device!=null && commonName!=null) {
+			checkValue = new EncryptedValue();
+			checkValue.setStringValue(commonName+device.getId());
+		}
+	}
+
 	public boolean notTamperedWith(){
-		return device!=null && checkValue!=null
+		return  checkValue!=null && device!=null 
+				&& checkValue.getStringValue()!=null 
 				&& checkValue.getStringValue()
-				.equals(device.getId());
+					.equals(commonName+device.getId());
 	}
 }

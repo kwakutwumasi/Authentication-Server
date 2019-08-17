@@ -150,12 +150,9 @@ public class CreatorService {
 			dataStore.flushBuffers();
 			
 			Administrator administrator = new Administrator();
-			EncryptedValue id = new EncryptedValue();
-			id.setDataStoreName(totpOptions.getDataStoreName());
-			id.setStringValue(device.getId());
-			administrator.setCheckValue(id);
 			administrator.setDevice(device);
 			administrator.setCommonName("Adminstrator 3");
+			administrator.getCheckValue().setDataStoreName(totpOptions.getDataStoreName());
 			dataStore.save(administrator);
 			
 			device = new Device();
@@ -167,26 +164,14 @@ public class CreatorService {
 			dataStore.flushBuffers();
 			
 			administrator = new Administrator();
-			id = new EncryptedValue();
-			id.setDataStoreName(totpOptions.getDataStoreName());
-			id.setStringValue("invalid");
-			administrator.setCheckValue(id);
 			administrator.setDevice(device);
+			EncryptedValue checkValue = new EncryptedValue();
+			checkValue.setStringValue("testtampereddevice");
+			checkValue.setDataStoreName(totpOptions.getDataStoreName());
+			administrator.setCheckValue(checkValue);
 			administrator.setCommonName("Adminstrator 4");
 			dataStore.save(administrator);
 			entitiesCreated=true;
-			
-			device = new Device();
-			device.setId("tampereddevice");
-			EncryptedValue tamperedCheckValue = new EncryptedValue();
-			tamperedCheckValue.setStringValue("tampereddevice1");
-			tamperedCheckValue.setDataStoreName(totpOptions.getDataStoreName());
-			device.setCheckValue(tamperedCheckValue);
-			keyGenerator.generateAndStoreIn(device);
-			device.setStatus(Status.ACTIVE);
-			device.setInitialCounter(System.currentTimeMillis());
-			dataStore.save(device);
-			dataStore.flushBuffers();
 		}
 	}
 }

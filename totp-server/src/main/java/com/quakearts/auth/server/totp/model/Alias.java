@@ -11,7 +11,6 @@ import javax.persistence.ManyToOne;
 
 import com.quakearts.security.cryptography.jpa.EncryptedValue;
 import com.quakearts.security.cryptography.jpa.EncryptedValueStringConverter;
-import com.quakearts.webapp.security.util.HashPassword;
 
 @Entity
 public class Alias implements Serializable {
@@ -61,14 +60,14 @@ public class Alias implements Serializable {
 	}
 	
 	public boolean notTamperedWith(){
-		return name!=null && device!=null && checkValue!=null
-				&& checkValue.getStringValue()
-				.equals(generateCheck().getStringValue());
+		return  checkValue!=null && name!=null && device!=null 
+				&& generateCheck().getStringValue()
+					.equals(checkValue.getStringValue());
 	}
 
 	private EncryptedValue generateCheck() {
 		EncryptedValue encryptedValue = new EncryptedValue();
-		encryptedValue.setStringValue(new HashPassword(name, "SHA-256", 3, device.getId()).toString());
+		encryptedValue.setStringValue(name+device.getId());
 		return encryptedValue;
 	}
 }

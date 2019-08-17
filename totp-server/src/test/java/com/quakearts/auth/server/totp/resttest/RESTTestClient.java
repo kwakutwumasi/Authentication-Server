@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.model.ActivationRequest;
 import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
-import com.quakearts.auth.server.totp.rest.model.AuthorizationRequest;
+import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
@@ -109,8 +109,16 @@ public class RESTTestClient extends HttpClient {
 		executeWithNoResponse("/totp/provisioning/{0}", activationRequest, APPLICATION_JSON, HttpVerb.PUT, deviceid);
 	}
 
-	public TokenResponse login(AuthorizationRequest authorizationRequest) throws IOException, HttpClientException {
-		TokenResponse response = execute("/totp/login", authorizationRequest, APPLICATION_JSON, HttpVerb.POST, TokenResponse.class);
+	public void authenticate(AuthenticationRequest authenticateRequest) throws IOException, HttpClientException {
+		executeWithNoResponse("/totp/authenticate", authenticateRequest, APPLICATION_JSON, HttpVerb.POST);
+	}
+
+	public void authenticateDirect(String deviceId) throws IOException, HttpClientException {
+		executeWithNoResponse("/totp/authenticate/device/{0}", null, null, HttpVerb.GET, deviceId);
+	}
+
+	public TokenResponse login(AuthenticationRequest authorizationRequest) throws IOException, HttpClientException {
+		TokenResponse response = execute("/totp/management-login", authorizationRequest, APPLICATION_JSON, HttpVerb.POST, TokenResponse.class);
 		requestJWTToken = response.getToken();
 		return response;
 	}

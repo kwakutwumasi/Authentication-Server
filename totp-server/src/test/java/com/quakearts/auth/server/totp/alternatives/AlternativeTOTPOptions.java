@@ -51,8 +51,38 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 		returnCountQuery = newCountQuery;
 	}
 	
+	private static Long returnConnectionEchoInterval;
+	
+	public static void returnConnectionEchoInterval(Long newConnectionEchoInterval) {
+		returnConnectionEchoInterval = newConnectionEchoInterval;
+	}
+	
 	@Inject
 	private TOTPOptionsImpl wrapped;
+	
+	private static Integer returnConnectionReceiveBufferSize;
+	
+	public static void returnConnectionReceiveBufferSize(Integer newConnectionReceiveBufferSize) {
+		returnConnectionReceiveBufferSize = newConnectionReceiveBufferSize;
+	}
+	
+	private static PerformancePreferences returnPerformancePreferences;
+	
+	public static void returnPerformancePreferences(PerformancePreferences newPerformancePreferences){
+		returnPerformancePreferences = newPerformancePreferences;		
+	}
+	
+	private static Boolean returnConnectionReuseAddress;
+	
+	public static void returnConnectionReuseAddress(Boolean newConnectionReuseAddress) {
+		returnConnectionReuseAddress = newConnectionReuseAddress;
+	}
+	
+	private static Integer returnConnectionPort;
+	
+	public static void returnConnectionPort(Integer newConnectionPort) {
+		returnConnectionPort = newConnectionPort;
+	}
 	
 	@Override
 	public String getDataStoreName() {
@@ -146,5 +176,98 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 			return toreturn;
 		}
 		return wrapped.getCountQuery();
+	}
+
+	@Override
+	public int getDeviceConnectionPort() {
+		if(returnConnectionPort!=null) {
+			int toreturn = returnConnectionPort;
+			returnConnectionPort = null;
+			return toreturn;
+		}
+		return wrapped.getDeviceConnectionPort();
+	}
+
+	@Override
+	public int getDeviceConnectionThreads() {
+		return wrapped.getDeviceConnectionThreads();
+	}
+
+	@Override
+	public int getDeviceConnectionReceiveBufferSize() {
+		if(returnConnectionReceiveBufferSize !=null) {
+			int toreturn = returnConnectionReceiveBufferSize;
+			returnConnectionReceiveBufferSize = null;
+			return toreturn;
+		}
+		
+		return wrapped.getDeviceConnectionReceiveBufferSize();
+	}
+
+	@Override
+	public PerformancePreferences getDeviceConnectionPerformancePreferences() {
+		if(returnPerformancePreferences != null) {
+			PerformancePreferences toreturn = returnPerformancePreferences;
+			returnPerformancePreferences = null;
+			return toreturn;
+		}
+		
+		return wrapped.getDeviceConnectionPerformancePreferences();
+	}
+
+	@Override
+	public Boolean getDeviceConnectionReuseAddress() {
+		if(returnConnectionReuseAddress != null) {
+			Boolean toreturn = returnConnectionReuseAddress;
+			returnConnectionReuseAddress = null;
+			return toreturn;
+		}
+		
+		return wrapped.getDeviceConnectionReuseAddress();
+	}
+
+	@Override
+	public int getDeviceConnectionSocketTimeout() {
+		return wrapped.getDeviceConnectionSocketTimeout();
+	}
+
+	@Override
+	public String getDeviceConnectionSSLInstance() {
+		return wrapped.getDeviceConnectionSSLInstance();
+	}
+
+	@Override
+	public String getDeviceConnectionKeystoreType() {
+		return wrapped.getDeviceConnectionKeystoreType();
+	}
+
+	@Override
+	public String getDeviceConnectionKeystoreProvider() {
+		return wrapped.getDeviceConnectionKeystoreProvider();
+	}
+
+	@Override
+	public String getDeviceConnectionKeystore() {
+		return wrapped.getDeviceConnectionKeystore();
+	}
+
+	@Override
+	public String getDeviceConnectionKeystorePassword() {
+		return wrapped.getDeviceConnectionKeystorePassword();
+	}
+
+	@Override
+	public String getDeviceConnectionKeyPassword() {
+		return wrapped.getDeviceConnectionKeyPassword();
+	}
+	
+	@Override
+	public long getDeviceConnectionEchoInterval() {
+		if(returnConnectionEchoInterval != null) {
+			Long toreturn = returnConnectionEchoInterval;
+			returnConnectionEchoInterval = null;
+			return toreturn;
+		}
+		return wrapped.getDeviceConnectionEchoInterval();
 	}
 }

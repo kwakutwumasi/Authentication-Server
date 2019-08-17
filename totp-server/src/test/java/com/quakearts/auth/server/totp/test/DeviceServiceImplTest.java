@@ -10,7 +10,10 @@ import java.util.Optional;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,15 +23,18 @@ import org.junit.runner.RunWith;
 import com.quakearts.appbase.cdi.annotation.Transactional;
 import com.quakearts.appbase.cdi.annotation.Transactional.TransactionType;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
-import com.quakearts.auth.server.totp.device.impl.DeviceServiceImpl;
+import com.quakearts.auth.server.totp.device.impl.DeviceManagementServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.exception.TOTPExceptionMapper;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.auth.server.totp.setup.CreatorService;
 import com.quakearts.webtools.test.AllServicesRunner;
 import com.quakearts.webapp.orm.DataStore;
@@ -40,7 +46,7 @@ import com.quakearts.webapp.orm.exception.DataStoreException;
 public class DeviceServiceImplTest {
 
 	@Inject
-	private DeviceServiceImpl deviceService;
+	private DeviceManagementServiceImpl deviceService;
 	
 	@Inject @DataStoreFactoryHandle
 	private DataStoreFactory factory;
@@ -102,6 +108,7 @@ public class DeviceServiceImplTest {
 		optionalDevice = deviceService.findDevice("testassign1");
 		assertThat(optionalDevice.isPresent(), is(true));
 		expectedException.expect(DuplicateAliasException.class);
+		expectedException.expect(matchesTOTPException(new DuplicateAliasException()));
 		deviceService.assign("testassign1", device);
 	}
 
@@ -231,6 +238,7 @@ public class DeviceServiceImplTest {
 		Device device = optionalDevice.get();
 		
 		expectedException.expect(MissingNameException.class);
+		expectedException.expect(matchesTOTPException(new MissingNameException()));
 		deviceService.addAsAdmin(null, device);
 	}
 	
@@ -245,6 +253,7 @@ public class DeviceServiceImplTest {
 		device.setStatus(Status.LOCKED);
 		
 		expectedException.expect(InvalidDeviceStatusException.class);
+		expectedException.expect(matchesTOTPException(new InvalidDeviceStatusException()));
 		deviceService.addAsAdmin("lockedAdministrator", device);
 	}
 	
@@ -310,5 +319,43 @@ public class DeviceServiceImplTest {
 		assertThat(deviceService.fetchDevices(Status.INITIATED, 0l, 5).size(), is(1));
 	}
 	
+	@Test
+	@Transactional(TransactionType.SINGLETON)
+	public void testFindTamperedDevice() throws Exception {
+		Optional<Device> tamperedDeviceOptional = deviceService.findDevice("tampereddevice");
+		assertThat(tamperedDeviceOptional.isPresent(), is(false));
+	}
 	
+	static class TOTPExceptionMatch extends BaseMatcher<TOTPException> {
+		TOTPException toMatch;
+		
+		@Override
+		public boolean matches(Object item) {
+			if(item instanceof TOTPException) {
+				TOTPException totpException = (TOTPException) item;
+				TOTPExceptionMapper mapper = new TOTPExceptionMapper();
+				Response response = mapper.toResponse(totpException);
+				Response compareResponse = mapper.toResponse(toMatch);
+				return response.getStatus() == compareResponse.getStatus() && 
+						((ErrorResponse)response.getEntity()).getMessage()
+						.equals(((ErrorResponse)compareResponse.getEntity()).getMessage());
+			}
+			return false;
+		}
+
+		@Override
+		public void describeTo(Description description) {
+			TOTPExceptionMapper mapper = new TOTPExceptionMapper();
+			Response response = mapper.toResponse(toMatch);
+			description.appendText("Expected exception with message "
+					+toMatch.getMessage()+" with httpCode "+response.getStatus());
+		}
+		
+	}
+
+	private static TOTPExceptionMatch matchesTOTPException(TOTPException toMatch) {
+		TOTPExceptionMatch match = new TOTPExceptionMatch();
+		match.toMatch = toMatch;
+		return match;
+	}
 }

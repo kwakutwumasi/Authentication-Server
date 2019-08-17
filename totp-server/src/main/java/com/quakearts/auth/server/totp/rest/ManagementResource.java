@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.quakearts.auth.server.totp.device.DeviceService;
+import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
@@ -44,7 +44,7 @@ public class ManagementResource {
 	private static final String THE_DEVICE = "The device ";
 	
 	@Inject
-	private DeviceService deviceService;
+	private DeviceManagementService deviceManagementService;
 	
 	@FunctionalInterface
 	private interface RequestProcessor {
@@ -63,7 +63,7 @@ public class ManagementResource {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
 			try {
-				deviceService.assign(alias, device);
+				deviceManagementService.assign(alias, device);
 			} catch (DuplicateAliasException e) {
 				throw new ManagementException(THE_ALIAS+alias+" has already been assigned");
 			} catch (InvalidAliasException e) {
@@ -83,7 +83,7 @@ public class ManagementResource {
 	}	
 
 	private void unassignAlias(String alias, Optional<Device> deviceOptional) throws ManagementException {
-		if(!deviceService.unassign(alias)){
+		if(!deviceManagementService.unassign(alias)){
 			throw new ManagementException(THE_ALIAS+alias+" was not assigned");
 		}
 	}
@@ -99,7 +99,7 @@ public class ManagementResource {
 	private void lock(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
-			if(!deviceService.lock(device)){
+			if(!deviceManagementService.lock(device)){
 				throw new ManagementException(THE_DEVICE+device.getId()+" was not locked");
 			}
 		} else {
@@ -118,7 +118,7 @@ public class ManagementResource {
 	private void unlock(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
-			if(!deviceService.unlock(device)){
+			if(!deviceManagementService.unlock(device)){
 				throw new ManagementException(THE_DEVICE+device.getId()+" cannot be unlocked. It is "+device.getStatus());
 			}
 		} else {
@@ -137,11 +137,11 @@ public class ManagementResource {
 	private void addAsAdmin(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
-			if(deviceService.findAdministrator(device.getId()).isPresent()){
+			if(deviceManagementService.findAdministrator(device.getId()).isPresent()){
 				throw new ManagementException(THE_DEVICE+device.getId()+" is already an administrator device");
 			}
 			try {
-				deviceService.addAsAdmin(alias, device);
+				deviceManagementService.addAsAdmin(alias, device);
 			} catch (MissingNameException e) {
 				throw new ManagementException("Common name was missing");
 			} catch (InvalidDeviceStatusException e) {
@@ -163,7 +163,7 @@ public class ManagementResource {
 	private void removeAsAdmin(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
-			if(!deviceService.removeAsAdmin(device)){
+			if(!deviceManagementService.removeAsAdmin(device)){
 				throw new ManagementException(THE_DEVICE+device.getId()+" is not an administrator device");
 			}
 		} else {
@@ -182,7 +182,7 @@ public class ManagementResource {
 	private void deactivate(String alias, Optional<Device> deviceOptional) throws ManagementException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
-			if(!deviceService.deactivate(device)){
+			if(!deviceManagementService.deactivate(device)){
 				throw new ManagementException(THE_DEVICE+device.getId()+" cannot be deactivated. It is "+device.getStatus());
 			}
 		} else {
@@ -194,7 +194,7 @@ public class ManagementResource {
 		ManagementResponseEntry[] response = new ManagementResponseEntry[managementRequest.getRequests().length];
 		int index = 0;
 		for(DeviceRequest deviceRequest:managementRequest.getRequests()){
-			Optional<Device> optionalDevice = deviceRequest.getDeviceId()!=null? deviceService.findDevice(deviceRequest.getDeviceId())
+			Optional<Device> optionalDevice = deviceRequest.getDeviceId()!=null? deviceManagementService.findDevice(deviceRequest.getDeviceId())
 					: Optional.empty();
 			try {
 				processor.process(deviceRequest.getAlias(), optionalDevice);					
@@ -215,7 +215,7 @@ public class ManagementResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("list-administrators")
 	public List<AdministratorResponse> listAdministrators(){
-		return deviceService.listAdministrators()
+		return deviceManagementService.listAdministrators()
 				.stream().map(AdministratorResponse::new)
 				.collect(Collectors.toList());
 	}
@@ -224,14 +224,14 @@ public class ManagementResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("count-devices")
 	public CountResponse countDevices(){
-		return new CountResponse().withCountAs(deviceService.deviceCount());
+		return new CountResponse().withCountAs(deviceManagementService.deviceCount());
 	}
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("get-devices")
 	public List<DeviceResponse> getDevices(@QueryParam("status")Status status, @QueryParam("lastid") long lastId, @QueryParam("maxrows") int maxRows){
-		return deviceService.fetchDevices(status, lastId, maxRows)
+		return deviceManagementService.fetchDevices(status, lastId, maxRows)
 				.stream().map(DeviceResponse::new)
 				.collect(Collectors.toList());
 	}

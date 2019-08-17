@@ -13,15 +13,15 @@ public class ManagementRequest {
 		this.requests = requests;
 	}
 	
-	private static final AuthorizationRequest DEFAULTAUTHORIZATIONREQUEST = new AuthorizationRequest();
+	private static final AuthenticationRequest DEFAULTAUTHORIZATIONREQUEST = new AuthenticationRequest();
 	
-	private AuthorizationRequest authorizationRequest = DEFAULTAUTHORIZATIONREQUEST;
+	private AuthenticationRequest authorizationRequest = DEFAULTAUTHORIZATIONREQUEST;
 	
-	public AuthorizationRequest getAuthorizationRequest() {
+	public AuthenticationRequest getAuthorizationRequest() {
 		return authorizationRequest;
 	}
 	
-	public void setAuthorizationRequest(AuthorizationRequest authorizationRequest) {
+	public void setAuthorizationRequest(AuthenticationRequest authorizationRequest) {
 		if(authorizationRequest!=null)
 			this.authorizationRequest = authorizationRequest;
 	}

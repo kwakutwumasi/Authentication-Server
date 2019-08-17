@@ -9,7 +9,7 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
 import com.quakearts.auth.server.totp.authentication.AuthenticationService;
-import com.quakearts.auth.server.totp.device.DeviceService;
+import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
 import com.quakearts.webapp.security.auth.UserPrincipal;
@@ -21,7 +21,7 @@ import com.quakearts.webapp.security.rest.exception.RestSecurityException;
 public class AuthorizeManagedRequestInterceptor {
 	
 	@Inject
-	private DeviceService deviceService;
+	private DeviceManagementService deviceManagementService;
 	
 	@Inject
 	private AuthenticationService authenticationService;
@@ -33,7 +33,7 @@ public class AuthorizeManagedRequestInterceptor {
 		if(request==null
 				|| request.getAuthorizationRequest().getDeviceId() == null
 				|| request.getAuthorizationRequest().getOtp() == null)
-			throw new RestSecurityException("AuthorizationRequest is required");
+			throw new RestSecurityException("AuthenticationRequest is required");
 		
 		if(!SecurityContext.getCurrentSecurityContext().isAuthenicated()
 				|| SecurityContext.getCurrentSecurityContext()
@@ -42,7 +42,7 @@ public class AuthorizeManagedRequestInterceptor {
 			throw new RestSecurityException("Dual administrator authorization is required");
 		}
 		
-		Optional<Administrator> optionalAdministrator = deviceService
+		Optional<Administrator> optionalAdministrator = deviceManagementService
 				.findAdministrator(request.getAuthorizationRequest().getDeviceId());
 		if(optionalAdministrator.isPresent()
 				&& authenticationService.authenticate(optionalAdministrator.get().getDevice(), request.getAuthorizationRequest().getOtp())){

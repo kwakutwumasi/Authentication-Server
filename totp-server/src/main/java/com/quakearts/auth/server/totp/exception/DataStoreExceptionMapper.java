@@ -1,5 +1,6 @@
 package com.quakearts.auth.server.totp.exception;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -15,6 +16,7 @@ public class DataStoreExceptionMapper implements ExceptionMapper<DataStoreExcept
 				.entity(new ErrorResponse()
 						.withMessageAs(exception.getMessage()
 								+(exception.getCause()!=null?exception.getCause().getMessage():"")))
+				.type(MediaType.APPLICATION_JSON_TYPE)
 				.build();
 	}
 

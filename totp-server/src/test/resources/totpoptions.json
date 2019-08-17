@@ -13,5 +13,14 @@
 	"installed.administrators":{
 		"map":{"testadministrator1":"Adminstrator 1","testadministrator2":"Adminstrator 2"}
 	},
-	"count.query":"SELECT COUNT(ID) AS TOTAL FROM DEVICE"
+	"count.query":"SELECT COUNT(ID) AS TOTAL FROM DEVICE",
+	"device.connection":{
+		"port":9001,
+		"keystore.password":"password",
+		"keystore.type":"PKCS12",
+		"keystore.provider":"SunJSSE",
+		"keystore":"totp.keystore",
+		"socket.timeout":300000,
+		"ssl.instance":"TLSv1.2"
+	 }
 }

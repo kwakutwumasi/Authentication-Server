@@ -1,15 +1,14 @@
 package com.quakearts.auth.server.totp.options.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.quakearts.appbase.Main;
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.appbase.internal.properties.ConfigurationPropertyMap;
+import com.quakearts.auth.server.totp.options.TOTPConfigurationProvider;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 
 @Singleton
@@ -27,29 +26,81 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private int lockoutTime;
 	private Map<String, String> installedAdministrators;
 	private String countQuery;
+	private int deviceConnectionPort;
+	private int deviceConnectionThreads = 3;
+	private int deviceConnectionReceiveBufferSize;
+	private PerformancePreferences deviceConnectionPerformancePreferences;
+	private Boolean deviceConnectionReuseAddress;
+	private int deviceConnectionSocketTimeout;
+	private String deviceConnectionSSLInstance;
+	private String deviceConnectionKeystoreType;
+	private String deviceConnectionKeystoreProvider;
+	private String deviceConnectionKeystore;
+	private String deviceConnectionKeystorePassword;
+	private String deviceConnectionKeyPassword;
+	
+	@Inject
+	private TOTPConfigurationProvider totpConfigurationProvider;
+	private long deviceConnectionEchoInterval;
 	
 	@SuppressWarnings("unchecked")
-	public TOTPOptionsImpl() {
+	@PostConstruct
+	void init() {
+		ConfigurationPropertyMap propertyMap = totpConfigurationProvider.getConfigurationPropertyMap(); 
+		
+		dataStoreName = propertyMap.getString("data.store.name");
+		macAlgorithm = propertyMap.getString("mac.algorithm");
+		macProvider = propertyMap.getString("mac.provider");
+		otpLength = propertyMap.getInt("otp.length");
+		seedLength = propertyMap.getInt("seed.length");
+		secureRandomInstance = propertyMap.getString("secure.random.instance");
+		secureRandomProvider = propertyMap.getString("secure.random.provider");
+		timeStep = propertyMap.getInt("time.step")*1000l;
+		gracePeriod = propertyMap.getInt("grace.period")*1000l;
+		maxAttempts = propertyMap.getInt("max.attempts");
+		lockoutTime = propertyMap.getInt("lockout.time");
+		installedAdministrators = propertyMap.get("installed.administrators", Map.class);
+		if(installedAdministrators == null) {
+			throw new ConfigurationException("Entry 'installed.administrators' is missing from "
+					+ totpConfigurationProvider.getConfigurationPropertyMapName()
+					+" and is required");
+		}
+		
+		countQuery = propertyMap.getString("count.query");
+		
+		ConfigurationPropertyMap deviceConnectionMap;
+		deviceConnectionMap = propertyMap.getSubConfigurationPropertyMap("device.connection");
+		
 		try {
-			InputStream inputStream = Thread.currentThread()
-					.getContextClassLoader().getResourceAsStream("totpoptions.json");
-			ConfigurationPropertyMap propertyMap = Main.getAppBasePropertiesLoader()
-					.loadParametersFromReader("totpoptions.json", new InputStreamReader(inputStream));
-			dataStoreName = propertyMap.getString("data.store.name");
-			macAlgorithm = propertyMap.getString("mac.algorithm");
-			macProvider = propertyMap.getString("mac.provider");
-			otpLength = propertyMap.getInt("otp.length");
-			seedLength = propertyMap.getInt("seed.length");
-			secureRandomInstance = propertyMap.getString("secure.random.instance");
-			secureRandomProvider = propertyMap.getString("secure.random.provider");
-			timeStep = propertyMap.getInt("time.step")*1000l;
-			gracePeriod = propertyMap.getInt("grace.period")*1000l;
-			maxAttempts = propertyMap.getInt("max.attempts");
-			lockoutTime = propertyMap.getInt("lockout.time");
-			installedAdministrators = propertyMap.get("installed.administrators", Map.class);
-			countQuery = propertyMap.getString("count.query");
-		} catch (IOException | NullPointerException e) {
-			throw new ConfigurationException(e);
+			if(deviceConnectionMap.containsKey("threads")) {
+				deviceConnectionThreads = deviceConnectionMap.getInt("threads");
+			}
+			deviceConnectionPort = deviceConnectionMap.getInt("port");
+			deviceConnectionKeystorePassword = deviceConnectionMap.getString("keystore.password");
+			deviceConnectionKeystoreType = deviceConnectionMap.getString("keystore.type");
+			deviceConnectionKeystoreProvider = deviceConnectionMap.getString("keystore.provider");
+			deviceConnectionKeystore = deviceConnectionMap.getString("keystore");
+			deviceConnectionReceiveBufferSize = deviceConnectionMap.getInt("receive.buffer.size");
+			if(deviceConnectionMap.containsKey("reuse.address")) {
+				deviceConnectionReuseAddress = deviceConnectionMap
+						.getBoolean("reuse.address");
+			}
+			deviceConnectionSocketTimeout = deviceConnectionMap.getInt("socket.timeout");
+			deviceConnectionSSLInstance = deviceConnectionMap.getString("ssl.instance");
+			
+			if(deviceConnectionMap.containsKey("performance.preferences")) {
+				ConfigurationPropertyMap performancePreferencesMap = deviceConnectionMap
+							.getSubConfigurationPropertyMap("performance.preferences");
+				deviceConnectionPerformancePreferences = new PerformancePreferences(
+						performancePreferencesMap.getInt("connection.time"), 
+						performancePreferencesMap.getInt("latency"), 
+						performancePreferencesMap.getInt("bandwidth"));
+			}
+			deviceConnectionEchoInterval = deviceConnectionMap.getLong("echo.interval");
+		} catch (NullPointerException e) {
+			throw new ConfigurationException("Entry 'device.connection' is missing from "
+					+ totpConfigurationProvider.getConfigurationPropertyMapName()
+					+" and is required");
 		}
 	}
 
@@ -116,5 +167,70 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	@Override
 	public String getCountQuery() {
 		return countQuery;
+	}
+
+	@Override
+	public int getDeviceConnectionPort() {
+		return deviceConnectionPort;
+	}
+
+	@Override
+	public int getDeviceConnectionThreads() {
+		return deviceConnectionThreads;
+	}
+
+	@Override
+	public int getDeviceConnectionReceiveBufferSize() {
+		return deviceConnectionReceiveBufferSize;
+	}
+
+	@Override
+	public PerformancePreferences getDeviceConnectionPerformancePreferences() {
+		return deviceConnectionPerformancePreferences;
+	}
+
+	@Override
+	public Boolean getDeviceConnectionReuseAddress() {
+		return deviceConnectionReuseAddress;
+	}
+
+	@Override
+	public int getDeviceConnectionSocketTimeout() {
+		return deviceConnectionSocketTimeout;
+	}
+
+	@Override
+	public String getDeviceConnectionSSLInstance() {
+		return deviceConnectionSSLInstance;
+	}
+
+	@Override
+	public String getDeviceConnectionKeystoreType() {
+		return deviceConnectionKeystoreType;
+	}
+
+	@Override
+	public String getDeviceConnectionKeystoreProvider() {
+		return deviceConnectionKeystoreProvider;
+	}
+
+	@Override
+	public String getDeviceConnectionKeystore() {
+		return deviceConnectionKeystore;
+	}
+
+	@Override
+	public String getDeviceConnectionKeystorePassword() {
+		return deviceConnectionKeystorePassword;
+	}
+
+	@Override
+	public String getDeviceConnectionKeyPassword() {
+		return deviceConnectionKeyPassword;
+	}
+	
+	@Override
+	public long getDeviceConnectionEchoInterval() {
+		return deviceConnectionEchoInterval;
 	}
 }

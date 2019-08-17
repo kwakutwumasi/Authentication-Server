@@ -13,10 +13,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.quakearts.auth.server.totp.authentication.AuthenticationService;
-import com.quakearts.auth.server.totp.device.DeviceService;
+import com.quakearts.auth.server.totp.device.DeviceManagementService;
+import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.generator.KeyGenerator;
+import com.quakearts.auth.server.totp.model.Alias;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
@@ -38,7 +41,7 @@ public class ProvisioningResource {
 	private AuthenticationService authenticationService;
 	
 	@Inject
-	private DeviceService deviceService;
+	private DeviceManagementService deviceManagementService;
 	
 	@Inject
 	private TOTPOptions totpOptions;
@@ -52,13 +55,7 @@ public class ProvisioningResource {
 		DataStore dataStore = factory.getDataStore(totpOptions.getDataStoreName());
 		Device device = dataStore.get(Device.class, deviceid);
 		if(device == null) {
-			device = new Device();
-			device.setId(deviceid);
-			device.setInitialCounter(System.currentTimeMillis());
-			keyGenerator.generateAndStoreIn(device);
-			device.setStatus(Status.INITIATED);
-			dataStore.save(device);
-			
+			device = createDevice(deviceid, dataStore);			
 			return new ProvisioningResponse()
 					.withSeedAs(CryptoResource.byteAsHex(device.getSeed().getValue()))
 					.withInitialCounterAs(device.getInitialCounter());
@@ -68,30 +65,60 @@ public class ProvisioningResource {
 							.withMessageAs("The device cannot be provisioned")).build());
 		}
 	}
+
+	private Device createDevice(String deviceid, DataStore dataStore) {
+		Device device;
+		device = new Device();
+		device.setId(deviceid);
+		device.setInitialCounter(System.currentTimeMillis());
+		keyGenerator.generateAndStoreIn(device);
+		device.setStatus(Status.INITIATED);
+		dataStore.save(device);
+		return device;
+	}
 	
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void activate(@PathParam("deviceid") String deviceid, ActivationRequest request) 
-			throws MissingNameException, InvalidDeviceStatusException {
+			throws MissingNameException, InvalidDeviceStatusException, 
+				InvalidAliasException, DuplicateAliasException {
 		DataStore dataStore = factory.getDataStore(totpOptions.getDataStoreName());
+		checkAlias(request, dataStore);
+		
 		Device device = dataStore.get(Device.class, deviceid);
 		if(device != null && device.getStatus() == Status.INITIATED) {
-			if(authenticationService.authenticate(device, request.getToken())){
-				device.setStatus(Status.ACTIVE);
-				dataStore.update(device);
-				
-				if(totpOptions.getInstalledAdministrators().containsKey(deviceid)){
-					String name = totpOptions.getInstalledAdministrators().get(deviceid);
-					deviceService.addAsAdmin(name, device);
-				}
-			} else {
-				throw new WebApplicationException(Response.status(403)
-						.type(MediaType.APPLICATION_JSON)
-						.entity(new ErrorResponse()
-								.withMessageAs("The device cannot be activated")).build());
-			}
+			doActivation(deviceid, request, dataStore, device);
 		} else {
 			throw new WebApplicationException(Response.status(404)
+					.type(MediaType.APPLICATION_JSON)
+					.entity(new ErrorResponse()
+							.withMessageAs("The device cannot be activated")).build());
+		}
+	}
+
+	private void checkAlias(ActivationRequest request, DataStore dataStore) throws InvalidAliasException {
+		if(request.getAlias()!=null 
+				&& dataStore.get(Alias.class, request.getAlias()) != null) {
+			throw new InvalidAliasException();
+		}
+	}
+
+	private void doActivation(String deviceid, ActivationRequest request, DataStore dataStore, Device device)
+			throws MissingNameException, InvalidDeviceStatusException, DuplicateAliasException, InvalidAliasException {
+		if(authenticationService.authenticate(device, request.getToken())){
+			device.setStatus(Status.ACTIVE);
+			dataStore.update(device);
+			
+			if(totpOptions.getInstalledAdministrators().containsKey(deviceid)){
+				String name = totpOptions.getInstalledAdministrators().get(deviceid);
+				deviceManagementService.addAsAdmin(name, device);
+			}
+			
+			if(request.getAlias()!=null) {
+				deviceManagementService.assign(request.getAlias(), device);
+			}
+		} else {
+			throw new WebApplicationException(Response.status(403)
 					.type(MediaType.APPLICATION_JSON)
 					.entity(new ErrorResponse()
 							.withMessageAs("The device cannot be activated")).build());

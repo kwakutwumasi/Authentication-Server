@@ -8,5 +8,7 @@
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions</class>
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationService</class>
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService</class>
+		<class>com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager</class>
+		<class>com.quakearts.auth.server.totp.alternatives.AlternativeDeviceConnectionService</class>
 	</alternatives>
 </beans>
