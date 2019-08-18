@@ -19,7 +19,7 @@ import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
-import com.quakearts.auth.server.totp.rest.authorization.DeviceConnectionService;
+import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 
@@ -34,7 +34,7 @@ public class AuthenticationResource {
 	private DeviceManagementService deviceManagementService;
 	
 	@Inject
-	private DeviceConnectionService deviceConnectionService;
+	private DeviceAuthorizationService deviceConnectionService;
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)

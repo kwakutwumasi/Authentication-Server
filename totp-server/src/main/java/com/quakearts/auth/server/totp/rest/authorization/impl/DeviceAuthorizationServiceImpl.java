@@ -9,10 +9,10 @@ import javax.inject.Singleton;
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
-import com.quakearts.auth.server.totp.rest.authorization.DeviceConnectionService;
+import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 
 @Singleton
-public class DeviceConnectionServiceImpl implements DeviceConnectionService {
+public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationService {
 	
 	@Inject
 	private DeviceConnectionChannel deviceConnectionChannel;
