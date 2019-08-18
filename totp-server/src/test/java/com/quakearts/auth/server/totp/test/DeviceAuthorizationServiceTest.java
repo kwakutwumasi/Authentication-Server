@@ -17,15 +17,15 @@ import org.junit.runner.RunWith;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
-import com.quakearts.auth.server.totp.rest.authorization.DeviceConnectionService;
+import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webtools.test.AllServicesRunner;
 
 @RunWith(AllServicesRunner.class)
-public class DeviceConnectionServiceTest {
+public class DeviceAuthorizationServiceTest {
 
 	@Inject
-	private DeviceConnectionService deviceConnectionService;
+	private DeviceAuthorizationService deviceConnectionService;
 	
 	@Inject
 	private JWTGenerator jwtGenerator;

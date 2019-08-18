@@ -9,16 +9,16 @@ import javax.interceptor.Interceptor;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
-import com.quakearts.auth.server.totp.rest.authorization.DeviceConnectionService;
-import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceConnectionServiceImpl;
+import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
+import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceAuthorizationServiceImpl;
 
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
 @Singleton
-public class AlternativeDeviceConnectionService implements DeviceConnectionService {
+public class AlternativeDeviceAuthorizationService implements DeviceAuthorizationService {
 
 	@Inject
-	private DeviceConnectionServiceImpl wrapped;
+	private DeviceAuthorizationServiceImpl wrapped;
 	
 	private static TOTPException throwException;
 	

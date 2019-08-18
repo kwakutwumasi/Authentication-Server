@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
-import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceConnectionService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
@@ -100,7 +100,7 @@ public class RESTServiceTest {
 		authenticateRequest.setOtp(totp1[0]);
 		
 		client.authenticate(authenticateRequest);
-		AlternativeDeviceConnectionService.throwException(null);
+		AlternativeDeviceAuthorizationService.throwException(null);
 		AlternativeConnectionManager.run(bite->{
 			Map<String, String> responseMap = new HashMap<>();
 			String[] direct = totpGenerator.generateFor(device1, System.currentTimeMillis());
@@ -625,7 +625,7 @@ public class RESTServiceTest {
 	public void testMessageGenerationException() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"Message generation failed. IllegalArgumentException\"}"));
-		AlternativeDeviceConnectionService.throwException(new MessageGenerationException(new IllegalArgumentException("IllegalArgumentException")));
+		AlternativeDeviceAuthorizationService.throwException(new MessageGenerationException(new IllegalArgumentException("IllegalArgumentException")));
 				
 		client.authenticateDirect("testdevice1");
 	}
@@ -634,7 +634,7 @@ public class RESTServiceTest {
 	public void testUnconnectedDeviceException() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. IllegalArgumentException\"}"));
-		AlternativeDeviceConnectionService.throwException(new UnconnectedDeviceException("IllegalArgumentException"));
+		AlternativeDeviceAuthorizationService.throwException(new UnconnectedDeviceException("IllegalArgumentException"));
 				
 		client.authenticateDirect("testdevice1");
 	}

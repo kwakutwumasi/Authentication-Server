@@ -9,7 +9,7 @@ import com.quakearts.auth.server.totp.options.impl.TOTPOptionsImplTest;
 @RunWith(Suite.class)
 @SuiteClasses({ AuthenticationResourceTest.class, 
 		AuthenticationServiceImplTest.class, ConnectionManagerImplTest.class, 
-		DeviceConnectionServiceTest.class,
+		DeviceAuthorizationServiceTest.class,
 		DeviceServiceImplTest.class, KeyGeneratorImplTest.class,
 		ModelTests.class, RESTServiceTest.class, TOTPConfigurationProviderImplTest.class, 
 		TOTPGeneratorImplTest.class, TOTPOptionsImplTest.class})
