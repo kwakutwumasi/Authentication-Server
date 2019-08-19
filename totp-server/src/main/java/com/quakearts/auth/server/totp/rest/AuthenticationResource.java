@@ -80,7 +80,7 @@ public class AuthenticationResource {
 		Optional<Device> optionalDevice = deviceManagementService.findDevice(deviceId);
 		if(optionalDevice.isPresent() && optionalDevice.get().getStatus() == Status.ACTIVE){
 			Device device = optionalDevice.get();
-			String otp = deviceConnectionService.requestOTPCode(deviceId);
+			String otp = deviceConnectionService.requestOTPCode(device.getId());
 			authenticate(device, otp);
 		} else {
 			throw new WebApplicationException(Response.status(403)
