@@ -220,6 +220,7 @@ public class AuthenticationResourceTest {
 	public void testAuthenticateDirectLoginOk() throws Exception {
 		Device device = new Device();
 		device.setStatus(Status.ACTIVE);
+		device.setId("testDirect1");
 		AlternativeDeviceService.returnDevice(id-> {
 			assertThat(id, is("testDirect1"));
 			return Optional.of(device);
