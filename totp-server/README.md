@@ -28,30 +28,6 @@ Multiple aliases can be assigned to a single device.
 
 Aliases must be unique.
 
-### The TOTPLoginModule
-
-The TOTPLoginModule is a Java Authentication and Authorization Service (JAAS) module. It can be used by any system that supports the usage of JAAS login modules. The Authentication Server is one such service.
-
-The module has no required setup parameters. 
-
-Optional parameters are 
-
-```
-totp.rolename - This parameter is for use in JAAS modules that are 
- integrated with Jboss/Wildfly's authentication system. All roles are 
- grouped within a java.security.acl.Group with a specific name. This 
- defaults to Roles
-
-use_first_pass - A string that evaluates to the Boolean value of true or 
- false. If true, and multiple modules are used, it will attempt to use the 
- username and password from the previous module, if any, rather than 
- perform a callback
- 
-totp.defaultroles - A comma separated list of the default roles to 
- assign to all authenticated subjects
- 
-```
-
 ### Encryption
 
 The server uses encryption to store seeds and other security values in a database. See QA-Crypto for more information on how to setup encryption.
@@ -65,6 +41,15 @@ Aside from encryption the server has some security features to prevent tampering
 To protect against device ID switching, an encrypted check value is stored in the database. This check value is verified each time the device is retrieved. If an attacker manages to gain access to the database and tries to switch their device ID with that of a target, they would need to generate and encrypt the check value. If the encryption key is stored securely, this will not be feasible.
 
 The same protection exists for aliases and administrator accounts. 
+
+### Edge Servers
+
+This server is not meant to exposed to external untrusted networks (such as the internet). It is intended to be firewalled and accessed by edge servers, that in turn may be protected by web application firewalls for maximum security.
+The edge server has been implemented in this repository.
+
+### Direct Authentication
+
+Edge servers may connect to this server. The "device.connection" parameters of the configuration file provide details for the server port that edge servers may connect to. Once connected, the server may attempt to authenticate users by sending a request to the device directly. The details of edge server communication with the authentication device is covered by the edge server documentation.
 
 ### Setup and Configuration
 
@@ -95,8 +80,18 @@ max.attempts - the maximum number of tries before a device is locked
 lockout.time - the amount of time, in microseconds before the lockout tries are reset. If a device has been locked, the reset will have no effect.
 installed.administrators - the initial list of device administrators. These must be setup prior to server initiation and prior to provisioning of the devices.
 count.query - The SQL server query to use to when pulling the total device count (Only necessary for SQL server based QA-ORM implementations)
-
+device.connection -> port - The port edge servers connect to
+					  ->keystore - the JCE Keystore for TLS encryption
+					  ->keystore.type - the JCE Keystore type for TLS encryption
+					  ->keystore.password - the JCE Keystore password (if any) for TLS encryption
+					  ->keystore.provider - the JCE Keystore provider for TLS encryption
+					  ->socket.timeout - The timeout period for socket connections to the edge servers
+					  ->ssl.instance - the SSL/TLS version to use
 ```
+
+###### Stand Alone
+
+The TOTP server is already integrated into QA-Appbase and once the necessary libraries are on the classpath, the server can be started. Additional files are required. These can be copied from the src/test/resources folder of this project and amended as required.
 
 ###### Setup Notes
 
