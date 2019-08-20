@@ -144,4 +144,4 @@ int tokencode = code mod 10^(otp length)
 
 The last step will shorten the (possibly) longer integer to at most the length required.
 
-A reference implementation of an authentication device is provided in this repository. It is developed using the Codenameone crossplatform mobile application development platform.
+A reference implementation of an authentication device is provided in this repository.
