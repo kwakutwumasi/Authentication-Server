@@ -1,4 +1,4 @@
-package com.quakearts.auth.server.totp.provisioning.client;
+package com.quakearts.auth.server.proxy.client;
 
 import java.net.URL;
 

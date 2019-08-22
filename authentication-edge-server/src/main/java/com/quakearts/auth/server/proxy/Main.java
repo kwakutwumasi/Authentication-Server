@@ -1,4 +1,4 @@
-package com.quakearts.auth.server.totp.provisioning;
+package com.quakearts.auth.server.proxy;
 
 import java.text.MessageFormat;
 import org.slf4j.Logger;

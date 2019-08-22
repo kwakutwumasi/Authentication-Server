@@ -1,9 +1,9 @@
-package com.quakearts.auth.server.totp.provisioning.client.exception;
+package com.quakearts.auth.server.proxy.client.exception;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
-import com.quakearts.auth.server.totp.provisioning.client.model.ErrorResponse;
+import com.quakearts.auth.server.proxy.client.model.ErrorResponse;
 
 public class GeneralExceptionMapper implements ExceptionMapper<RuntimeException> {
 

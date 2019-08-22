@@ -1,4 +1,4 @@
-package com.quakearts.auth.server.totp.provisioning.client;
+package com.quakearts.auth.server.proxy.client;
 
 import static java.text.MessageFormat.format;
 
@@ -13,9 +13,9 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quakearts.auth.server.totp.provisioning.client.exception.ConnectorException;
-import com.quakearts.auth.server.totp.provisioning.client.model.ErrorResponse;
-import com.quakearts.auth.server.totp.provisioning.client.model.TokenResponse;
+import com.quakearts.auth.server.proxy.client.exception.ConnectorException;
+import com.quakearts.auth.server.proxy.client.model.ErrorResponse;
+import com.quakearts.auth.server.proxy.client.model.TokenResponse;
 import com.quakearts.rest.client.HttpClient;
 import com.quakearts.rest.client.HttpResponse;
 import com.quakearts.rest.client.HttpVerb;

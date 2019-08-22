@@ -1,6 +1,6 @@
-package com.quakearts.auth.server.totp.provisioning.client.exception;
+package com.quakearts.auth.server.proxy.client.exception;
 
-import com.quakearts.auth.server.totp.provisioning.client.model.ErrorResponse;
+import com.quakearts.auth.server.proxy.client.model.ErrorResponse;
 
 public class ConnectorException extends Exception {
 

@@ -1,4 +1,4 @@
-package com.quakearts.auth.server.totp.provisioning.client.model;
+package com.quakearts.auth.server.proxy.client.model;
 
 import java.io.Serializable;
 

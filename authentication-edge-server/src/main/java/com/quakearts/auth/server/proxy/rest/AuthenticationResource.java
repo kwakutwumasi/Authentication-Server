@@ -1,4 +1,4 @@
-package com.quakearts.auth.server.totp.provisioning.rest;
+package com.quakearts.auth.server.proxy.rest;
 
 import java.io.IOException;
 
@@ -12,10 +12,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.quakearts.auth.server.totp.provisioning.client.AuthenticationServerHttpClient;
-import com.quakearts.auth.server.totp.provisioning.client.exception.ConnectorException;
-import com.quakearts.auth.server.totp.provisioning.client.model.ErrorResponse;
-import com.quakearts.auth.server.totp.provisioning.client.model.TokenResponse;
+import com.quakearts.auth.server.proxy.client.AuthenticationServerHttpClient;
+import com.quakearts.auth.server.proxy.client.exception.ConnectorException;
+import com.quakearts.auth.server.proxy.client.model.ErrorResponse;
+import com.quakearts.auth.server.proxy.client.model.TokenResponse;
 import com.quakearts.rest.client.exception.HttpClientException;
 
 @Path("authenticate/{alias}/{application}")
