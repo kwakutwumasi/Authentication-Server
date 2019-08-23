@@ -26,7 +26,7 @@ public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationServic
 		Map<String, String> response = deviceConnectionChannel.sendMessage(requestMap);
 		String otp = response.get("otp");
 		if(otp == null) {
-			throw new UnconnectedDeviceException("Response was not undestood");
+			throw new UnconnectedDeviceException("Response was not undestood: "+response);
 		}
 		return otp;
 	}
