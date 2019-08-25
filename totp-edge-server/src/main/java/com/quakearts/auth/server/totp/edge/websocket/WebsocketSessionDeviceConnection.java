@@ -1,27 +1,30 @@
 package com.quakearts.auth.server.totp.edge.websocket;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import javax.websocket.Session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.edge.channel.DeviceConnection;
-import com.quakearts.auth.server.totp.edge.exception.CapacityExceededException;
 import com.quakearts.auth.server.totp.edge.websocket.model.Payload;
 
 public class WebsocketSessionDeviceConnection implements DeviceConnection {
 
+	private static final Logger log = LoggerFactory.getLogger(DeviceConnection.class);
+	
 	public static final String DEVICE_CONNECTION = "WebsocketSessionDeviceConnection.DEVICE_CONNECTION";
 	public static final String DEVICE_ID = "WebsocketSessionDeviceConnection.DEVICE_ID";
+	public static final String MESSAGE_ID_BASE = "WebsocketSessionDeviceConnection.MESSAGE_ID";
 	private Session session;
 	private long retrievalTimeout;
-	private BlockingQueue<Payload> payloads;
+	private AtomicLong counter = new AtomicLong();
 	
 	public WebsocketSessionDeviceConnection(Session session, String deviceId, long retrievalTimeout, int queueBounds) {
 		this.session = session;
 		this.retrievalTimeout = retrievalTimeout;
-		this.payloads = new LinkedBlockingQueue<>(queueBounds);
 		session.getUserProperties().put(DEVICE_ID, deviceId);
 		session.getUserProperties().put(DEVICE_CONNECTION, this);
 	}
@@ -32,29 +35,22 @@ public class WebsocketSessionDeviceConnection implements DeviceConnection {
 	}
 
 	@Override
-	public void send(Payload payload) {
+	public void send(Payload payload, Consumer<Payload> callback) {
+		payload.setId(counter.incrementAndGet());
 		session.getAsyncRemote().sendObject(payload);
+		session.getUserProperties().put(MESSAGE_ID_BASE+payload.getId(), callback);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void respond(Payload payload) throws CapacityExceededException {
-		if(payload.getTimestamp()-System.currentTimeMillis()>
-			retrievalTimeout) {
-			return;
-		}
-		
-		if(!payloads.offer(payload)) {
-			throw new CapacityExceededException();
-		}
-	}
-
-	@Override
-	public Payload retrieve() {
-		try {
-			return payloads.poll(retrievalTimeout, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
+	public void respond(Payload payload) {
+		Consumer<Payload> callback = (Consumer<Payload>) session
+				.getUserProperties().remove(MESSAGE_ID_BASE+payload.getId());
+		if(payload.getTimestamp()-System.currentTimeMillis()<=
+			retrievalTimeout && callback != null) {
+			callback.accept(payload);
+		} else {
+			log.error("Payload with ID {} timed out", payload.getId());
 		}
 	}
 }

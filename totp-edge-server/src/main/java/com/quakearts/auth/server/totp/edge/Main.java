@@ -85,6 +85,8 @@ public class Main {
 	}
 
 	public static void stop(String[] args) {
+		EmbeddedWebServerSpiFactory.getInstance()
+			.getEmbeddedWebServerSpi().shutdownEmbeddedWebServer();
 		System.exit(0);
 	}
 }

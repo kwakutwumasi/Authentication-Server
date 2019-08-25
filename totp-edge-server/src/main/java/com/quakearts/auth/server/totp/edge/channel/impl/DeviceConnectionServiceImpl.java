@@ -2,6 +2,7 @@ package com.quakearts.auth.server.totp.edge.channel.impl;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import javax.inject.Singleton;
 
@@ -27,17 +28,17 @@ public class DeviceConnectionServiceImpl implements DeviceConnectionService {
 	}
 
 	@Override
-	public Payload send(Payload payload) throws UnconnectedDeviceException {
+	public void send(Payload payload, Consumer<Payload> callback) throws UnconnectedDeviceException {
 		if(!payload.getMessage().containsKey(DEVICE_ID)) {
 			throw new UnconnectedDeviceException();
 		}
 		String deviceId = payload.getMessage().get(DEVICE_ID);
 		if(connections.containsKey(deviceId)) {
 			DeviceConnection connection = connections.get(deviceId);
-			connection.send(payload);
-			return connection.retrieve();
+			connection.send(payload, callback);
+		} else {
+			throw new UnconnectedDeviceException();
 		}
-		throw new UnconnectedDeviceException();
 	}
 
 }

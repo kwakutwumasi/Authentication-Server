@@ -14,9 +14,7 @@ public class MainRunner extends BlockJUnit4ClassRunner {
 	public MainRunner(Class<?> klass) throws InitializationError {
 		super(klass);
 		if(!started) {
-			Main.main(new String[0]);
-			
-			Runtime.getRuntime().addShutdownHook(new Thread(()->Main.stop(new String[0])));
+			Main.main(new String[0]);			
 			started = true;
 		}
 	}

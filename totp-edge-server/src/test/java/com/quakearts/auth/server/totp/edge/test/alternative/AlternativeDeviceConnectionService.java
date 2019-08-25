@@ -1,8 +1,12 @@
 package com.quakearts.auth.server.totp.edge.test.alternative;
 
+import java.util.function.Consumer;
+
+import javax.annotation.Priority;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.interceptor.Interceptor;
 
 import com.quakearts.auth.server.totp.edge.channel.DeviceConnection;
 import com.quakearts.auth.server.totp.edge.channel.DeviceConnectionService;
@@ -12,6 +16,7 @@ import com.quakearts.auth.server.totp.edge.websocket.model.Payload;
 
 @Alternative
 @Singleton
+@Priority(Interceptor.Priority.APPLICATION)
 public class AlternativeDeviceConnectionService implements DeviceConnectionService {
 
 	private static Function returnPayload;
@@ -34,14 +39,15 @@ public class AlternativeDeviceConnectionService implements DeviceConnectionServi
 	}
 
 	@Override
-	public Payload send(Payload payload) throws UnconnectedDeviceException {
+	public void send(Payload payload, Consumer<Payload> callback) throws UnconnectedDeviceException {
 		if(returnPayload != null) {
-			return returnPayload.apply(payload);
+			callback.accept(returnPayload.apply(payload));
+		} else {
+			wrapped.send(payload, callback);
 		}
-		return wrapped.send(payload);
 	}
 
-	public static interface Function{
+	public static interface Function {
 		Payload apply(Payload payload) throws UnconnectedDeviceException;
 	}
 }

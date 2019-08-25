@@ -80,7 +80,7 @@ public class TOTPServerConnectionImplTest {
 				OutputStream out = clientSocket.getOutputStream();
 				InputStream in = clientSocket.getInputStream();
 				
-				byte[] bites = "testMessage".getBytes();
+				byte[] bites = new byte[] {0,0,0,0,0,0,0,1,'t','e','s','t','M','e','s','s','a','g','e'};
 				byte[] lengthHeader = new byte[2];				
 				lengthHeader[0] = (byte) (bites.length / 8);
 				lengthHeader[1] = (byte) (bites.length % 8);
@@ -90,7 +90,7 @@ public class TOTPServerConnectionImplTest {
 				int length = (lengthHeader[0]*8 + lengthHeader[1])&0x07ff;
 				bites = new byte[length];
 				assertThat(in.read(bites), is(length));
-				assertThat(new String(bites), is("testResponse"));
+				assertThat(new String(bites, 8, length-8), is("testResponse"));
 			}
 			totpServerConnectionImpl.shutdown();
 			Field socketField = TOTPServerConnectionImpl.class
@@ -120,7 +120,7 @@ public class TOTPServerConnectionImplTest {
 				OutputStream out = clientSocket.getOutputStream();
 				InputStream in = clientSocket.getInputStream();
 				
-				byte[] bites = "testMessage".getBytes();
+				byte[] bites = new byte[] {0,0,0,0,0,0,0,1,'t','e','s','t','M','e','s','s','a','g','e'};
 				byte[] lengthHeader = new byte[2];				
 				lengthHeader[0] = (byte) (bites.length / 8);
 				lengthHeader[1] = (byte) (bites.length % 8);
@@ -130,7 +130,7 @@ public class TOTPServerConnectionImplTest {
 				int length = (lengthHeader[0]*8 + lengthHeader[1])&0x07ff;
 				bites = new byte[length];
 				assertThat(in.read(bites), is(length));
-				assertArrayEquals(bites, new byte[] {(byte)255});
+				assertArrayEquals(bites, new byte[] {0,0,0,0,0,0,0,1,(byte)255});
 			}
 			totpServerConnectionImpl.shutdown();
 		} catch (Exception e) {

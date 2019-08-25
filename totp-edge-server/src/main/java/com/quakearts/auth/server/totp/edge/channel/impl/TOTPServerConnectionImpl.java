@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -20,8 +21,10 @@ import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.quakearts.auth.server.totp.edge.channel.Message;
 import com.quakearts.auth.server.totp.edge.channel.TOTPServerConnection;
 import com.quakearts.auth.server.totp.edge.channel.TOTPServerMessageHandler;
+import com.quakearts.auth.server.totp.edge.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.options.TOTPEdgeOptions;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
@@ -77,25 +80,36 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 	
 	private void listen() throws IOException {
 		InputStream in = socket.getInputStream();
-		OutputStream out = socket.getOutputStream();
 		while (isRunning()) {
 			byte[] lengthHeader = new byte[2];
 			int read = in.read(lengthHeader);
-			assert(read==2);
-			byte[] message = new byte[getLength(lengthHeader)];
-			read = in.read(message);
-			assert(read==message.length);
-			byte[] response;
-			try {
-				response = totpServerMessageHandler
-						.handle(message);
-			} catch (JWTException e) {
-				response = NORESPONSE;
+			if(read == 2) {
+				byte[] message = new byte[getLength(lengthHeader)];
+				read = in.read(message);
+				if(read == message.length) {
+					byte[] ticket = new byte[8];
+					byte[] value = new byte[message.length-8];
+					System.arraycopy(message, 0, ticket, 0, 8);
+					System.arraycopy(message, 8, value, 0, value.length);
+					Message request = new Message(ByteBuffer.wrap(ticket).getLong(), value);
+					try {
+						totpServerMessageHandler
+								.handle(request, this::sendResponse);
+					} catch (JWTException | UnconnectedDeviceException e) {
+						sendResponse(new Message(request.getTicket(), NORESPONSE));
+					}
+				}
 			}
-			lengthHeader = getLengthHeader(response);
-			out.write(lengthHeader);
-			out.write(response);
 		}
+	}
+
+	private synchronized void sendResponse(Message response) 
+			throws IOException {
+		byte[] messageByte = response.toMessageBytes();
+		byte[] lengthHeader = getLengthHeader(messageByte);
+		OutputStream out = socket.getOutputStream();
+		out.write(lengthHeader);
+		out.write(messageByte);
 	}
 
 	private int getLength(byte[] lengthHeader) {
@@ -128,7 +142,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 
 	private void close() {
 		try {
-			if(!socket.isClosed())
+			if(socket!=null && !socket.isClosed())
 				socket.close();
 		} catch (IOException e) {
 			log.error("Error closing TOTP client socket", e);

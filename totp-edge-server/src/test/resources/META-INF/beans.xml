@@ -6,5 +6,6 @@
 	<alternatives>
 		<class>com.quakearts.auth.server.totp.edge.test.alternative.AlternativeTOTPServerMessageHandler</class>
 		<class>com.quakearts.auth.server.totp.edge.test.alternative.AlternativeDeviceConnectionService</class>
+		<class>com.quakearts.auth.server.totp.edge.test.alternative.AlternativeTOTPEdgeOptions</class>
 	</alternatives>
 </beans>

@@ -1,11 +1,16 @@
 package com.quakearts.auth.server.totp.edge.test.alternative;
 
+import java.io.IOException;
+
 import javax.annotation.Priority;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
+import com.quakearts.auth.server.totp.edge.Callback;
+import com.quakearts.auth.server.totp.edge.channel.Message;
 import com.quakearts.auth.server.totp.edge.channel.TOTPServerMessageHandler;
+import com.quakearts.auth.server.totp.edge.exception.UnconnectedDeviceException;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
 @Alternative
@@ -20,9 +25,12 @@ public class AlternativeTOTPServerMessageHandler
 		returnBytes = newReturnBytes;
 	}
 	
+	
 	@Override
-	public byte[] handle(byte[] message) throws JWTException {
-		return returnBytes.apply(message);
+	public void handle(Message message, Callback<Message, IOException> callback)
+			throws JWTException, IOException, UnconnectedDeviceException {
+		callback.execute(new Message(message.getTicket(), 
+				returnBytes.apply(message.getValue())));
 	}
 
 	@FunctionalInterface
