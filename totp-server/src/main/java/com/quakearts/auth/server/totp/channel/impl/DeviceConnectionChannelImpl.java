@@ -10,7 +10,8 @@ import javax.inject.Singleton;
 import com.quakearts.auth.server.totp.channel.ConnectionManager;
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
-import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTClaims.Claim;
@@ -25,8 +26,8 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 	private JWTGenerator jwtGenerator;
 	
 	@Override
-	public Map<String, String> sendMessage(Map<String, String> requestMap) 
-			throws UnconnectedDeviceException, MessageGenerationException {
+	public void sendMessage(Map<String, String> requestMap, CheckedConsumer<Map<String, String>, TOTPException> callback) 
+			throws TOTPException {
 		byte[] bites;
 		try {
 			bites = jwtGenerator.generateJWT(requestMap).getBytes();
@@ -34,18 +35,19 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 			throw new MessageGenerationException(e);
 		}
 		
-		byte[] response = connectionManager.send(bites);
-		try {
-			JWTClaims jwtClaims = jwtGenerator.verifyJWT(response);
-			Map<String, String> responseMap = new HashMap<>();
-			for(Claim claim:jwtClaims) {
-				responseMap.put(claim.getName(), claim.getValue());
-			}
-			
-			return responseMap;
-		} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
-			throw new MessageGenerationException(e);
-		}	
+		connectionManager.send(bites, response->{
+			try {
+				JWTClaims jwtClaims = jwtGenerator.verifyJWT(response);
+				Map<String, String> responseMap = new HashMap<>();
+				for(Claim claim:jwtClaims) {
+					responseMap.put(claim.getName(), claim.getValue());
+				}
+				
+				callback.accept(responseMap);
+			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+				throw new MessageGenerationException(e);
+			}			
+		});
 	}
 
 }

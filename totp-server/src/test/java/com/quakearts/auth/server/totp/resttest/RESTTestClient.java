@@ -36,6 +36,10 @@ public class RESTTestClient extends HttpClient {
 	private static final String APPLICATION_JSON = "application/json";
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
+	public void setRequestJWTToken(String requestJWTToken) {
+		this.requestJWTToken = requestJWTToken;
+	}
+	
 	private <T> T execute(String template, Object requestValue, String contentType, HttpVerb verb, Class<T> targetClass,
 			Object... parameters) throws IOException, HttpClientException {
 		return getHttpResponseUsing(template,
@@ -184,4 +188,5 @@ public class RESTTestClient extends HttpClient {
 			this.time = time;
 		}
 	}
+
 }

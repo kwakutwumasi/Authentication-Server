@@ -29,7 +29,6 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
-import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.model.Device;
@@ -633,9 +632,44 @@ public class RESTServiceTest {
 	@Test
 	public void testUnconnectedDeviceException() throws Exception {
 		expectedException.expect(HttpClientException.class);
-		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. IllegalArgumentException\"}"));
-		AlternativeDeviceAuthorizationService.throwException(new UnconnectedDeviceException("IllegalArgumentException"));
-				
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Connection timed out\"}"));
+		AlternativeDeviceAuthorizationService.doNothing(true);
 		client.authenticateDirect("testdevice1");
+	}
+	
+	@Test
+	public void testManagementWithoutAuthorization() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"Authorization failed\"}"));
+		Device device = provisionAdministrator2();
+		String[] totp = totpGenerator.generateFor(device, System.currentTimeMillis());
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
+		authorizationRequest.setDeviceId("testadministrator2");
+		authorizationRequest.setOtp(totp[0]);
+		
+		DeviceRequest deviceRequest1 = new DeviceRequest();
+		deviceRequest1.setAlias("testrestassign1");
+		deviceRequest1.setDeviceId("testprovisiondevice1");
+
+		DeviceRequest deviceRequest2 = new DeviceRequest();
+		deviceRequest2.setAlias("testrestassignnonexistentdevice1");
+		deviceRequest2.setDeviceId("testnonexistentdevice1");
+
+		DeviceRequest deviceRequest3 = new DeviceRequest();
+		deviceRequest3.setAlias("testalias1");
+		deviceRequest3.setDeviceId("testdevice1");
+		
+		DeviceRequest deviceRequest4 = new DeviceRequest();
+		deviceRequest4.setDeviceId("testdevice1");
+		
+		ManagementRequest assignRequest = new ManagementRequest();
+		assignRequest.setAuthorizationRequest(authorizationRequest);
+		assignRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3, deviceRequest4});
+		try {
+			client.setRequestJWTToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
+			client.assignAliases(assignRequest);
+		} finally {
+			client.setRequestJWTToken(null);
+		}
 	}
 }

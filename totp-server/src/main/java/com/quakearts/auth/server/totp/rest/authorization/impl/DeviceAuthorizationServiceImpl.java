@@ -7,8 +7,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
-import com.quakearts.auth.server.totp.exception.MessageGenerationException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
+import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 
 @Singleton
@@ -18,16 +19,17 @@ public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationServic
 	private DeviceConnectionChannel deviceConnectionChannel;
 	
 	@Override
-	public String requestOTPCode(String deviceId) throws UnconnectedDeviceException,
-		MessageGenerationException {
+	public void requestOTPCode(String deviceId, CheckedConsumer<String, TOTPException> callback) 
+			throws TOTPException {
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("requestType", "otp");
 		requestMap.put("deviceId", deviceId);
-		Map<String, String> response = deviceConnectionChannel.sendMessage(requestMap);
-		String otp = response.get("otp");
-		if(otp == null) {
-			throw new UnconnectedDeviceException("Response was not undestood: "+response);
-		}
-		return otp;
+		deviceConnectionChannel.sendMessage(requestMap, response->{
+			String otp = response.get("otp");
+			if(otp == null) {
+				throw new UnconnectedDeviceException("Response was not undestood: "+response);
+			}
+			callback.accept(otp);
+		});
 	}
 }

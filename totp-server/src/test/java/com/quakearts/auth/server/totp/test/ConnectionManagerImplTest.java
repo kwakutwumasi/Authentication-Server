@@ -6,9 +6,11 @@ import static org.hamcrest.core.Is.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.awaitility.Awaitility.*;
 import static org.awaitility.Duration.*;
@@ -24,10 +26,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
-import com.quakearts.auth.server.totp.channel.DeviceConnection;
 import com.quakearts.auth.server.totp.channel.impl.ConnectionManagerImpl;
+import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidInputException;
-import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.options.TOTPOptions.PerformancePreferences;
 import com.quakearts.webtools.test.AllServicesRunner;
 
@@ -47,16 +50,121 @@ public class ConnectionManagerImplTest {
 		connectionManagerImpl.init();
 		try(Socket socket = createClientSocket(9001)){
 			TestEchoClient client = new TestEchoClient(socket);
-			await().atMost(ONE_SECOND).until(client::testReceiveEcho);
+			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
 			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
 			CompletableFuture.runAsync(this::sendTestMessage);
-			await().atMost(FIVE_SECONDS).until(client::testReceiveMessage);
-
+			await().atMost(TWO_SECONDS).until(client::testReceiveMessage);
+			await().atMost(TWO_SECONDS).until(()->{
+				assertArrayEquals(response.messageBites, TEST_MESSAGE.getBytes());
+				return true;
+			});
 		} finally {
 			connectionManagerImpl.shutdown();
 		}
 	}
 	
+	@Test
+	public void testInitWithAllOptionsMultipleConnectionsAndOneConnectionLost() throws Exception {
+		AlternativeTOTPOptions.returnConnectionEchoInterval(1000l);
+		AlternativeTOTPOptions.returnConnectionPort(9002);
+		AlternativeTOTPOptions.returnConnectionReceiveBufferSize(1024);
+		AlternativeTOTPOptions.returnConnectionReuseAddress(Boolean.FALSE);
+		AlternativeTOTPOptions.returnPerformancePreferences(new PerformancePreferences(1, 1, 1024));
+		
+		connectionManagerImpl2.init();
+		try(Socket socket = createClientSocket(9002)){
+			TestEchoClient client = new TestEchoClient(socket);
+			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
+		}
+	
+		try(Socket socket = createClientSocket(9002)){
+			TestEchoClient client = new TestEchoClient(socket);
+			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
+			CompletableFuture.runAsync(this::sendTestMessageWithException);
+			await().atMost(TWO_SECONDS).until(client::testReceiveMessage);
+			await().atMost(TWO_SECONDS).until(()->{
+				return responseException.thrown;
+			});
+		} finally {
+			connectionManagerImpl2.shutdown();
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "serial" })
+	@Test
+	public void testSendUnsolicitedMessage() throws Exception {
+		AlternativeTOTPOptions.returnConnectionEchoInterval(100000l);
+		AlternativeTOTPOptions.returnConnectionPort(9003);
+		
+		class Checker {
+			boolean removed;
+		}
+		
+		Checker check = new Checker();
+		
+		ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
+			@Override
+			public Object remove(Object key) {
+				check.removed = (new Long(9223372036854775807l)).equals(key);
+				return super.remove(key);
+			}
+		};
+		Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
+		field.setAccessible(true);
+		field.set(connectionManagerImpl, monitoredMap);
+		
+		connectionManagerImpl.init();
+		try(Socket socket = createClientSocket(9003)){
+			OutputStream out = socket.getOutputStream();
+			byte[] message = new byte[] {1, 4, 127, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, 't', 'e','s','t'};
+			out.write(message);
+			out.flush();
+			await().atMost(TWO_SECONDS).until(()->check.removed);
+		} finally {
+			connectionManagerImpl.shutdown();
+		}
+	}
+	
+	@SuppressWarnings({ "rawtypes", "serial" })
+	@Test
+	public void testCleanOrphanedCallback() throws Exception {
+		AlternativeTOTPOptions.returnConnectionEchoInterval(1300l);
+		AlternativeTOTPOptions.returnConnectionPort(9004);
+		AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(100l);
+		
+		class Checker {
+			Long value;
+		}
+		
+		Checker check = new Checker();
+
+		CheckedConsumer<byte[], TOTPException> callback = bites->{
+			check.value = 1l;
+		};
+		
+		ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
+			@Override
+			public Object remove(Object key) {
+				if(check.value == null) {
+					check.value = 2l;
+				}
+				return super.remove(key);
+			}
+		};
+		Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
+		field.setAccessible(true);
+		field.set(connectionManagerImpl, monitoredMap);
+		
+		connectionManagerImpl.init();
+		try(Socket socket = createClientSocket(9004)){
+			byte[] message = new byte[] {'t', 'e','s','t'};
+			connectionManagerImpl.send(message, callback);
+			await().atMost(TWO_SECONDS).until(()->Long.valueOf(2l).equals(check.value));
+		} finally {
+			connectionManagerImpl.shutdown();
+		}
+	}
+
 	private Socket createClientSocket(int port) throws Exception {
 		if(context == null) {
 			KeyStore ks = KeyStore.getInstance("PKCS12");
@@ -88,11 +196,11 @@ public class ConnectionManagerImplTest {
 			int read = in.read(lengthHeader);
 			
 			assertThat(read, is(2));
-			assertThat((lengthHeader[0]*8 + lengthHeader[1])&0x07ff, is(1));
-			byte[] echobites = new byte[]{1};
+			assertThat((lengthHeader[0]*8 + lengthHeader[1])&0x07ff, is(9));
+			byte[] echobites = new byte[9];
 			read = in.read(echobites);
-			assertThat(read, is(1));
-			assertThat(echobites[0], is((byte) 0));
+			assertThat(read, is(9));
+			assertThat(echobites[8], is((byte) 0));
 			out.write(lengthHeader);
 			out.write(echobites);
 			return true;
@@ -103,57 +211,55 @@ public class ConnectionManagerImplTest {
 			int read = in.read(lengthHeader);
 			
 			assertThat(read, is(2));
-			assertThat((lengthHeader[0]*8 + lengthHeader[1])&0x07ff, is(12));
-			byte[] messageBites = new byte[12];
+			assertThat((lengthHeader[0]*8 + lengthHeader[1])&0x07ff, is(20));
+			byte[] messageBites = new byte[20];
 			read = in.read(messageBites);
-			assertThat(read, is(12));
-			assertArrayEquals(messageBites, TEST_MESSAGE.getBytes());
+			assertThat(read, is(20));
+			assertThat(new String(messageBites, 8, 12),is(TEST_MESSAGE));
 			out.write(lengthHeader);
 			out.write(messageBites);
 			return true;
 		}
 	}
 
-	private void sendTestMessage() {
+	class Response {
+		byte[] messageBites;
+	}
+	Response response = new Response();
+
+	private void sendTestMessage() {		
 		try {
-			byte[] messageBites = connectionManagerImpl.send(TEST_MESSAGE.getBytes());
-			assertArrayEquals(messageBites, TEST_MESSAGE.getBytes());
-		} catch (UnconnectedDeviceException e) {
+			connectionManagerImpl.send(TEST_MESSAGE.getBytes(), messageBites->{
+				response.messageBites = messageBites;
+			});
+		} catch (TOTPException e) {
 			fail(e.getMessage());
 		}
 	}
 	
-	@Test
-	public void testInitWithAllOptionsMultipleConnectionsAndOneConnectionLost() throws Exception {
-		AlternativeTOTPOptions.returnConnectionEchoInterval(1000l);
-		AlternativeTOTPOptions.returnConnectionPort(9002);
-		AlternativeTOTPOptions.returnConnectionReceiveBufferSize(1024);
-		AlternativeTOTPOptions.returnConnectionReuseAddress(Boolean.FALSE);
-		AlternativeTOTPOptions.returnPerformancePreferences(new PerformancePreferences(1, 1, 1024));
-		
-		connectionManagerImpl2.init();
-		try(Socket socket = createClientSocket(9002)){
-			TestEchoClient client = new TestEchoClient(socket);
-			await().atMost(ONE_SECOND).until(client::testReceiveEcho);
-		}
-
-		try(Socket socket = createClientSocket(9002)){
-			TestEchoClient client = new TestEchoClient(socket);
-			await().atMost(ONE_SECOND).until(client::testReceiveEcho);
-			CompletableFuture.runAsync(this::sendTestMessage);
-			await().atMost(FIVE_SECONDS).until(client::testReceiveMessage);
-		} finally {
-			connectionManagerImpl.shutdown();
+	class ResponseException {
+		boolean thrown;
+	}
+	
+	ResponseException responseException = new ResponseException();
+	
+	private void sendTestMessageWithException() {		
+		try {
+			connectionManagerImpl.send(TEST_MESSAGE.getBytes(), messageBites->{
+				responseException.thrown = true;
+				throw new InvalidAliasException();
+			});
+		} catch (TOTPException e) {
+			fail(e.getMessage());
 		}
 	}
-
+	
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 	
 	@Test
 	public void testDeviceConnectionWithSizeGreaterThan() throws Exception {
 		expectedException.expect(InvalidInputException.class);
-		DeviceConnection deviceConnection = new DeviceConnection(null);
-		deviceConnection.send(new byte[2048]);
+		connectionManagerImpl.send(new byte[2040], bite->{});
 	}
 }

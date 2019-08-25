@@ -12,17 +12,17 @@ import javax.servlet.annotation.WebInitParam;
 
 import com.quakearts.appbase.cdi.annotation.Transactional;
 import com.quakearts.appbase.cdi.annotation.Transactional.TransactionType;
-import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.webapp.security.rest.filter.AuthenticationFilter;
 
 @Singleton
 @WebFilter(urlPatterns="/totp/*", initParams = {
 		@WebInitParam(name="requireAuthorization", value="false"),
-		@WebInitParam(name="contextName", value=TOTPOptions.GlobalDefaults.LOGIN_MODULE),
+		@WebInitParam(name="contextName", value=TOTPAuthenticationFilter.LOGIN_MODULE),
 		@WebInitParam(name="errorWriterClass", 
 			value="com.quakearts.auth.server.totp.rest.filter.TOTPAuthenticationErrorWriter")
-})
+}, asyncSupported = true)
 public class TOTPAuthenticationFilter extends AuthenticationFilter {
+	public static final String LOGIN_MODULE = "TOTP-JWT-Login";	
 
 	@Override
 	@Transactional(TransactionType.SINGLETON)

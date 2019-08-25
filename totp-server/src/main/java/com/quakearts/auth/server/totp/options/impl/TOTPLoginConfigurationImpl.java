@@ -11,24 +11,21 @@ import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
 import com.quakearts.auth.server.totp.options.TOTPLoginConfiguration;
-import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.auth.server.totp.rest.filter.TOTPAuthenticationFilter;
 
 public class TOTPLoginConfigurationImpl implements TOTPLoginConfiguration {
 
-	private Configuration jaasConfig;
 	private Map<String, ?> options;
 
 	@Override
 	public Map<String, ?> getConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
-		if(jaasConfig == null){
+		if(options==null){
 			URL resource = Thread.currentThread().getContextClassLoader().
                     getResource("login.config");
             URI uri = resource.toURI();
-            jaasConfig = Configuration.getInstance("JavaLoginConfig", 
+            Configuration jaasConfig = Configuration.getInstance("JavaLoginConfig", 
             		new URIParameter(uri));
-		}		
-		if(options==null){
-			AppConfigurationEntry entry = jaasConfig.getAppConfigurationEntry(TOTPOptions.GlobalDefaults.LOGIN_MODULE)[0];
+			AppConfigurationEntry entry = jaasConfig.getAppConfigurationEntry(TOTPAuthenticationFilter.LOGIN_MODULE)[0];
 			options = entry.getOptions();
 		}
 		

@@ -36,12 +36,13 @@ public class DeviceAuthorizationServiceTest {
 	@Test
 	public void testSendMessage() throws Exception {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
-		String otp = deviceConnectionService.requestOTPCode("123456");
-		assertThat(otp, is("7890"));
+		deviceConnectionService.requestOTPCode("123456",otp->{			
+			assertThat(otp, is("7890"));
+		});
 		exception.expect(UnconnectedDeviceException.class);
 		exception.expectMessage("Response was not undestood");
 		AlternativeConnectionManager.run(this::errorMessage);
-		deviceConnectionService.requestOTPCode("123456");
+		deviceConnectionService.requestOTPCode("123456", otp->{});
 	}
 
 	private byte[] expectedMessageAndResponse(byte[] message){

@@ -39,7 +39,7 @@ public class TOTPOptionsImplTest extends TOTPOptionsImpl {
 		assertThat(totpOptionsImpl.getDeviceConnectionPerformancePreferences().getLatency(), is(1));
 		assertThat(totpOptionsImpl.getDeviceConnectionReceiveBufferSize(), is(1024));
 		assertThat(totpOptionsImpl.getDeviceConnectionReuseAddress(), is(Boolean.TRUE));
-		assertThat(totpOptionsImpl.getDeviceConnectionEchoInterval(), is(0L));
+		assertThat(totpOptionsImpl.getDeviceConnectionEchoInterval(), is(30000L));
 	}
 	
 	@Rule

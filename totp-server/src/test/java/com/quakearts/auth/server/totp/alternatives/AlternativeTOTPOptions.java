@@ -57,6 +57,12 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 		returnConnectionEchoInterval = newConnectionEchoInterval;
 	}
 	
+	private static Long returnDeviceAuthenticationTimeout;
+	
+	public static void returnDeviceAuthenticationTimeout(Long newDeviceAuthenticationTimeout) {
+		returnDeviceAuthenticationTimeout = newDeviceAuthenticationTimeout;
+	}
+	
 	@Inject
 	private TOTPOptionsImpl wrapped;
 	
@@ -269,5 +275,21 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 			return toreturn;
 		}
 		return wrapped.getDeviceConnectionEchoInterval();
+	}
+	
+	@Override
+	public int getAuthorizationThreads() {
+		return wrapped.getAuthorizationThreads();
+	}
+	
+	@Override
+	public long getDeviceAuthenticationTimeout() {
+		if(returnDeviceAuthenticationTimeout != null) {
+			Long toreturn = returnDeviceAuthenticationTimeout;
+			returnDeviceAuthenticationTimeout = null;
+			return toreturn;			
+		}
+		
+		return wrapped.getDeviceAuthenticationTimeout();
 	}
 }

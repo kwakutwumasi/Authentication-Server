@@ -56,10 +56,6 @@ public interface TOTPOptions {
 	
 	String getCountQuery();
 	
-	enum GlobalDefaults {;
-		public static final String LOGIN_MODULE = "TOTP-JWT-Login";
-	}
-
 	int getDeviceConnectionPort();
 
 	int getDeviceConnectionThreads();
@@ -85,4 +81,8 @@ public interface TOTPOptions {
 	String getDeviceConnectionKeyPassword();
 	
 	long getDeviceConnectionEchoInterval();
+	
+	int getAuthorizationThreads();
+	
+	long getDeviceAuthenticationTimeout();
 }

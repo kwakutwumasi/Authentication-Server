@@ -15,7 +15,8 @@ import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
 import com.quakearts.auth.server.totp.channel.ConnectionManager;
-import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.function.CheckedConsumer;
 
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
@@ -29,8 +30,8 @@ public class AlternativeConnectionManager implements ConnectionManager {
 	}
 	
 	@Override
-	public byte[] send(byte[] bites) throws UnconnectedDeviceException {
-		return execute.apply(bites);
+	public void send(byte[] bites, CheckedConsumer<byte[], TOTPException> callback) throws TOTPException {
+		callback.accept(execute.apply(bites));
 	}
 
 	@Override

@@ -38,10 +38,12 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private String deviceConnectionKeystore;
 	private String deviceConnectionKeystorePassword;
 	private String deviceConnectionKeyPassword;
+	private int authorizationThreads = 3;
 	
 	@Inject
 	private TOTPConfigurationProvider totpConfigurationProvider;
 	private long deviceConnectionEchoInterval;
+	private long deviceAuthenticationTimeout;
 	
 	@SuppressWarnings("unchecked")
 	@PostConstruct
@@ -97,6 +99,11 @@ public class TOTPOptionsImpl implements TOTPOptions {
 						performancePreferencesMap.getInt("bandwidth"));
 			}
 			deviceConnectionEchoInterval = deviceConnectionMap.getLong("echo.interval");
+			if(deviceConnectionMap.containsKey("authorization.threads")) {
+				authorizationThreads = deviceConnectionMap.getInt("authorization.threads");
+			}
+			
+			deviceAuthenticationTimeout = deviceConnectionMap.getLong("authentication.timeout");
 		} catch (NullPointerException e) {
 			throw new ConfigurationException("Entry 'device.connection' is missing from "
 					+ totpConfigurationProvider.getConfigurationPropertyMapName()
@@ -232,5 +239,15 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	@Override
 	public long getDeviceConnectionEchoInterval() {
 		return deviceConnectionEchoInterval;
+	}
+	
+	@Override
+	public int getAuthorizationThreads() {
+		return authorizationThreads;
+	}
+	
+	@Override
+	public long getDeviceAuthenticationTimeout() {
+		return deviceAuthenticationTimeout;
 	}
 }
