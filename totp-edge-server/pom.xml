@@ -70,9 +70,6 @@
 								<copy todir="target/etc">
 									<fileset dir="etc" />
 								</copy>
-								<copy todir="target/webserver">
-									<fileset dir="webserver" />
-								</copy>
 							</target>
 						</configuration>
 					</execution>
