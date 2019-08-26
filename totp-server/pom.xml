@@ -108,6 +108,9 @@
 								<mkdir dir="target/etc"></mkdir>
 								<echo>Creating server folders and files</echo>
 								<copy file="live-config/main-webapp.config.json" toDir="target/etc"></copy>
+								<copy toDir="target/webservers">
+									<fileset dir="webservers" />
+								</copy>
 							</target>
 						</configuration>
 					</execution>
