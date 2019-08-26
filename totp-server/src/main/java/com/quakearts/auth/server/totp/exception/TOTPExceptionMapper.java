@@ -1,5 +1,6 @@
 package com.quakearts.auth.server.totp.exception;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
@@ -12,6 +13,7 @@ public class TOTPExceptionMapper implements ExceptionMapper<TOTPException> {
 		return Response.status(exception.getHttpCode())
 				.entity(new ErrorResponse()
 						.withMessageAs(exception.getMessage()))
+				.type(MediaType.APPLICATION_JSON_TYPE)
 				.build();
 	}
 }

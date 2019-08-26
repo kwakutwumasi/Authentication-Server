@@ -55,7 +55,7 @@ public class AlternativeAuthenticationService implements AuthenticationService {
 	public boolean isLocked(Device device) {
 		if(returnLocked!=null){
 			TestReturnLockedFunction toreturn = returnLocked;
-			returnAuthenticate = null;
+			returnLocked = null;
 			return toreturn.isLocked(device);
 		}
 		

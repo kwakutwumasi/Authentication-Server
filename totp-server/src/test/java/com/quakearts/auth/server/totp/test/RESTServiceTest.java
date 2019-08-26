@@ -638,6 +638,17 @@ public class RESTServiceTest {
 	}
 	
 	@Test
+	public void testAuthenticateWithInvalidOTP() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"OTP did not match\"}"));		
+		AlternativeAuthenticationService.returnAuthenticate((device, otp)->false);
+		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
+		authenticateRequest.setDeviceId("testdevice1");
+		authenticateRequest.setOtp("invalid");
+		client.authenticate(authenticateRequest);
+	}
+		
+	@Test
 	public void testManagementWithoutAuthorization() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 403; {\"message\":\"Authorization failed\"}"));
