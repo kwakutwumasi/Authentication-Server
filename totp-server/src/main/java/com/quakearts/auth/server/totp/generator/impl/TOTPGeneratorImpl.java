@@ -25,12 +25,16 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 		String[] totps = new String[2];
 		byte[] idBytes = device.getId().getBytes();
 		try {
+			long deltaInitCounter = currentTimeInMillis - device.getInitialCounter();
+			long timestamp = deltaInitCounter / totpOptions.getTimeStep();
+			long lifespan = deltaInitCounter % totpOptions.getTimeStep();
 			totps[0] = truncatedStringOf(generatedHmacFrom(
-					timeValueUsing(device.getInitialCounter(), totpOptions.getTimeStep(), currentTimeInMillis),
+					timeValueUsing(timestamp),
 					device.getSeed().getValue(), idBytes));
-			if (currentTimeInMillis % totpOptions.getTimeStep() < totpOptions.getGracePeriod()) {
+			if (lifespan < totpOptions.getGracePeriod()) {
+				timestamp = (currentTimeInMillis - device.getInitialCounter() - totpOptions.getTimeStep()) / totpOptions.getTimeStep();
 				totps[1] = truncatedStringOf(generatedHmacFrom(
-						timeValueUsing(device.getInitialCounter(), totpOptions.getTimeStep(), currentTimeInMillis - totpOptions.getTimeStep()), 
+						timeValueUsing(timestamp), 
 						device.getSeed().getValue(), idBytes));
 			}
 		} catch (GeneralSecurityException e) {
@@ -40,8 +44,7 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 		return totps;
 	}
 
-	private byte[] timeValueUsing(long initialCounter, long timeStep, long currentTimeInMillis) {
-		long timestamp = (currentTimeInMillis - initialCounter) / timeStep;
+	private byte[] timeValueUsing(long timestamp) {
 		return ByteBuffer.allocate(8).putLong(timestamp).array();
 	}
 	
