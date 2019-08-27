@@ -89,9 +89,13 @@ public class AuthenticationResource {
 				Device device = optionalDevice.get();
 				try {
 					deviceAuthorizationService.requestOTPCode(device.getId(), otp->{
-						authenticate(device, otp);
-						asyncResponse.resume(Response.noContent().build());
-					});
+						try {
+							authenticate(device, otp);
+							asyncResponse.resume(Response.noContent().build());
+						} catch (AuthenticationException e) {
+							asyncResponse.resume(e);
+						}
+					}, error->asyncResponse.resume(new UnconnectedDeviceException(error)));
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}

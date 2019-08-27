@@ -299,7 +299,6 @@ public class AuthenticationResourceTest {
 		authenticationResource.authenticateDirect("testDirectFailed1", 
 				mockAsyncResponse(arguments->{
 					response.value = arguments.get(0);
-					System.out.println(response.value);
 				}));
 		await().atMost(Duration.ONE_SECOND)
 		.until(()->{

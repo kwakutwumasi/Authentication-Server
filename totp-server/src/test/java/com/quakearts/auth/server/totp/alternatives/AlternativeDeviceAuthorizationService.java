@@ -1,5 +1,7 @@
 package com.quakearts.auth.server.totp.alternatives;
 
+import java.util.function.Consumer;
+
 import javax.annotation.Priority;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
@@ -7,7 +9,6 @@ import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceAuthorizationServiceImpl;
 
@@ -25,13 +26,17 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 	}
 	
 	private static TOTPException throwException;
-	
 	public static void throwException(TOTPException newThrowException) {
 		throwException = newThrowException;
 	}
+
+	private static boolean callErrorCallback;
+	public static void callErrorCallback(boolean newCallErrorCallback) {
+		callErrorCallback = newCallErrorCallback;
+	}
 	
 	@Override
-	public void requestOTPCode(String deviceId, CheckedConsumer<String, TOTPException> callback) throws TOTPException {
+	public void requestOTPCode(String deviceId, Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
 		if(throwException != null) {
 			TOTPException toreturn = throwException;
 			throwException = null;
@@ -43,7 +48,13 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 			return;
 		}
 		
-		wrapped.requestOTPCode(deviceId, callback);
+		if(callErrorCallback) {
+			callErrorCallback = false;
+			errorCallback.accept("Error message");
+			return;
+		}
+		
+		wrapped.requestOTPCode(deviceId, callback, errorCallback);
 	}
 
 }

@@ -630,10 +630,18 @@ public class RESTServiceTest {
 	}
 		
 	@Test
-	public void testUnconnectedDeviceException() throws Exception {
+	public void testUnconnectedDeviceExceptionTimeout() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Connection timed out\"}"));
 		AlternativeDeviceAuthorizationService.doNothing(true);
+		client.authenticateDirect("testdevice1");
+	}
+	
+	@Test
+	public void testUnconnectedDeviceExceptionErrorMessage() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Error message\"}"));
+		AlternativeDeviceAuthorizationService.callErrorCallback(true);
 		client.authenticateDirect("testdevice1");
 	}
 	

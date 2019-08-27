@@ -1,10 +1,9 @@
 package com.quakearts.auth.server.totp.rest.authorization;
 
-
+import java.util.function.Consumer;
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 
 public interface DeviceAuthorizationService {
-	void requestOTPCode(String deviceId, CheckedConsumer<String, TOTPException> callback) 
+	void requestOTPCode(String deviceId, Consumer<String> callback, Consumer<String> errorCallback) 
 			throws TOTPException;
 }

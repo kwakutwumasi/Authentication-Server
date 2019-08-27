@@ -36,17 +36,20 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 		}
 		
 		connectionManager.send(bites, response->{
-			try {
-				JWTClaims jwtClaims = jwtGenerator.verifyJWT(response);
-				Map<String, String> responseMap = new HashMap<>();
-				for(Claim claim:jwtClaims) {
-					responseMap.put(claim.getName(), claim.getValue());
-				}
-				
-				callback.accept(responseMap);
-			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
-				throw new MessageGenerationException(e);
-			}			
+			Map<String, String> responseMap = new HashMap<>();
+			if(response.length > 1) {		
+				try {
+					JWTClaims jwtClaims = jwtGenerator.verifyJWT(response);
+					for(Claim claim:jwtClaims) {
+						responseMap.put(claim.getName(), claim.getValue());
+					}					
+				} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+					throw new MessageGenerationException(e);
+				}				
+			} else {
+				responseMap.put("error", "Not Connected");
+			}
+			callback.accept(responseMap);
 		});
 	}
 

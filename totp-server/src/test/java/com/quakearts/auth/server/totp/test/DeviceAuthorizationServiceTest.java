@@ -15,11 +15,12 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
-import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webtools.test.AllServicesRunner;
+
+import junit.framework.AssertionFailedError;
 
 @RunWith(AllServicesRunner.class)
 public class DeviceAuthorizationServiceTest {
@@ -38,11 +39,13 @@ public class DeviceAuthorizationServiceTest {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
 		deviceConnectionService.requestOTPCode("123456",otp->{			
 			assertThat(otp, is("7890"));
-		});
-		exception.expect(UnconnectedDeviceException.class);
-		exception.expectMessage("Response was not undestood");
+		}, error->{});
 		AlternativeConnectionManager.run(this::errorMessage);
-		deviceConnectionService.requestOTPCode("123456", otp->{});
+		deviceConnectionService.requestOTPCode("123456", otp->{
+			throw new AssertionFailedError("Error callback was not called");
+		}, error->{
+			assertThat(error, is("Message"));
+		});
 	}
 
 	private byte[] expectedMessageAndResponse(byte[] message){
@@ -61,7 +64,7 @@ public class DeviceAuthorizationServiceTest {
 	private byte[] errorMessage(byte[] message){
 		try {
 			Map<String, String> responseMap = new HashMap<>();
-			responseMap.put("totp", "7890");
+			responseMap.put("error", "Message");
 			return jwtGenerator.generateJWT(responseMap).getBytes();			
 		} catch (Exception e) {
 			throw new AssertionError(e);
