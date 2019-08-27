@@ -46,6 +46,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 	public void init() 
 			throws IOException, KeyStoreException, NoSuchAlgorithmException, 
 			CertificateException, UnrecoverableKeyException, KeyManagementException {
+		log.debug("Setting up connection...");
 		KeyStore ks = KeyStore.getInstance(totpEdgeOptions.getKeystoreType());
 		String keystorePassword = totpEdgeOptions.getKeystorePassword();
 		ks.load(Thread.currentThread().getContextClassLoader()
@@ -61,14 +62,18 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 		context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 		new Thread(this::runClient).start();
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+		log.debug("Set up complete");
 	}
 
 	private void runClient() {
+		log.debug("Running client connection...");
 		setRunning(true);
 		while (isRunning()) {
+			log.debug("Connecting...");
 			try {
 				socket = context.getSocketFactory().createSocket(totpEdgeOptions.getTotpServerIp(), 
 						totpEdgeOptions.getTotpServerPort());
+				log.debug("Connected to server {} on port {}", socket.getInetAddress(), socket.getPort());
 				listen();
 			} catch (IOException e) {
 				log.error("Error processing TOTP server messages", e);
@@ -92,6 +97,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 					System.arraycopy(message, 0, ticket, 0, 8);
 					System.arraycopy(message, 8, value, 0, value.length);
 					Message request = new Message(ByteBuffer.wrap(ticket).getLong(), value);
+					log.debug("Received/Processing request for ticket {}", request.getTicket());
 					try {
 						totpServerMessageHandler
 								.handle(request, this::sendResponse);
@@ -105,6 +111,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 
 	private synchronized void sendResponse(Message response) 
 			throws IOException {
+		log.debug("Sending response for ticket {}", response.getTicket());
 		byte[] messageByte = response.toMessageBytes();
 		byte[] lengthHeader = getLengthHeader(messageByte);
 		OutputStream out = socket.getOutputStream();

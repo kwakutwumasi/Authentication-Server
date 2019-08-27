@@ -43,7 +43,9 @@ public class Main {
 		TOTPServerConnection connection = CDI.current()
 				.select(TOTPServerConnection.class).get();
 		try {
+			LOGGER.debug("Server Connection starting...");
 			connection.init();
+			LOGGER.debug("Server Connection started");
 		} catch (UnrecoverableKeyException | KeyManagementException 
 				| KeyStoreException | NoSuchAlgorithmException
 				| CertificateException | IOException e) {
