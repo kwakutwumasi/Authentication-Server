@@ -45,7 +45,7 @@ public class DeviceConnectionChannelImplTest {
 			assertThat(response, is(notNullValue()));
 			assertThat(response.size(), is(1));
 			assertThat(response.containsKey("error"), is(true));
-			assertThat(response.get("error"), is("Not Connected"));
+			assertThat(response.get("error"), is("A connection has not been registered, or it may have been terminated by an error"));
 		});
 	}
 

@@ -47,7 +47,7 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 					throw new MessageGenerationException(e);
 				}				
 			} else {
-				responseMap.put("error", "Not Connected");
+				responseMap.put("error", "A connection has not been registered, or it may have been terminated by an error");
 			}
 			callback.accept(responseMap);
 		});
