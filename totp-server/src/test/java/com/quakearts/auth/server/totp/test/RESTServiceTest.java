@@ -29,8 +29,8 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
-import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
+import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequestInterceptor;
@@ -82,7 +82,7 @@ public class RESTServiceTest {
 	private static Device device1;
 		
 	@Inject
-	private JWTGenerator jwtGenerator;
+	private JWTGeneratorImpl jwtGenerator;
 	
 	@Test
 	public void run200OkRequests() throws Exception {

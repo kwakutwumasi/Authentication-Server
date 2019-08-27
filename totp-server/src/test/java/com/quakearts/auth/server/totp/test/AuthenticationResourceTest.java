@@ -31,7 +31,7 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.exception.AuthenticationException;
-import com.quakearts.auth.server.totp.generator.JWTGenerator;
+import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.rest.AuthenticationResource;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
@@ -52,7 +52,7 @@ public class AuthenticationResourceTest {
 	public ExpectedException expectedException = ExpectedException.none();
 	
 	@Inject
-	private JWTGenerator jwtGenerator;
+	private JWTGeneratorImpl jwtGenerator;
 
 	@Test
 	public void testLoginOk() throws Exception {

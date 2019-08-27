@@ -15,7 +15,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
-import com.quakearts.auth.server.totp.generator.JWTGenerator;
+import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webtools.test.AllServicesRunner;
@@ -29,7 +29,7 @@ public class DeviceAuthorizationServiceTest {
 	private DeviceAuthorizationService deviceConnectionService;
 	
 	@Inject
-	private JWTGenerator jwtGenerator;
+	private JWTGeneratorImpl jwtGenerator;
 	
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
