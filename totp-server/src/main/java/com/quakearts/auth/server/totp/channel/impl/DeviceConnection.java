@@ -56,6 +56,7 @@ public class DeviceConnection {
 			out.write(bites, 0, bites.length);
 			out.flush();			
 		} catch (IOException e) {
+			running = false;
 			try {
 				socket.close();
 			} catch (IOException e1) {
