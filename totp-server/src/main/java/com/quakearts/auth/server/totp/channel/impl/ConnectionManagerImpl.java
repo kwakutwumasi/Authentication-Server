@@ -62,6 +62,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 			throws IOException, NoSuchAlgorithmException, KeyStoreException, 
 			NoSuchProviderException, CertificateException, UnrecoverableKeyException, 
 			KeyManagementException {
+		log.debug("Setting up...");
 		executorService = Executors.newFixedThreadPool(totpOptions.getDeviceConnectionThreads());
 		
 		String keystorePassword = totpOptions.getDeviceConnectionKeystorePassword();
@@ -109,6 +110,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		timerService.schedule(new TimerTaskWrapper(this::sendEcho), echoInterval, echoInterval);
 		timerService.schedule(new TimerTaskWrapper(this::reapOrphanCallbacks), echoInterval, echoInterval);
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+		log.debug("Setup complete");
 	}
 	
 	private char[] toCharArrayOrNull(String password) {
@@ -116,11 +118,14 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 	}
 	
 	private void runServer() {
+		log.debug("Server socket running...");
 		setRunning(true);
 		while (isRunning()) {
 			Socket socket = accept();
 			if(socket!=null) {
 				store(socket);
+				log.debug("Accepted a connection from {} on port {}", 
+						socket.getInetAddress(), socket.getPort());
 			}
 		}
 	}
@@ -149,6 +154,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 	@Override
 	public void shutdown() {
 		if(isRunning()) {
+			log.debug("Shutting down....");
 			setRunning(false);
 			try {
 				serverSocket.close();
@@ -156,6 +162,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 				log.error("Error closing server socket", e);
 			}
 			timerService.cancel();
+			log.debug("Shutdown completely");
 		}
 	}
 	
@@ -174,12 +181,14 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 	private void sendEcho() {
 		try {
 			send(ECHO, response->{});
+			log.debug("Echo sent");
 		} catch (TOTPException e) {
 			//Do nothing
 		}
 	}
 	
 	private void reapOrphanCallbacks() {
+		log.debug("Reaper running... {} callbacks pending", callbackStore.size());
 		callbackStore.entrySet().forEach(entry->{
 			CallbackItem callbackItem = entry.getValue();
 			if(System.currentTimeMillis()-callbackItem.timestamp>
@@ -187,6 +196,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 				callbackStore.remove(entry.getKey());
 			}
 		});
+		log.debug("Reaper complete... {} callbacks remaining", callbackStore.size());
 	}
 	
 	@Override
@@ -195,6 +205,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 			throw new InvalidInputException();
 		}
 		long ticket = counter.getAndIncrement();
+		log.debug("Sending message for ticket {}", ticket);
 		byte[] tosend = new byte[bites.length+8];
 		System.arraycopy(ByteBuffer.allocate(8).putLong(ticket).array(), 0, tosend, 0, 8);
 		System.arraycopy(bites, 0, tosend, 8, bites.length);
@@ -214,15 +225,18 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 
 	@Override
 	public void processIncoming(byte[] bites) {
+		log.debug("Processing response...");
 		executorService.execute(()->{
 			byte[] ticketBites = new byte[8];
 			System.arraycopy(bites, 0, ticketBites, 0, 8);
 			byte[] toprocess = new byte[bites.length - 8];
 			System.arraycopy(bites, 8, toprocess, 0, bites.length-8);
 			long ticket = ByteBuffer.wrap(ticketBites).getLong();
+			log.debug("Processing response for ticket {}...", ticket);
 			
 			CallbackItem callbackItem = callbackStore.remove(ticket);
 			if(callbackItem != null) {
+				log.debug("Processing call-back for ticket {}...", ticket);
 				processCallback(toprocess, callbackItem);
 			} else {
 				log.info("Ignored message with ticket {}", ticket);

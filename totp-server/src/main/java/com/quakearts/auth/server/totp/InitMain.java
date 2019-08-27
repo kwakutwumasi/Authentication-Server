@@ -10,6 +10,7 @@ import java.security.cert.CertificateException;
 
 import javax.inject.Inject;
 
+import com.quakearts.appbase.Main;
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.auth.server.totp.channel.ConnectionManager;
 
@@ -20,7 +21,9 @@ public class InitMain {
 	
 	public void init() {
 		try {
+			Main.log.debug("Connection Manager starting...");
 			connectionManager.init();
+			Main.log.debug("Connection Manager started");
 		} catch (IOException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
 				| KeyStoreException | NoSuchProviderException | CertificateException e) {
 			throw new ConfigurationException(e);

@@ -5,10 +5,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.exception.SocketShutdownException;
 
 public class DeviceConnection {
 
+	private static final Logger log = LoggerFactory.getLogger(DeviceConnection.class);
 	private Socket socket;
 	private IncomingBitesProcessingListener listener;
 	private boolean running = false;
@@ -20,6 +24,8 @@ public class DeviceConnection {
 	}
 	
 	private void receive() {
+		log.debug("Recieve thread started. Processing incoming messages from {} on port {}", 
+				socket.getInetAddress(), socket.getPort());
 		running = true;
 		InputStream in;
 		try {
@@ -36,6 +42,8 @@ public class DeviceConnection {
 			}
 		} catch (IOException e) {
 			running = false;
+			log.debug("Recieve thread ended from {} on port {}", 
+					socket.getInetAddress(), socket.getPort());
 		}
 	}
 	
