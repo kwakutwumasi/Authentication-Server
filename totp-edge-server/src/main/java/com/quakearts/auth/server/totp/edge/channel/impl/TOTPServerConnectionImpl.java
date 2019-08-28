@@ -77,8 +77,20 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 				listen();
 			} catch (IOException e) {
 				log.error("Error processing TOTP server messages", e);
+				waitForMillis(5000);
 			} finally {
 				close();
+			}
+		}
+	}
+
+	private void waitForMillis(long sleepTime) {
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis()-start<sleepTime) {
+			try {
+				Thread.sleep(sleepTime-(System.currentTimeMillis()-start));
+			} catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
