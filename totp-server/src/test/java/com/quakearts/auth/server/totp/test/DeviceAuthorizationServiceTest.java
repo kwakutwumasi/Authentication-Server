@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
-import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
+import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceAuthorizationServiceImpl;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webtools.test.AllServicesRunner;
 
@@ -26,7 +26,7 @@ import junit.framework.AssertionFailedError;
 public class DeviceAuthorizationServiceTest {
 
 	@Inject
-	private DeviceAuthorizationService deviceConnectionService;
+	private DeviceAuthorizationServiceImpl deviceConnectionService;
 	
 	@Inject
 	private JWTGeneratorImpl jwtGenerator;
