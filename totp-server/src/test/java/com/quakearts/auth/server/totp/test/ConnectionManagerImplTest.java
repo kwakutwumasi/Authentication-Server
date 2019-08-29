@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import static org.awaitility.Awaitility.*;
 import static org.awaitility.Duration.*;
@@ -27,10 +28,8 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.channel.impl.ConnectionManagerImpl;
-import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidInputException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.options.TOTPOptions.PerformancePreferences;
 import com.quakearts.webtools.test.AllServicesRunner;
 
@@ -80,11 +79,6 @@ public class ConnectionManagerImplTest {
 		try(Socket socket = createClientSocket(9002)){
 			TestEchoClient client = new TestEchoClient(socket);
 			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
-			CompletableFuture.runAsync(this::sendTestMessageWithException);
-			await().atMost(TWO_SECONDS).until(client::testReceiveMessage);
-			await().atMost(TWO_SECONDS).until(()->{
-				return responseException.thrown;
-			});
 		} finally {
 			connectionManagerImpl2.shutdown();
 		}
@@ -138,7 +132,7 @@ public class ConnectionManagerImplTest {
 		
 		Checker check = new Checker();
 
-		CheckedConsumer<byte[], TOTPException> callback = bites->{
+		Consumer<byte[]> callback = bites->{
 			check.value = 1l;
 		};
 		
@@ -231,23 +225,6 @@ public class ConnectionManagerImplTest {
 		try {
 			connectionManagerImpl.send(TEST_MESSAGE.getBytes(), messageBites->{
 				response.messageBites = messageBites;
-			});
-		} catch (TOTPException e) {
-			fail(e.getMessage());
-		}
-	}
-	
-	class ResponseException {
-		boolean thrown;
-	}
-	
-	ResponseException responseException = new ResponseException();
-	
-	private void sendTestMessageWithException() {		
-		try {
-			connectionManagerImpl.send(TEST_MESSAGE.getBytes(), messageBites->{
-				responseException.thrown = true;
-				throw new InvalidAliasException();
 			});
 		} catch (TOTPException e) {
 			fail(e.getMessage());

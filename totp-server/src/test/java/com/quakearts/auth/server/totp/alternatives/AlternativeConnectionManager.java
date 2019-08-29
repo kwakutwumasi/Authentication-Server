@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.annotation.Priority;
@@ -16,7 +17,6 @@ import javax.interceptor.Interceptor;
 
 import com.quakearts.auth.server.totp.channel.ConnectionManager;
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
@@ -30,7 +30,7 @@ public class AlternativeConnectionManager implements ConnectionManager {
 	}
 	
 	@Override
-	public void send(byte[] bites, CheckedConsumer<byte[], TOTPException> callback) throws TOTPException {
+	public void send(byte[] bites, Consumer<byte[]> callback) throws TOTPException {
 		callback.accept(execute.apply(bites));
 	}
 

@@ -7,12 +7,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.function.Consumer;
 
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 
 public interface ConnectionManager {
-	void send(byte[] bites, CheckedConsumer<byte[], TOTPException> callback) throws TOTPException;
+	void send(byte[] bites, Consumer<byte[]> callback) throws TOTPException;
 	void init() throws IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException,
 			CertificateException, UnrecoverableKeyException, KeyManagementException;
 	void shutdown();

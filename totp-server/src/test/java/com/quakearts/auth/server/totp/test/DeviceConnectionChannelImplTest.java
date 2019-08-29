@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeJWTGenerator;
 import com.quakearts.auth.server.totp.channel.impl.DeviceConnectionChannelImpl;
+import com.quakearts.auth.server.totp.exception.CallbackException;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
@@ -93,7 +94,7 @@ public class DeviceConnectionChannelImplTest {
 				throw new IllegalStateException(e);
 			}
 		});		
-		expectedException.expect(MessageGenerationException.class);
+		expectedException.expect(CallbackException.class);
 		expectedException.expect(isCausedBy(NoSuchAlgorithmException.class));
 		AlternativeJWTGenerator.throwVerifyError(new NoSuchAlgorithmException());
 		impl.sendMessage(message, response->{});
@@ -110,7 +111,7 @@ public class DeviceConnectionChannelImplTest {
 				throw new IllegalStateException(e);
 			}
 		});	
-		expectedException.expect(MessageGenerationException.class);
+		expectedException.expect(CallbackException.class);
 		expectedException.expect(isCausedBy(URISyntaxException.class));
 		AlternativeJWTGenerator.throwVerifyError(new URISyntaxException("",""));
 		impl.sendMessage(message, response->{});
@@ -127,7 +128,7 @@ public class DeviceConnectionChannelImplTest {
 				throw new IllegalStateException(e);
 			}
 		});	
-		expectedException.expect(MessageGenerationException.class);
+		expectedException.expect(CallbackException.class);
 		expectedException.expect(isCausedBy(JWTException.class));
 		AlternativeJWTGenerator.throwVerifyError(new JWTException(""));
 		impl.sendMessage(message, response->{});

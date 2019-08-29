@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -35,7 +36,6 @@ import com.quakearts.auth.server.totp.channel.ConnectionManager;
 import com.quakearts.auth.server.totp.exception.InvalidInputException;
 import com.quakearts.auth.server.totp.exception.SocketShutdownException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
-import com.quakearts.auth.server.totp.function.CheckedConsumer;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.options.TOTPOptions.PerformancePreferences;
 
@@ -200,7 +200,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 	}
 	
 	@Override
-	public void send(byte[] bites, CheckedConsumer<byte[], TOTPException> callback) throws TOTPException {
+	public void send(byte[] bites, Consumer<byte[]> callback) throws TOTPException {
 		if(bites.length>2039) {
 			throw new InvalidInputException();
 		}
@@ -245,11 +245,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 	}
 
 	private void processCallback(byte[] toprocess, CallbackItem callbackItem) {
-		try {
-			callbackItem.callback.accept(toprocess);
-		} catch (TOTPException e) {
-			log.error("Error processing response.", e);
-		}
+		callbackItem.callback.accept(toprocess);
 	}
 
 	private boolean isRunning() {
@@ -266,9 +262,9 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 
 	class CallbackItem {
 		long timestamp = System.currentTimeMillis();
-		CheckedConsumer<byte[], TOTPException> callback;
+		Consumer<byte[]> callback;
 		
-		CallbackItem(CheckedConsumer<byte[], TOTPException> callback) {
+		CallbackItem(Consumer<byte[]> callback) {
 			this.callback = callback;
 		}
 	}
