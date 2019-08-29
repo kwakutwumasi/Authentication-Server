@@ -9,9 +9,7 @@ import static org.hamcrest.core.Is.*;
 
 import javax.inject.Inject;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
@@ -30,9 +28,6 @@ public class DeviceAuthorizationServiceTest {
 	
 	@Inject
 	private JWTGeneratorImpl jwtGenerator;
-	
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
 	
 	@Test
 	public void testSendMessage() throws Exception {
