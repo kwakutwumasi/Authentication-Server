@@ -55,7 +55,7 @@ public class DeviceRequestSigningServiceImplTest {
 				verifier = factory.getVerifier("HS256", options);
 				verifier.verify(signedMessage);
 				assertThat(verifier.getClaims().getPrivateClaim("request"), is("sensitive"));
-				assertThat(verifier.getClaims().getPrivateClaim("timestamp"), is("12345678901234"));
+				assertThat(verifier.getClaims().getPrivateClaim("totp-timestamp"), is("12345678901234"));
 			} catch (JWTException e) {
 				throw new AssertionFailedError(e.getMessage());
 			}
@@ -95,7 +95,7 @@ public class DeviceRequestSigningServiceImplTest {
 			assertThat(jwtClaims.getPrivateClaim("deviceId"), is("123456"));
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("otp", "7890");
-			responseMap.put("timestamp", "12345678901234");
+			responseMap.put("totp-timestamp", "12345678901234");
 			return jwtGenerator.generateJWT(responseMap).getBytes();			
 		} catch (Exception e) {
 			throw new AssertionError(e);
@@ -105,7 +105,7 @@ public class DeviceRequestSigningServiceImplTest {
 	private byte[] missingOtp(byte[] message){
 		try {
 			Map<String, String> responseMap = new HashMap<>();
-			responseMap.put("timestamp", "12345678901234");
+			responseMap.put("totp-timestamp", "12345678901234");
 			responseMap.put("error", "Error message");
 			return jwtGenerator.generateJWT(responseMap).getBytes();			
 		} catch (Exception e) {
@@ -147,7 +147,7 @@ public class DeviceRequestSigningServiceImplTest {
 		JWTClaims claims = factory.createEmptyClaims();
 		
 		claims.addPrivateClaim("request", "value");
-		claims.addPrivateClaim("timestamp", now+"");
+		claims.addPrivateClaim("totp-timestamp", now+"");
 		
 		Map<String, String> options = new HashMap<>();
 		options.put("secret", totp[0]);
@@ -191,10 +191,10 @@ public class DeviceRequestSigningServiceImplTest {
 				+ "body and signed trailer separated by '.'");
 		deviceRequestSigningService
 			.verifySignedRequest(null,
-				  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-				+ "eyJ0ZXN0IjoidmFsdWUiLCJ0aW1lc3RhbXAiO"
-				+ "iIxNTE2MjM5MDIyIiwiaWF0IjoxNTE2MjM5MD"
-				+ "IyfQ");
+					"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+				  + "eyJ0ZXN0IjoidmFsdWUiLCJ0b3RwLXRpbWVzd"
+				  + "GFtcCI6IjE1MTYyMzkwMjIiLCJpYXQiOjE1MT"
+				  + "YyMzkwMjJ9");
 	}
 	
 	@Test
@@ -206,10 +206,10 @@ public class DeviceRequestSigningServiceImplTest {
 			.verifySignedRequest(deviceManagementService
 					.findDevice("testdevice1").get(), 
 				  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-				+ "eyJ0ZXN0IjoidmFsdWUiLCJ0aW1lc3RhbXAiO"
-				+ "iIxNTE2MjM5MDIyIiwiaWF0IjoxNTE2MjM5MD"
-				+ "IyfQ.8WzbzD63xHCGg-qe1AY2O36k9kEoVECz"
-				+ "OGBvula25ow");
+				+ "eyJ0ZXN0IjoidmFsdWUiLCJ0b3RwLXRpbWVzd"
+				+ "GFtcCI6IjE1MTYyMzkwMjIiLCJpYXQiOjE1MT"
+				+ "YyMzkwMjJ9.GiakqRGw1DG57uIJLi-cIDoKaE"
+				+ "bHM3NeRnyfZoiEpE8");
 	}
 	
 }

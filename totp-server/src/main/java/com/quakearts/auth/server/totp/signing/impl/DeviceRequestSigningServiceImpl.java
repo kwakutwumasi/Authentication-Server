@@ -21,7 +21,7 @@ import com.quakearts.webapp.security.jwt.factory.JWTFactory;
 
 public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningService {
 
-	private static final String TIMESTAMP = "timestamp";
+	private static final String TIMESTAMP = "totp-timestamp";
 
 	private static final String HS256 = "HS256";
 
