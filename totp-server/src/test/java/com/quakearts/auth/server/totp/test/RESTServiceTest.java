@@ -30,8 +30,8 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizatio
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceRequestSigningService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
+import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
-import com.quakearts.auth.server.totp.generator.impl.TOTPGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequestInterceptor;
@@ -73,7 +73,7 @@ public class RESTServiceTest {
 	}
 	
 	@Inject
-	private TOTPGeneratorImpl totpGenerator;
+	private TOTPGenerator totpGenerator;
 	private static RESTTestClient client;
 	private static Device device2;
 	private static Device device3;
