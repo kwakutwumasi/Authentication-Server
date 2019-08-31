@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceRequestSigningService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
@@ -113,6 +114,26 @@ public class RESTServiceTest {
 		
 		client.authenticateDirect(device1.getId());
 		
+		AlternativeConnectionManager.run(bite->{
+			Map<String, String> responseMap = new HashMap<>();
+			long timestamp = System.currentTimeMillis();
+			String[] direct = totpGenerator.generateFor(device1, timestamp);
+			responseMap.put("otp", direct[0]);
+			responseMap.put("timestamp", Long.toString(timestamp));
+			try {
+				return jwtGenerator.generateJWT(responseMap).getBytes();
+			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+				throw new AssertionError(e);
+			}
+		});
+		
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("request", "value");
+		TokenResponse tokenResponse = client.signRequest(device1.getId(), requestMap);
+		assertThat(tokenResponse, is(notNullValue()));
+		
+		client.verifySignedRequest(tokenResponse.getToken(), device1.getId());
+		
 		Device device2 = provisionAdministrator1();
 		Device device3 = provisionAdministrator2();
 		
@@ -122,7 +143,7 @@ public class RESTServiceTest {
 		authorizationRequest.setDeviceId("testadministrator1");
 		authorizationRequest.setOtp(totp2[0]);
 				
-		TokenResponse tokenResponse = client.login(authorizationRequest);
+		tokenResponse = client.login(authorizationRequest);
 		assertThat(tokenResponse.getToken(), is(notNullValue()));
 		
 		String[] totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
@@ -690,5 +711,54 @@ public class RESTServiceTest {
 		} finally {
 			client.setRequestJWTToken(null);
 		}
+	}
+	
+	@Test
+	public void testSignRequestWithError() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"Error message\"}"));
+
+		Device device = provisionTestProvisionDevice1();
+		AlternativeConnectionManager.run(bite->{
+			Map<String, String> responseMap = new HashMap<>();
+			responseMap.put("error", "Error message");
+			try {
+				return jwtGenerator.generateJWT(responseMap).getBytes();
+			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+				throw new AssertionError(e);
+			}
+		});
+		
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("request", "value");
+		client.signRequest(device.getId(), requestMap);
+	}
+	
+	@Test
+	public void testSignRequestWithException() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"Message generation failed. Error message 2\"}"));
+
+		Device device = provisionTestProvisionDevice1();
+		
+		AlternativeDeviceRequestSigningService
+			.throwException(new MessageGenerationException(new Exception("Error message 2")));
+		
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("request", "value");
+		client.signRequest(device.getId(), requestMap);
+	}
+	
+	@Test
+	public void testSignRequestWithTimeout() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Connection timed out\"}"));
+		AlternativeDeviceRequestSigningService.doNothing(true);
+
+		Device device = provisionTestProvisionDevice1();
+
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("request", "value");
+		client.signRequest(device.getId(), requestMap);
 	}
 }

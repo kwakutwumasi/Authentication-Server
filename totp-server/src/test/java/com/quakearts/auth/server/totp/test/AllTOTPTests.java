@@ -11,9 +11,15 @@ import com.quakearts.auth.server.totp.options.impl.TOTPOptionsImplTest;
 		AuthenticationServiceImplTest.class, ConnectionManagerImplTest.class, 
 		DeviceAuthorizationServiceTest.class,
 		DeviceConnectionChannelImplTest.class,
-		DeviceServiceImplTest.class, KeyGeneratorImplTest.class,
-		ModelTests.class, RESTServiceTest.class, TOTPConfigurationProviderImplTest.class, 
-		TOTPGeneratorImplTest.class, TOTPOptionsImplTest.class})
+		DeviceRequestSigningServiceImplTest.class,
+		DeviceServiceImplTest.class,
+		KeyGeneratorImplTest.class,
+		ModelTests.class, 
+		RESTServiceTest.class, 
+		RequestSigningResourceTest.class,
+		TOTPConfigurationProviderImplTest.class, 
+		TOTPGeneratorImplTest.class, 
+		TOTPOptionsImplTest.class})
 public class AllTOTPTests {
 
 }

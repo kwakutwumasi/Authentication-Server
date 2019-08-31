@@ -2,8 +2,6 @@ package com.quakearts.auth.server.totp.rest;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -27,6 +25,7 @@ import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.auth.server.totp.rest.authorization.AuthorizationExecutorService;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
@@ -47,7 +46,8 @@ public class AuthenticationResource {
 	@Inject
 	private TOTPOptions totpOptions;
 	
-	private ExecutorService executorService;
+	@Inject
+	private AuthorizationExecutorService authorizationExecutorService;
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -99,7 +99,7 @@ public class AuthenticationResource {
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}
-			}, getExecutorService());
+			}, authorizationExecutorService.getExecutorService());
 			asyncResponse.setTimeout(totpOptions.getDeviceAuthenticationTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);
 		} else {
@@ -113,11 +113,5 @@ public class AuthenticationResource {
 	private void handleTimeout(AsyncResponse asyncResponse) {
 		asyncResponse.resume(new UnconnectedDeviceException("Connection timed out"));
 	}
-	
-	private ExecutorService getExecutorService() {
-		if(executorService==null) {
-			executorService = Executors.newFixedThreadPool(totpOptions.getAuthorizationThreads());
-		}
-		return executorService;
-	}
+
 }

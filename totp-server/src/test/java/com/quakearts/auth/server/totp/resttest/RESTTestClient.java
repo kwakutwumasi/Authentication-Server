@@ -120,7 +120,18 @@ public class RESTTestClient extends HttpClient {
 	public void authenticateDirect(String deviceId) throws IOException, HttpClientException {
 		executeWithNoResponse("/totp/authenticate/device/{0}", null, null, HttpVerb.GET, deviceId);
 	}
+	
+	public TokenResponse signRequest(String deviceId, Map<String, String> requestMap)
+			 throws IOException, HttpClientException {
+		return execute("/totp/request/sign/device/{0}", requestMap, APPLICATION_JSON, HttpVerb.POST, TokenResponse.class, 
+				deviceId);
+	}
 
+	public void verifySignedRequest(String signature, String deviceId) throws IOException, HttpClientException {
+		executeWithNoResponse("/totp/request/verify/signature/{0}/device/{1}", 
+				null, null, HttpVerb.GET, signature, deviceId);
+	}
+	
 	public TokenResponse login(AuthenticationRequest authorizationRequest) throws IOException, HttpClientException {
 		TokenResponse response = execute("/totp/management-login", authorizationRequest, APPLICATION_JSON, HttpVerb.POST, TokenResponse.class);
 		requestJWTToken = response.getToken();

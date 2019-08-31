@@ -11,5 +11,6 @@
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager</class>
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService</class>
 		<class>com.quakearts.auth.server.totp.alternatives.AlternativeJWTGenerator</class>
+		<class>com.quakearts.auth.server.totp.alternatives.AlternativeDeviceRequestSigningService</class>
 	</alternatives>
 </beans>

@@ -19,6 +19,7 @@ public class TOTPApplication extends Application {
 					ManagementLoginResource.class,
 					ManagementResource.class,
 					ProvisioningResource.class,
+					RequestSigningResource.class,
 					SynchronizeResource.class,
 					DataStoreExceptionMapper.class,
 					GeneralExceptionMapper.class,
