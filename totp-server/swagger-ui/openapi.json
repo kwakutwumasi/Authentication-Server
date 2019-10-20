@@ -2,7 +2,7 @@
   "openapi" : "3.0.1",
   "info": {
     "title": "TOTP Server API",
-    "description": "# TOTP-Server \r\n A Server implementing time based one time PINs (TOTP's) as described in [RFC 6238](https://tools.ietf.org/html/rfc6238). It can be integrated into Authentication Server with some minor adjustments, or deployed as a standalone service using QA-Appbase or any fully certified JEE 7+ server. \r\n  \r\n ### Operation \r\n  \r\n The server has a REST interface for management and provisioning. The management interface allows administrators to  \r\n * create device aliases, \r\n * lock and unlock devices,  \r\n * create additional administrator devices, and \r\n * deactivate devices \r\n  \r\n ### Devices \r\n  \r\n A device is defined as any software or hardware capable of generating tokens using a variation of the [RFC 6238](https://tools.ietf.org/html/rfc6238) algorithm. The HMAC algorithm and expected length must be set to the same values, or else tokens will not match. An example Android Implementation is provided in a separate project. \r\n  \r\n Devices must be provisioned before usage. Provisioning involves the generation of a cryptographic seed and the initial counter. These are transmitted to the device for secure storage over a secure communication channel. \r\n  \r\n Once provisioned, a device must be activated by sending a generated token to the server. The server validates the token and sets the device to active. The device can then be authenticated by the server with a new time based token. \r\n  \r\n The devices provide their own ID's during provisioning. ID's are checked for uniqueness, and as such it is important to use unique identifiers. An example of a unique identifier would be the Android Device ID or the IMIE number (for smartphones). Device creators should take this into account when programming their device for provisioning. The sample application uses the Android Device ID as the unique identifier. \r\n  \r\n ### Aliases \r\n  \r\n Aliases can be used to associate an application specific identifier to a device.  \r\n As an example a bank may want its customers to log on to an Internet Banking platform using a bank account numbers. If the device ID in use is not the same as this account number, clients would have to enter the device id during login. The account number can be setup on the TOTP server as an alias for the customer specific device. During authentication, the account number can be used in place of the device id. The server will look for the device record using the alias. \r\n  \r\n Multiple aliases can be assigned to a single device.  \r\n  \r\n Aliases must be unique. \r\n  \r\n ### The TOTPLoginModule \r\n  \r\n The TOTPLoginModule is a Java Authentication and Authorization Service (JAAS) module. It can be used by any system that supports the usage of JAAS login modules. The Authentication Server is one such service. \r\n  \r\n The module has no required setup parameters.  \r\n  \r\n Optional parameters are  \r\n  \r\n ``` \r\n totp.rolename - This parameter is for use in JAAS modules that are  \r\n  integrated with Jboss/Wildfly's authentication system. All roles are  \r\n  grouped within a java.security.acl.Group with a specific name. This  \r\n  defaults to Roles \r\n  \r\n use_first_pass - A string that evaluates to the Boolean value of true or  \r\n  false. If true, and multiple modules are used, it will attempt to use the  \r\n  username and password from the previous module, if any, rather than  \r\n  perform a callback \r\n   \r\n totp.defaultroles - A comma separated list of the default roles to  \r\n  assign to all authenticated subjects \r\n   \r\n ``` \r\n  \r\n ### Encryption \r\n  \r\n The server uses encryption to store seeds and other security values in a database. See QA-Crypto for more information on how to setup encryption. \r\n  \r\n For the highest level of security, a Hardware Security Module (HSM) should be used. Any HSM that provides a Java Cryptography Extension (JCE) module can be used with QA-Crypto. A HSM will protect the encryption keys from being pulled off the server, ensuring that only authorized applications on the server can encrypt and decrypt secured information. \r\n  \r\n ### Security Features \r\n  \r\n Aside from encryption the server has some security features to prevent tampering. \r\n  \r\n To protect against device ID switching, an encrypted check value is stored in the database. This check value is verified each time the device is retrieved. If an attacker manages to gain access to the database and tries to switch their device ID with that of a target, they would need to generate and encrypt the check value. If the encryption key is stored securely, this will not be feasible. \r\n  \r\n The same protection exists for aliases and administrator accounts.\r\n  \r\n ### Setup and Configuration \r\n  \r\n ###### Using Authentication Server \r\n  \r\n The libraries for the TOTP server must be included in the Authentication Server class path. Since Authentication Server uses the QA-Appbase, the basic platform for running the login module is in place. Authentication Server uses JAX-RS to provide its interface. The web server within Authentication Server will automatically load the REST interfaces for TOTP.  \r\n  \r\n The server will require an implementation of QA-ORM, specifically a Java Persistent Architecture compatible implementation. Non JPA implementations will work. However they must support transparent encryption and decryption of the secured fields, using QA-Crypto's _com.quakearts.security.cryptography.jpa.EncryptedValueConverter_ and _com.quakearts.security.cryptography.jpa.EncryptedValueStringConverter_.  \r\n  \r\n The reference implementation uses QA-ORM-Hibernate as its ORM implementation. QA-ORM-Hibernate requires a Java Connectivity Architecure (JCA) datasource. Since Authentication server excludes these libraries, they would need to be explicitly added. The Java Transacton Architecture (JTA) libraries can also be added to simplify transaction management. \r\n  \r\n Two other files need to be on the classpath: \r\n 1. login.config - this is a JAAS login configuration for authenticating tokens used to access the management interface. It must be configured with an appropriate _com.quakearts.webapp.security.auth.JWTLoginModule_ named 'TOTP-JWT-Login'. See QA-Auth for more information on configuring _JWTLoginModule_. \r\n  \r\n 2. totpoptions.json - This file contains important setup information for the TOTP server: \r\n  \r\n ``` \r\n data.store.name - The name of the QA-ORM datastore for the TOTP server \r\n mac.algorithm - The specific HMAC algorithm to use to generate the tokens  \r\n mac.provider - The JCE provider of the HMAC generation algorithm \r\n otp.length - the OTP string length \r\n seed.length - the length of the seed to generate, in bytes. It must be appropriate for the selected HMAC algorithm \r\n secure.random.instance - The secure random instance to use when generating the seed \r\n secure.random.provider - the JCE provider of the secure random instance \r\n time.step - the amount of time in seconds that the token is valid for \r\n grace.period - the amount time in seconds to consider tokens generated in the previous time step. This is to allow for network latency and un-syncronized clocks \r\n max.attempts - the maximum number of tries before a device is locked \r\n lockout.time - the amount of time, in microseconds before the lockout tries are reset. If a device has been locked, the reset will have no effect. \r\n installed.administrators - the initial list of device administrators. These must be setup prior to server initiation and prior to provisioning of the devices. \r\n count.query - The SQL server query to use to when pulling the total device count (Only necessary for SQL server based QA-ORM implementations) \r\n  \r\n ``` \r\n  \r\n ###### Setup Notes \r\n  \r\n Prior to the first server initialization, a minimum of two (2) devices must be selected as administrators. One device is used to create records. The other is used to approve the record creation.  \r\n  \r\n The selected devices will need to generate device ID's prior to provisioning. These device ID's are configured in the applications setup file _totpoptions.json_ in the 'installed.administrators' section of the configuration. Below is an example of the entries:  \r\n  \r\n ``` \r\n 	'installed.administrators':{ \r\n 		'map':{'testadministrator1':'Adminstrator 1','testadministrator2':'Adminstrator 2'} \r\n 	} \r\n ``` \r\n  \r\n The map key is the device ID and the value is the name given to that device. It should be descriptive such as 'Kofi Babone's iPhone 6S' or 'John Smith's Samsung Galaxy 5' to make it easy for administrators to know the owner and the specific device. \r\n  \r\n Once this and other parameters have been set, the server can be started and the administrator device provisioned. The devices will be added to the set of administrator devices during provisioning. \r\n  \r\n It is important to follow these steps in order. Failing to do so, the TOTP server will not have any administrator devices, and any modification to the system through the Management interface will be impossible. \r\n  \r\n ### The API \r\n  \r\n The API is divided into four Operations: \r\n  \r\n 1. Provisioning Operations \r\n 2. Security Operations \r\n 3. Management Operations \r\n 4. Report Operations \r\n  \r\n ###### API flow for Provisioning \r\n  \r\n A call is made to the [/provision](#/Provisioning%20Operations/provision) endpoint to create a device. The ProvisioningResponse returned will contain the secret seed and the initial counter for the device. The secret seed is a Hex-Encoded String of the secret seed bytes. \r\n A call is made to the [/activate](#/Provisioning%20Operations/activate) endpoint with the first generated token. Once the token is verified, the device will be activated, and can be used for authentication. \r\n The [/sync](#/Provisioning%20Operations/synchronize) endpoint can be used to verify that the device time is in sync with the server time, ensuring that TOTP tokens will match, as long as all other parameters are equal. \r\n  \r\n ###### API flow for Management Operations \r\n  \r\n All Management Operations need at least one authorization to execute. The first authorization is a Json Web Token (JWT). This is an encrypted token generated by calling the [/login](#/Security%20Operations/login) endpoint with the device ID or alias of an administrator device and a generated TOTP token. The token is valid for a system defined amount of time (see _JWTLoginModule_ settings for more information), and so will not be required for every call. GUI developers can store this token upon initial login and use it to call Management Operations that don't require a second authorization.  \r\n  \r\n API endpoints that use the ManagementRequest object in their POST parameters are required to contain a second authorization. The alias or device ID of a second administrator device must be passed along with a generated token for the device in the AuthorizationRequest field.",
+    "description": "# TOTP-Server \r\n A Server implementing time based one time PINs (TOTP's) as described in [RFC 6238](https://tools.ietf.org/html/rfc6238). It can be integrated into Authentication Server with some minor adjustments, or deployed as a standalone service using QA-Appbase or any fully certified JEE 7+ server. \r\n  \r\n ### Management and Provisioning Operations\r\n  \r\n The management REST interface allows administrators to  \r\n * create device aliases, \r\n * lock and unlock devices,  \r\n * create additional administrator devices, and \r\n * deactivate devices \r\n  \r\n ### The API \r\n  \r\n The API is divided into four Operations: \r\n  \r\n 1. Provisioning Operations - operations used during device provisioning\r\n 2. Security Operations - operations for authentication and authorization\r\n 3. Management Operations - operations for device management\r\n 4. Report Operations - operations for retrieving reports\r\n  \r\n ###### API flow for Provisioning \r\n  \r\n A call is made to the [/provision](#/Provisioning%20Operations/provision) endpoint to create a device. The ProvisioningResponse returned will contain the secret seed and the initial counter for the device. The secret seed is a Hex-Encoded String of the secret seed bytes. \r\n A call is made to the [/activate](#/Provisioning%20Operations/activate) endpoint with the first generated token. Once the token is verified, the device will be activated, and can be used for authentication. \r\n The [/sync](#/Provisioning%20Operations/synchronize) endpoint can be used to verify that the device time is in sync with the server time, ensuring that TOTP tokens will match, as long as all other parameters are equal. \r\n  \r\n ###### API flow for Management Operations \r\n  \r\n All Management Operations need at least one authorization to execute. The first authorization is a Json Web Token (JWT). This is an encrypted token generated by calling the [/login](#/Security%20Operations/login) endpoint with the device ID or alias of an administrator device and a generated TOTP token. The token is valid for a system defined amount of time (see _JWTLoginModule_ settings for more information), and so will not be required for every call. GUI developers can store this token upon initial login and use it to call Management Operations that don't require a second authorization.  \r\n  \r\n API endpoints that use the ManagementRequest object in their POST parameters are required to contain a second authorization. The alias or device ID of a second administrator device must be passed along with a generated token for the device in the AuthenticationRequest field.",
     "contact": {
       "name": "Kwaku Twumasi-Afriyie",
       "email": "kwaku.twumasi@quakearts.com"
@@ -31,7 +31,87 @@
     }
   ],
   "paths" : {
-    "/login" : {
+    "/authenticate" : {
+      "post" : {
+        "tags": [
+          "Security Operations"
+        ],
+        "operationId" : "authenticate",
+        "summary": "Verify a user using the device TOTP code ",
+        "description":"Verify/authenticate a user using the TOTP code generated by the specified device",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AuthenticationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Login is successful"
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authenticate/device/{deviceId}" : {
+      "get" : {
+        "tags": [
+          "Security Operations"
+        ],
+        "operationId" : "authenticateDirect",
+        "summary": "Authenticate a user by connecting directly to the device",
+        "description":"Verify/authenticate a user by connecting directly to the device and requesting the TOTP code",
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "*/*" : { }
+            }
+          }
+        }
+      }
+    },
+    "/management-login" : {
       "post" : {
         "tags": [
           "Security Operations"
@@ -43,7 +123,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/AuthorizationRequest"
+                "$ref" : "#/components/schemas/AuthenticationRequest"
               }
             }
           }
@@ -887,6 +967,141 @@
           }
         }
       }
+    },
+    "/request/verify/signature/{signature}/device/{deviceId}" : {
+      "get" : {
+        "tags": [
+          "Security Operations"
+        ],
+        "operationId" : "verifySignedRequest",
+        "summary": "Verify a signature.",
+        "description":"Verify that a JWT was signed by the specified device.",
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "signature",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Provisioning is successful response",
+            "content" : {
+              "*/*" : { }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/request/sign/device/{deviceId}" : {
+      "post" : {
+        "tags": [
+          "Security Operations"
+        ],
+        "operationId" : "signRequest",
+        "summary": "Generate a signature.",
+        "description":"Generate a JWT was signed by the specified device.",
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "additionalProperties" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Request was signed by the device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Request map is required",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "417" : {
+            "description" : "There was an error processing the request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+        },
+        "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {
@@ -907,7 +1122,7 @@
           }
         }
       },
-      "AuthorizationRequest" : {
+      "AuthenticationRequest" : {
         "type" : "object",
         "properties" : {
           "deviceId" : {
@@ -950,7 +1165,7 @@
             }
           },
           "authorizationRequest" : {
-            "$ref" : "#/components/schemas/AuthorizationRequest"
+            "$ref" : "#/components/schemas/AuthenticationRequest"
           }
         }
       },

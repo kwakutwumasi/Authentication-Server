@@ -3,11 +3,15 @@ A Server implementing time based one time PINs (TOTP's) as described in [RFC 623
 
 ### Operation
 
-The server has a REST interface for management and provisioning. The management interface allows administrators to 
+The server has a REST interface for management, provisioning and authentication. 
+
+The management interface allows administrators to 
 * create device aliases,
 * lock and unlock devices, 
 * create additional administrator devices, and
 * deactivate devices
+
+The API has been documented with Open API. A copy of swagger ui is included in the webapps directory of the standalone webserver with the api documentation preloaded. 
 
 ### Devices
 
@@ -66,6 +70,14 @@ Two other files need to be on the classpath:
 
 2. totpoptions.json - This file contains important setup information for the TOTP server:
 
+###### Stand Alone
+
+The TOTP server is already integrated into QA-Appbase and once the necessary libraries are on the classpath, the server can be started. Additional files are required. These can be copied from the src/test/resources folder of this project and amended as required.
+
+###### TOTPOptions.json Configuration
+
+The operation and behaviour of some aspects of the TOTP server can be changed through the TOTP options files. This allows for some customizations, including delegating seed generation and mac calculation to a JCE compatible Hardware Security Module.
+
 ```
 data.store.name - The name of the QA-ORM datastore for the TOTP server
 mac.algorithm - The specific HMAC algorithm to use to generate the tokens 
@@ -88,10 +100,6 @@ device.connection -> port - The port edge servers connect to
 					  ->socket.timeout - The timeout period for socket connections to the edge servers
 					  ->ssl.instance - the SSL/TLS version to use
 ```
-
-###### Stand Alone
-
-The TOTP server is already integrated into QA-Appbase and once the necessary libraries are on the classpath, the server can be started. Additional files are required. These can be copied from the src/test/resources folder of this project and amended as required.
 
 ###### Setup Notes
 
@@ -119,7 +127,7 @@ See [RFC 6238](https://tools.ietf.org/html/rfc6238) for more details on how the 
 
 2) Convert the integer to an eight byte value, and append the character bytes of the device ID
 
-3) Use the selected HMAC algorithm and the secret seed value to generate the HMAC of the value from step 2
+3) Use the selected HMAC algorithm and the secret seed value salted by the ID of the device provided during provisioning to generate the HMAC of the value from step 2
 
 4) Calculate an offset value using the absolute value of the last byte of the HMAC result modulo the length of the HMAC result minus four (4) i.e.
 
