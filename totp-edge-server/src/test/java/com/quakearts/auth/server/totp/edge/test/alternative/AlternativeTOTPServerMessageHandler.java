@@ -7,7 +7,7 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
-import com.quakearts.auth.server.totp.edge.Callback;
+import com.quakearts.auth.server.totp.edge.channel.Callback;
 import com.quakearts.auth.server.totp.edge.channel.Message;
 import com.quakearts.auth.server.totp.edge.channel.TOTPServerMessageHandler;
 import com.quakearts.auth.server.totp.edge.exception.UnconnectedDeviceException;

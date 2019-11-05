@@ -5,7 +5,7 @@ import javax.enterprise.inject.spi.CDI;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 
-import com.quakearts.auth.server.totp.edge.Main;
+import com.quakearts.auth.server.totp.edge.TOTPEdgeMain;
 
 public class MainRunner extends BlockJUnit4ClassRunner {
 
@@ -14,7 +14,7 @@ public class MainRunner extends BlockJUnit4ClassRunner {
 	public MainRunner(Class<?> klass) throws InitializationError {
 		super(klass);
 		if(!started) {
-			Main.main(new String[0]);			
+			TOTPEdgeMain.main(new String[0]);			
 			started = true;
 		}
 	}

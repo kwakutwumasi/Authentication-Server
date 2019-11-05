@@ -10,7 +10,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.quakearts.auth.server.totp.edge.Callback;
+import com.quakearts.auth.server.totp.edge.channel.Callback;
 import com.quakearts.auth.server.totp.edge.channel.DeviceConnectionService;
 import com.quakearts.auth.server.totp.edge.channel.Message;
 import com.quakearts.auth.server.totp.edge.channel.TOTPServerMessageHandler;
