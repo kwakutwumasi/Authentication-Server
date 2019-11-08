@@ -11,3 +11,4 @@
 /authentication-server-store/
 .DS_Store
 /TOTPDB/
+/tm*

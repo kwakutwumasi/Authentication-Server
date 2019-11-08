@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Symbolus TOTP</string>
+    <string name="otp_dialog">A \'Sign In\' request has been received. Do you want to authorize it?</string>
+    <string name="otp_dialog_authorize">Authorize</string>
+    <string name="otp_dialog_reject">Reject</string>
+    <string name="otp_signing_dialog">Test</string>
+    <string name="pin_label_text">Enter Your Symbolus PIN</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="button_delete">Delete</string>
+    <string name="user_pin_text">0000</string>
+    <string name="continue_button">Continue</string>
+    <string name="loader_content">Symbolus TOTP Client</string>
+    <string name="alias_hint">user@emailserver.com</string>
+    <string name="alias_instructions">Enter the username of your Symbolus Account</string>
+    <string name="symbolus_icon_description">Symbolus Icon</string>
+    <string name="close_button_description">Close</string>
+    <string name="tap_to_generate">Tap to generate a code</string>
+    <string name="pin_is_required">The PIN is required to continue</string>
+    <string name="counter_at_rest">:00</string>
+    <string name="otp_at_rest">000000</string>
+    <string name="loading_failed">There was a problem creating the TOTP device</string>
+</resources>

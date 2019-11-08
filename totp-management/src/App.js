@@ -257,6 +257,17 @@ class App extends Component {
     });
   }
 
+  handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    const {payload} = this.state;
+    payload.action = "no";
+    const data = JSON.stringify(payload);
+    this.websocket.current.sendMessage(data);
+    this.setState({showMessage:false});
+  }
+
   render() {
     const { classes } = this.props;
     if(this.state.signedin){

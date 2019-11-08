@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        tools:context=".LoaderActivity">
+    <ImageView
+        android:id="@+id/symbolus_logo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_symbolus_logo"
+        android:layout_gravity="center"
+        android:keepScreenOn="true"
+            android:layout_marginBottom="100sp"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
+        <ImageButton android:id="@+id/hide_controls"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="top|end"
+                android:src="@drawable/closebutton"
+                android:background="#FFFFFF"
+                android:contentDescription="@string/close_button_description" />
+        <LinearLayout android:id="@+id/fullscreen_content_controls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="bottom">
+            <EditText
+                    android:id="@+id/alias_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center"
+                    android:autofillHints="username"
+                    android:ems="10"
+                    android:hint="@string/alias_hint"
+                    android:inputType="textAutoComplete"
+                    android:textAlignment="center"
+                    android:textSize="25sp" />
+            <TextView
+                    android:id="@+id/alias_helper_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/alias_instructions"
+                    android:layout_gravity="center"
+                    android:textColor="@color/text_view_ok"
+                    />
+            <Button
+                    android:id="@+id/continue_pin_entry"
+                    android:layout_width="150sp"
+                    android:layout_height="50sp"
+                    android:layout_gravity="bottom|end"
+                    android:drawableEnd="@drawable/ic_next"
+                    android:text="@string/continue_button"
+                    android:onClick="onContinueClicked"
+                    />
+        </LinearLayout>
+    </FrameLayout>
+
+</FrameLayout>
