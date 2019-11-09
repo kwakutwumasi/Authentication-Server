@@ -78,21 +78,20 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.5.1.Final</resteasy-version>
-		<tomcat-version>9.0.21</tomcat-version>
+		<resteasy-version>3.9.0.Final</resteasy-version>
 	</properties>
 	<dependencies>
 		<!-- QA-Appbase -->
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-appbase</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<!-- Rest Tools -->
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resttools</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3</version>
 		</dependency>
 		<!-- REST EASY -->
 		<dependency>
@@ -118,7 +117,7 @@
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resteasy-cdi</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 		<!-- QA-AUth -->
 		<dependency>
@@ -130,7 +129,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.25</version>
+			<version>1.7.28</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>
