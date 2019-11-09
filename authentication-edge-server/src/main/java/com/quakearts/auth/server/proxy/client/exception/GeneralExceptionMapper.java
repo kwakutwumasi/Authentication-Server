@@ -1,20 +1,13 @@
 package com.quakearts.auth.server.proxy.client.exception;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.quakearts.auth.server.proxy.client.model.ErrorResponse;
-
-public class GeneralExceptionMapper implements ExceptionMapper<RuntimeException> {
+public class GeneralExceptionMapper 
+	extends ExceptionMapperBase<RuntimeException> {
 
 	@Override
-	public Response toResponse(RuntimeException exception) {
-		return Response.serverError()
-				.entity(new ErrorResponse()
-						.withCodeAs("general-error")
-						.addExplanation(exception.getMessage()
-								+(exception.getCause()!=null?exception.getCause().getMessage():"")))
-				.build();
+	protected ResponseBuilder createResponse(RuntimeException exception) {
+		return Response.serverError();
 	}
-
 }

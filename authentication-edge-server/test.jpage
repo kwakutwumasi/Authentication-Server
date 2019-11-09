@@ -1,0 +1,9 @@
+com.quakearts.tools.test.mockserver.store.HttpMessageStore store =
+	com.quakearts.tools.test.mockserver.store.impl.MockServletHttpMessageStore.getInstance();
+
+com.quakearts.tools.test.mockserver.model.HttpRequest message = 
+	store.findRequestIdentifiedBy("testAuthenticateOk");
+
+System.out.println(message.getResource());
+System.out.println(message.getResponse().getResponseCode());
+System.out.println(message.getResponse().getContent());

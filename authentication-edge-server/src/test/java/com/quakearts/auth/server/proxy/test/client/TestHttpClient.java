@@ -1,7 +1,6 @@
-package com.quakearts.auth.server.proxy.client;
+package com.quakearts.auth.server.proxy.test.client;
 
 import java.io.IOException;
-
 import javax.enterprise.inject.Alternative;
 import javax.inject.Singleton;
 
@@ -15,7 +14,7 @@ import com.quakearts.rest.client.exception.HttpClientException;
 
 @Singleton
 @Alternative
-public class AuthenticationServerHttpClient extends HttpObjectClient {
+public class TestHttpClient extends HttpObjectClient {
 	/**
 	 * 
 	 */
@@ -26,6 +25,11 @@ public class AuthenticationServerHttpClient extends HttpObjectClient {
 			throws IOException, HttpClientException {
 		return executeGet("/authenticate/{0}/{1}/?clientId={2}&credential={3}",
 				TokenResponse.class, alias, application, encode(clientId), encode(credential));
+	}
+
+	public void emptyAuthentication(String alias, String application) 
+			throws IOException, HttpClientException{
+		executeGet("/authenticate/{0}/{1}/", null, alias, application);
 	}
 	
 	@Override
