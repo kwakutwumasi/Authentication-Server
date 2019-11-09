@@ -16,4 +16,9 @@ public class ErrorResponse implements Serializable {
 	public void setMessage(String message) {
 		this.message = message;
 	}
+	
+	public ErrorResponse withMessageAs(String message) {
+		setMessage(message);
+		return this;
+	}
 }

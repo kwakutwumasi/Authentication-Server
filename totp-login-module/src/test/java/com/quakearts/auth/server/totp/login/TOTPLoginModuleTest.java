@@ -24,6 +24,10 @@ import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quakearts.auth.server.totp.login.client.TOTPHttpClient;
+import com.quakearts.auth.server.totp.login.client.TOTPHttpClientBuilder;
+import com.quakearts.auth.server.totp.login.client.model.AuthenticationRequest;
+import com.quakearts.rest.client.exception.HttpClientException;
 import com.quakearts.tools.test.mockserver.MockServer;
 import com.quakearts.tools.test.mockserver.MockServerFactory;
 import com.quakearts.tools.test.mockserver.configuration.Configuration.MockingMode;
@@ -80,10 +84,15 @@ public class TOTPLoginModuleTest {
 							switch (jsonRequest.get("deviceId").toString()) {
 							case "testdevice-ok":
 								return response;
-							case "testdevice-notfound":
+							case "testdevice-not-found":
 								return HttpMessageBuilder
 										.createNewHttpResponse().setResponseCodeAs(404)
-										.setContentBytes("{\"message\":\"Error-notfound\"}".getBytes())
+										.setContentBytes("{\"message\":\"Error-not-found\"}".getBytes())
+										.thenBuild();
+							case "testdevice-deserialize-error":
+								return HttpMessageBuilder
+										.createNewHttpResponse().setResponseCodeAs(404)
+										.setContentBytes("{\"message\":\"Error-deserialize-error".getBytes())
 										.thenBuild();
 							default:
 								return HttpMessageBuilder
@@ -291,7 +300,7 @@ public class TOTPLoginModuleTest {
 				if(callback instanceof PasswordCallback) {
 					((PasswordCallback)callback).setPassword("123456".toCharArray());
 				} else if(callback instanceof NameCallback) {
-					((NameCallback)callback).setName("testdevice-notfound");
+					((NameCallback)callback).setName("testdevice-not-found");
 				}
 			}
 		};
@@ -315,7 +324,7 @@ public class TOTPLoginModuleTest {
 				if(callback instanceof PasswordCallback) {
 					((PasswordCallback)callback).setPassword("123456".toCharArray());
 				} else if(callback instanceof NameCallback) {
-					((NameCallback)callback).setName("testdevice-notfound");
+					((NameCallback)callback).setName("testdevice-not-found");
 				}
 			}
 		};
@@ -323,11 +332,51 @@ public class TOTPLoginModuleTest {
 		Map<String, Object> options = new HashMap<>(),
 				sharedstate = new HashMap<>();
 		
-		sharedstate.put("totp.url", "http://localhost:8000/totp");
+		options.put("totp.url", "http://localhost:8000/totp");
 		
 		TOTPLoginModule loginModule = new TOTPLoginModule();
 		loginModule.initialize(subject, callbackHandler, sharedstate, options);
 		assertThat(loginModule.login(),is(false));
 		assertThat(loginModule.commit(),is(false));
+	}
+	
+	@Test
+	public void testJSONException() throws Exception {
+		Subject subject = new Subject();
+		CallbackHandler callbackHandler = (callbacks)->{
+			for(Callback callback:callbacks) {
+				if(callback instanceof PasswordCallback) {
+					((PasswordCallback)callback).setPassword("123456".toCharArray());
+				} else if(callback instanceof NameCallback) {
+					((NameCallback)callback).setName("testdevice-deserialize-error");
+				}
+			}
+		};
+		
+		Map<String, Object> options = new HashMap<>(),
+				sharedstate = new HashMap<>();
+				
+		TOTPLoginModule loginModule = new TOTPLoginModule();
+		loginModule.initialize(subject, callbackHandler, sharedstate, options);
+		assertThat(loginModule.login(),is(false));
+		assertThat(loginModule.commit(),is(false));
+	}
+	
+	@Test
+	public void testTOTPClientHTTPSerializationError() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage("Unable to serialize object");
+		TOTPHttpClient client = TOTPHttpClientBuilder
+				.createTOTPServerHttpClient("http://localhost:8080/totp");
+		
+		client.authentication(new AuthenticationRequestBomb());
+	}
+	
+	class AuthenticationRequestBomb 
+		extends AuthenticationRequest {
+		@Override
+		public String getDeviceId() {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

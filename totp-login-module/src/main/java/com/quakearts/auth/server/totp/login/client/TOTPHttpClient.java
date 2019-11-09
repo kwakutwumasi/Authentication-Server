@@ -1,21 +1,17 @@
 package com.quakearts.auth.server.totp.login.client;
 
-import static java.text.MessageFormat.format;
-
 import java.io.IOException;
-import java.net.URLEncoder;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quakearts.auth.server.totp.login.client.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.login.client.model.ErrorResponse;
 import com.quakearts.auth.server.totp.login.exception.ConnectorException;
-import com.quakearts.rest.client.HttpClient;
+import com.quakearts.rest.client.HttpObjectClient;
 import com.quakearts.rest.client.HttpResponse;
 import com.quakearts.rest.client.HttpVerb;
 import com.quakearts.rest.client.exception.HttpClientException;
 
-public class TOTPHttpClient extends HttpClient {
+public class TOTPHttpClient extends HttpObjectClient {
 	/**
 	 * 
 	 */
@@ -25,36 +21,38 @@ public class TOTPHttpClient extends HttpClient {
 	protected String file;
 	
 	public void authentication(AuthenticationRequest request) 
-			throws IOException, HttpClientException, ConnectorException {
-		getHttpResponseUsing(file+"/authenticate",
-				request, APPLICATION_JSON , HttpVerb.POST);
+			throws IOException, HttpClientException {
+		execute(HttpVerb.POST, file+"/authenticate", request, APPLICATION_JSON, null);
 	}
-		
+
 	public void authenticationDirect(String deviceId) 
-			throws IOException, HttpClientException, ConnectorException {
-		getHttpResponseUsing(file+"/authenticate/device/{0}",
-				null, null, HttpVerb.GET, URLEncoder.encode(deviceId,"UTF-8"));
+			throws IOException, HttpClientException {
+		executeGet(file+"/authenticate/device/{0}", null, deviceId);
 	}
-	
-	private void getHttpResponseUsing(String template, Object requestValue, String contentType,
-			HttpVerb verb, Object... parameters) throws IOException, HttpClientException, ConnectorException {
-		HttpResponse httpResponse = sendRequest(withTemplate(template, parameters), 
-				stringify(requestValue), verb, contentType);
-		if (httpResponse.getHttpCode() > 299) {
-			throw nonSuccessResponseUsing(httpResponse);
+
+	@Override
+	protected String writeValueAsString(Object requestValue) throws HttpClientException {
+		try {
+			return objectMapper.writeValueAsString(requestValue);
+		} catch (JsonProcessingException e) {
+			throw new HttpClientException("Unable to serialize object", e);
 		}
 	}
 
-	private String stringify(Object requestValue) throws JsonProcessingException {
-		return requestValue != null?objectMapper.writeValueAsString(requestValue):null;
+	@Override
+	protected ConnectorException nonSuccessResponseUsing(HttpResponse httpResponse) {
+		try {
+			return new ConnectorException(objectMapper.readValue(httpResponse.getOutput(), ErrorResponse.class),
+					httpResponse.getHttpCode());
+		} catch (IOException e) {
+			return new ConnectorException(new ErrorResponse()
+					.withMessageAs(httpResponse.getOutput()),
+					httpResponse.getHttpCode());
+		}
 	}
 
-	private String withTemplate(String template, Object... parameters) {
-		return parameters.length > 0 ? format(template, parameters) : template;
-	}
-
-	private ConnectorException nonSuccessResponseUsing(HttpResponse httpResponse) throws IOException {
-		return new ConnectorException(objectMapper.readValue(httpResponse.getOutput(), ErrorResponse.class),
-				httpResponse.getHttpCode());
+	@Override
+	protected <R> Converter<R> createConverter(Class<R> targetClass) {
+		return httpResponse -> null;
 	}
 }
