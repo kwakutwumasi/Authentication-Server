@@ -102,14 +102,14 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.5.1.Final</resteasy-version>
+		<resteasy-version>3.9.0.Final</resteasy-version>
 	</properties>
 	<dependencies>
 	<!-- QA Appbase -->
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-appbase</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jboss.weld.module</groupId>
@@ -129,7 +129,7 @@
 		<dependency>
 		    <groupId>org.apache.tomcat</groupId>
 		    <artifactId>tomcat-jdbc</artifactId>
-		    <version>9.0.8</version>
+		    <version>9.0.27</version>
 		    <exclusions>
 		    	<exclusion>
 		    		<groupId>org.apache.tomcat</groupId>
@@ -141,7 +141,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.25</version>
+			<version>1.7.28</version>
 		</dependency>
 	<!-- REST EASY -->
 		<dependency>
@@ -177,109 +177,29 @@
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resteasy-cdi</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 	<!-- Hibernate Validation -->
 		<dependency>
 		    <groupId>org.hibernate</groupId>
 		    <artifactId>hibernate-validator</artifactId>
-		    <version>6.0.13.Final</version>
+		    <version>6.0.17.Final</version>
 		</dependency>		
 		<dependency>
 		    <groupId>org.hibernate</groupId>
 		    <artifactId>hibernate-validator-cdi</artifactId>
-		    <version>6.0.13.Final</version>
+		    <version>6.0.17.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resteasy-validation-11</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 	<!-- Infinispan -->
 		<dependency>
 			<groupId>org.infinispan</groupId>
-			<artifactId>infinispan-embedded</artifactId>
-			<version>9.1.7.Final</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>
-						infinispan-cachestore-leveldb
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jgroups</groupId>
-					<artifactId>jgroups</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-jcache</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-cachestore-jdbc</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>
-						infinispan-remote-query-client
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.marshalling</groupId>
-					<artifactId>jboss-marshalling-osgi</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>
-						infinispan-cachestore-remote
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-cdi-embedded</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-commons</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jboss.spec.javax.transaction</groupId>
-					<artifactId>
-						jboss-transaction-api_1.1_spec
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-cachestore-jpa</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.mchange</groupId>
-					<artifactId>c3p0</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-query-dsl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>infinispan-cloud</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.infinispan</groupId>
-					<artifactId>
-						infinispan-cachestore-rocksdb
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jgroups.kubernetes</groupId>
-					<artifactId>jgroups-kubernetes</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>infinispan-core</artifactId>
+			<version>9.4.16.Final</version>
 		</dependency>
 	<!-- QA-Auth -->
 		<dependency>
