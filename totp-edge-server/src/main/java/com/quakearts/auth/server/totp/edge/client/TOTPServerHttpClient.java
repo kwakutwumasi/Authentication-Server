@@ -7,6 +7,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import javax.enterprise.inject.Alternative;
+import javax.inject.Singleton;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quakearts.auth.server.totp.edge.client.model.ActivationRequest;
@@ -21,6 +23,7 @@ import com.quakearts.rest.client.HttpVerb;
 import com.quakearts.rest.client.exception.HttpClientException;
 
 @Alternative
+@Singleton
 public class TOTPServerHttpClient extends HttpClient {
 	/**
 	 * 
