@@ -29,13 +29,13 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 			long timestamp = deltaInitCounter / totpOptions.getTimeStep();
 			long lifespan = deltaInitCounter % totpOptions.getTimeStep();
 			totps[0] = truncatedStringOf(generatedHmacFrom(
-					timeValueUsing(timestamp),
-					device.getSeed().getValue(), idBytes));
+					timeValueUsing(timestamp), idBytes,
+					device.getSeed().getValue()));
 			if (lifespan < totpOptions.getGracePeriod()) {
 				timestamp = (currentTimeInMillis - device.getInitialCounter() - totpOptions.getTimeStep()) / totpOptions.getTimeStep();
 				totps[1] = truncatedStringOf(generatedHmacFrom(
-						timeValueUsing(timestamp), 
-						device.getSeed().getValue(), idBytes));
+						timeValueUsing(timestamp), idBytes, 
+						device.getSeed().getValue()));
 			}
 		} catch (GeneralSecurityException e) {
 			throw new ConfigurationException("Unable to generate TOTP", e);
