@@ -292,4 +292,9 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 		
 		return wrapped.getDeviceAuthenticationTimeout();
 	}
+	
+	@Override
+	public String getServerJwtConfigName() {
+		return wrapped.getServerJwtConfigName();
+	}
 }

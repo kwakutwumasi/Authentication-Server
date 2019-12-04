@@ -40,6 +40,7 @@ public class TOTPOptionsImplTest extends TOTPOptionsImpl {
 		assertThat(totpOptionsImpl.getDeviceConnectionReceiveBufferSize(), is(1024));
 		assertThat(totpOptionsImpl.getDeviceConnectionReuseAddress(), is(Boolean.TRUE));
 		assertThat(totpOptionsImpl.getDeviceConnectionEchoInterval(), is(30000L));
+		assertThat(totpOptionsImpl.getServerJwtConfigName(), is("login2.config"));
 	}
 	
 	@Rule

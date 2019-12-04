@@ -6,4 +6,5 @@ import java.util.Map;
 
 public interface TOTPLoginConfiguration {
 	Map<String, ?> getConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException;
+	Map<String, ?> getServerConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException;
 }

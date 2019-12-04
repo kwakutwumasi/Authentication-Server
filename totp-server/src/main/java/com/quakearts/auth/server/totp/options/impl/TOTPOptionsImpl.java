@@ -39,6 +39,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private String deviceConnectionKeystorePassword;
 	private String deviceConnectionKeyPassword;
 	private int authorizationThreads = 3;
+	private String serverJwtConfigName;
 	
 	@Inject
 	private TOTPConfigurationProvider totpConfigurationProvider;
@@ -68,6 +69,11 @@ public class TOTPOptionsImpl implements TOTPOptions {
 					+" and is required");
 		}
 		
+		if(propertyMap.containsKey("server.jwt.config")){
+			serverJwtConfigName = propertyMap.getString("server.jwt.config");
+		} else {
+			serverJwtConfigName = "login.config";
+		}
 		countQuery = propertyMap.getString("count.query");
 		
 		ConfigurationPropertyMap deviceConnectionMap;
@@ -249,5 +255,10 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	@Override
 	public long getDeviceAuthenticationTimeout() {
 		return deviceAuthenticationTimeout;
+	}
+	
+	@Override
+	public String getServerJwtConfigName() {
+		return serverJwtConfigName;
 	}
 }

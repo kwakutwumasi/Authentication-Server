@@ -14,6 +14,7 @@
 		"map":{"testadministrator1":"Adminstrator 1","testadministrator2":"Adminstrator 2"}
 	},
 	"count.query":"SELECT COUNT(ID) AS TOTAL FROM DEVICE",
+	"server.jwt.config":"login2.config",
 	"device.connection":{
 		"threads":5,
 		"port":9001,
