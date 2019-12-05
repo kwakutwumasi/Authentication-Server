@@ -19,6 +19,7 @@ import com.quakearts.auth.server.totp.edge.websocket.model.Payload;
 import com.quakearts.auth.server.totp.options.TOTPEdgeOptions;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTVerifier;
+import com.quakearts.webapp.security.jwt.RegisteredNames;
 import com.quakearts.webapp.security.jwt.JWTClaims.Claim;
 import com.quakearts.webapp.security.jwt.JWTHeader;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
@@ -59,7 +60,8 @@ public class TOTPServerMessageHandlerImpl implements TOTPServerMessageHandler {
 				JWTHeader header = factory.createEmptyClaimsHeader();
 				JWTClaims responseClaims = factory.createEmptyClaims();
 				
-				responsePayload.getMessage().forEach(responseClaims::addPrivateClaim);
+				responsePayload.getMessage().entrySet().stream().filter(entry->!RegisteredNames.IAT.equals(entry.getKey()))
+					.forEach(entry->responseClaims.addPrivateClaim(entry.getKey(), entry.getValue()));
 				
 				byte[] responseMessage; 
 				try {

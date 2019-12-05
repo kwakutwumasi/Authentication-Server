@@ -44,6 +44,7 @@ public class TOTPServerMessageHandlerImplTest {
 			Payload responsePayload = new Payload();
 			responsePayload.setMessage(new HashMap<>());
 			responsePayload.getMessage().put("test", "response");
+			responsePayload.getMessage().put("iat", "1829234998734");
 			return responsePayload;
 		});
 		
