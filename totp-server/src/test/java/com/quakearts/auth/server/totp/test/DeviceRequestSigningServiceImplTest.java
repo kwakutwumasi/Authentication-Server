@@ -1,6 +1,6 @@
 package com.quakearts.auth.server.totp.test;
 
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
@@ -27,6 +27,7 @@ import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTHeader;
 import com.quakearts.webapp.security.jwt.JWTSigner;
 import com.quakearts.webapp.security.jwt.JWTVerifier;
+import com.quakearts.webapp.security.jwt.JWTClaims.Claim;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webapp.security.jwt.factory.JWTFactory;
 import com.quakearts.webtools.test.AllServicesRunner;
@@ -56,6 +57,11 @@ public class DeviceRequestSigningServiceImplTest {
 				verifier.verify(signedMessage);
 				assertThat(verifier.getClaims().getPrivateClaim("request"), is("sensitive"));
 				assertThat(verifier.getClaims().getPrivateClaim("totp-timestamp"), is("12345678901234"));
+				for(Claim claim : verifier.getClaims()){
+					if(claim.getName().equals("requestType") || 
+							claim.getName().equals("deviceId"))
+						fail("Contains restricted data");
+				}
 			} catch (JWTException e) {
 				throw new AssertionFailedError(e.getMessage());
 			}

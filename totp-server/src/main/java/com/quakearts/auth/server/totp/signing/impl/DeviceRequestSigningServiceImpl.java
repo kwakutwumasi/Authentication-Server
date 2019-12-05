@@ -41,6 +41,8 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 			String timestamp = response.get(TIMESTAMP);
 			if(otp != null && timestamp != null) {
 				requestMap.put(TIMESTAMP, timestamp);
+				requestMap.remove("requestType");
+				requestMap.remove("deviceId");
 				JWTFactory factory = JWTFactory.getInstance();
 				JWTSigner jwtSigner;
 				try {
