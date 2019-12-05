@@ -1,9 +1,13 @@
 package com.quakearts.symbolusclient.utils
 
+import android.Manifest
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
+import android.telephony.TelephonyManager
 import android.view.animation.Interpolator
-import com.squareup.moshi.Moshi
+import androidx.core.content.ContextCompat
+import com.squareup.moshi.*
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
@@ -22,9 +26,13 @@ import okhttp3.RequestBody
 import java.io.*
 import javax.crypto.spec.SecretKeySpec
 import java.nio.ByteBuffer
-import java.security.KeyStore
+import java.nio.charset.Charset
+import java.security.MessageDigest
 import java.security.spec.KeySpec
-import java.util.*
+import java.util.Properties
+import java.util.Locale
+import java.util.Random
+import java.util.Date
 import javax.crypto.*
 import javax.crypto.spec.PBEKeySpec
 import kotlin.collections.HashMap
@@ -37,21 +45,20 @@ object Options{
     const val pbeKeyAlgorithm = "PBEwithSHAANDTWOFISH-CBC"
     const val fileStoreAlgorithm = "PBEwithSHAANDTWOFISH-CBC"
     const val deviceFileName = "device.properties"
-    const val keystoreName = "AndroidKeystore"
     const val macAlgorithm = "HmacSHA256"
     const val otpLength = 6
     const val timeStep = 30000L
-    const val totpUrl = "http://localhost:8081/totp-provisioning"
-    const val totpWsUrl = "ws://localhost:8081/device-connection"
+    const val totpUrl = "http://10.0.2.2:8082/totp-provisioning"
+    const val totpWsUrl = "ws://10.0.2.2:8082/device-connection"
     val pbeSalt = "64MTYEQN4HSLRWEW".toByteArray()
-    const val pbeIterations = 23
-    const val seedKey = "com.quakearts.HH39BRS6"
     const val aliasProperty = "ALIAS"
+    const val pbeIterations = 23
+    const val resetThreshold = 2
 }
 
 class Counter(val updateTimeAction:(timeString:String)->Unit,
               val updateOTPAction:()->Unit){
-    var run = false
+    private var run = false
 
     @Synchronized
     fun start() {
@@ -63,14 +70,12 @@ class Counter(val updateTimeAction:(timeString:String)->Unit,
     }
 
     private fun runCounter() {
-        var lastTime = 0L
         while (run){
             val time = (System.currentTimeMillis() % Options.timeStep)/1000
             updateTimeAction(String.format(":%02d", time))
-            if(time < lastTime){
+            if(time < Options.resetThreshold){
                 updateOTPAction()
             }
-            lastTime = time
             Thread.sleep(500)
         }
     }
@@ -82,14 +87,14 @@ class Counter(val updateTimeAction:(timeString:String)->Unit,
 }
 
 class Device(private val _id:String="",
-             private val _initial:Long=0){
+             private val _initial:Long=0,
+             private val _key:SecretKey=SecretKeyFactory.getInstance(Options.pbeKeyAlgorithm)
+                 .generateSecret(PBEKeySpec("default".toCharArray()))){
     private val format = "%0"+ Options.otpLength +"d"
     val id : String
         get() = _id
     val initialCounter : Long
         get() = _initial
-
-    var keyStore:KeyStore = KeyStore.getInstance(Options.keystoreName)
 
     fun generateOtp():String{
         return truncatedStringOf(
@@ -115,10 +120,9 @@ class Device(private val _id:String="",
     }
 
     private fun generatedHmacFrom(currentTimeBytes:ByteArray):ByteArray{
-        val key = (keyStore.getEntry(Options.seedKey, null)!! as KeyStore.SecretKeyEntry).secretKey
         val mac = Mac.getInstance(Options.macAlgorithm)
-        mac.init(key)
-        mac.update(id.toByteArray())
+        mac.init(_key)
+        mac.update(id.toByteArray(Charset.forName("UTF-8")))
         return mac.doFinal(currentTimeBytes)
     }
 
@@ -126,13 +130,31 @@ class Device(private val _id:String="",
         val timestamp = (timesStamp - initialCounter) / Options.timeStep
         return ByteBuffer.allocate(8).putLong(timestamp).array()
     }
-
-    fun discard(){
-        keyStore.deleteEntry(Options.keystoreName)
-    }
 }
 
-data class Payload(val id:Long, val message:HashMap<String,String>, val timestamp: Long)
+data class Payload(val id:Long, val message:HashMap<String, String>, val timestamp: Long)
+
+class PayloadMessageAdapter : JsonAdapter<HashMap<String,String>>() {
+    @FromJson
+    override fun fromJson(reader: JsonReader): HashMap<String, String>? {
+        val message = HashMap<String,String>()
+        reader.beginObject()
+        while (reader.hasNext()){
+            message[reader.nextName()] = reader.nextString()
+        }
+        reader.endObject()
+        return message
+    }
+
+    @ToJson
+    override fun toJson(writer: JsonWriter, value: HashMap<String, String>?) {
+        if(value!=null) {
+            writer.beginObject()
+            value!!.map { writer.name(it.key).value(it.value) }
+            writer.endObject()
+        }
+    }
+}
 
 interface TOTPWebsocketService {
     @Send
@@ -156,12 +178,16 @@ class DeviceConnection(private val device: Device){
         val protocol = OkHttpWebSocket(
             okHTTPClient,
             OkHttpWebSocket.SimpleRequestFactory(
-                {Request.Builder().url(Options.totpWsUrl).build()},
+                {Request.Builder().url(Options.totpWsUrl+"/"+device.id).build()},
                 { ShutdownReason.GRACEFUL }
             )
         )
+
+        val moshi = Moshi.Builder().add(PayloadMessageAdapter())
+            .build()
+
         val websocketConfiguration = Scarlet.Configuration(
-            messageAdapterFactories = listOf(MoshiMessageAdapter.Factory()),
+            messageAdapterFactories = listOf(MoshiMessageAdapter.Factory(moshi = moshi)),
             streamAdapterFactories = listOf(RxJava2StreamAdapterFactory()),
             backoffStrategy = ExponentialBackoffStrategy(10000,360000),
             lifecycle = AndroidLifecycle.ofApplicationForeground(application)
@@ -220,10 +246,10 @@ object HexTool {
         val strbuf = StringBuilder(buf.size * 2)
         var i = 0
         while (i < buf.size) {
-            if (buf[i].toInt() and 0xff < 0x10)
+            if ((buf[i].toInt() and 0xff) < 0x10)
                 strbuf.append("0")
 
-            strbuf.append((buf[i].toInt() and 0xff).toLong().toString(16))
+            strbuf.append((buf[i].toInt() and 0xff).toString(16))
             i++
         }
 
@@ -262,37 +288,37 @@ object DeviceProvisioner {
 
         val totpServiceClient = OkHttpClient()
 
-        var device = Device()
+        var device:Device? = null
         val provisioningRequest = Request.Builder()
-            .url(Options.totpUrl+"/provisioning/$deviceId").build()
+            .url(Options.totpUrl+"/provisioning/$deviceId").post(
+                RequestBody.create(null,"")
+            ).build()
         var seed = ByteArray(0)
         totpServiceClient.newCall(provisioningRequest).execute().use {
-            if(!it.isSuccessful) throw IOException("Provisioning for device ID $deviceId failed $it")
+            if(!it.isSuccessful)throw IOException("Provisioning for device ID $deviceId failed with code ${it.code()}")
 
             val provisioningResponse = provisioningResponseAdapter.fromJson(it.body()!!.source())
             seed = HexTool.hexAsByte(provisioningResponse!!.seed)
             val key = SecretKeySpec(seed, Options.macAlgorithm)
-            val keyStore = KeyStore.getInstance(Options.keystoreName)
-            keyStore.setEntry(Options.keystoreName,KeyStore.SecretKeyEntry(key), null)
 
-            device = Device(deviceId, provisioningResponse.initialCounter)
+            device = Device(deviceId, provisioningResponse!!.initialCounter, key)
         }
 
         val activationRequest = Request.Builder()
             .url(Options.totpUrl+"/provisioning/$deviceId")
-            .post(
+            .put(
                 RequestBody.create(MediaType.get("application/json; charset=utf-8"),
                     activationRequestAdapter
-                        .toJson(ActivationRequest(token = device.generateOtp(), alias = alias))))
+                        .toJson(ActivationRequest(token = device!!.generateOtp(), alias = alias))))
             .build()
 
         totpServiceClient.newCall(activationRequest).execute().use {
-            if(!it.isSuccessful) throw IOException("Provisioning for device ID $deviceId failed $it")
+            if(!it.isSuccessful)throw IOException("Activation for device ID $deviceId failed with code ${it.code()}")
         }
 
-        DeviceStorage.saveDevice(device, seed, pin, context)
+        DeviceStorage.saveDevice(device!!, seed, pin, context)
 
-        return device
+        return device!!
     }
 }
 
@@ -310,18 +336,17 @@ object DeviceStorage {
         }
 
         val seed = HexTool.hexAsByte(deviceProperties.getProperty("seed"))
-        val keyStore = KeyStore.getInstance(Options.keystoreName)
-        keyStore.setEntry(Options.seedKey, KeyStore.SecretKeyEntry(SecretKeySpec(seed, Options.macAlgorithm)), null)
+        val key = SecretKeySpec(seed, Options.macAlgorithm)
 
         val initialCounter = deviceProperties.getProperty("initial.counter").toLong()
         val deviceId = deviceProperties.getProperty("device.id")
 
-        return Device(deviceId,initialCounter)
+        return Device(deviceId,initialCounter,key)
     }
 
     fun saveDevice(device: Device, seed:ByteArray, pin:String, context: Context){
         val deviceProperties = Properties()
-        deviceProperties.setProperty("seed", HexTool.byteAsHex(seed))
+        deviceProperties.setProperty("seed",HexTool.byteAsHex(seed))
         deviceProperties.setProperty("initial.counter", device.initialCounter.toString())
         deviceProperties.setProperty("device.id", device.id)
 
@@ -367,10 +392,25 @@ object TOTPApplication {
         device = if(DeviceStorage.hasDeviceFile(application)){
             DeviceStorage.loadDeviceFromStorage(pin, application)
         } else {
-            DeviceProvisioner.provision("",alias, pin, application)
+            DeviceProvisioner.provision(generateUniqueId(application),alias, pin, application)
         }
         deviceConnection = DeviceConnection(device!!)
         deviceConnection!!.connect(application)
+    }
+
+    private fun generateUniqueId(application: Application):String {
+        var manager = application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+        val permission = ContextCompat.checkSelfPermission(application, Manifest.permission.READ_PHONE_STATE)
+
+        val digest = MessageDigest.getInstance("SHA-256")
+        val deviceId = (java.lang.Long.toHexString(Date().time)+
+                Integer.toHexString(Random().nextInt())).toUpperCase(Locale.ENGLISH)
+        digest.update(deviceId.toByteArray())
+        if(permission == PackageManager.PERMISSION_GRANTED){
+            digest.update(manager.deviceId.toByteArray())
+        }
+        return HexTool.byteAsHex(digest.digest())
     }
 
     fun generateOtp() : String? {
@@ -392,7 +432,6 @@ object TOTPApplication {
 
     fun onCleared() {
         if(device!=null){
-            device!!.discard()
             device = null
         }
         if(deviceConnection!=null){

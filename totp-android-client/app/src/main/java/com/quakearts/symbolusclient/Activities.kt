@@ -1,7 +1,9 @@
 package com.quakearts.symbolusclient
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,6 +13,8 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.quakearts.symbolusclient.utils.*
 import kotlinx.android.synthetic.main.activity_loader.*
 import kotlinx.android.synthetic.main.activity_pin.*
@@ -41,9 +45,7 @@ class LoaderActivity : AppCompatActivity() {
         val bounceAnimation = AnimationUtils.loadAnimation(this,R.anim.bounce)
         bounceAnimation.interpolator = BounceInterpolator(0.2, 15.0)
         hide_controls.startAnimation(bounceAnimation)
-        if (AUTO_HIDE) {
-            delayedHide(AUTO_HIDE_DELAY_MILLIS)
-        }
+        delayedHide(AUTO_HIDE_DELAY_MILLIS)
         false
     }
 
@@ -114,7 +116,7 @@ class LoaderActivity : AppCompatActivity() {
             return
         }
 
-        val pinActivity = Intent(this, PinActivity::class.java);
+        val pinActivity = Intent(this, PinActivity::class.java)
         if(hasAlias)
             pinActivity.putExtra(Options.aliasProperty, alias_text.text.toString())
 
@@ -122,12 +124,6 @@ class LoaderActivity : AppCompatActivity() {
     }
 
     companion object {
-        /**
-         * Whether or not the system UI should be auto-hidden after
-         * [AUTO_HIDE_DELAY_MILLIS] milliseconds.
-         */
-        private const val AUTO_HIDE = true
-
         /**
          * If [AUTO_HIDE] is set, the number of milliseconds to wait after
          * user interaction before hiding the system UI.
@@ -171,9 +167,28 @@ class PinActivity : AppCompatActivity() {
             pin_helper_text.visibility = View.VISIBLE
             return
         }
+        val permission = ContextCompat.checkSelfPermission(application, Manifest.permission.READ_PHONE_STATE)
+        if(permission!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 1)
+        } else {
+            doDeviceLoading()
+        }
+    }
+
+    private fun doDeviceLoading() {
         progress_overlay.visibility = View.VISIBLE
         continue_device_load.setClickable(false)
         LoadAndOrProvisionTask().execute(alias, pin_text.text.toString())
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when(requestCode){
+           1-> doDeviceLoading()
+        }
     }
 
     inner class LoadAndOrProvisionTask:AsyncTask<String,Unit,Boolean>(){
@@ -236,8 +251,9 @@ class TOTPActivity : AppCompatActivity() {
                     }.create().show()
             }
         }, otpSigningRequestListener = {onOk, onCancel, message ->
-            val signingDetails = message.map { messagePart -> messagePart.key+":"+messagePart.value }
-            val signingMessage = MessageFormat.format(getString(R.string.otp_signing_dialog), signingDetails)
+            val signingDetails = message.filter { (it.key != "deviceId")
+                    && (it.key  != "iat") && (it.key != "requestType") }.map { "\t"+it.key+":"+it.value }
+            val signingMessage = MessageFormat.format(getString(R.string.otp_signing_dialog), signingDetails.joinToString("\n"))
             runOnUiThread {
                 AlertDialog.Builder(this).setMessage(signingMessage)
                     .setPositiveButton(R.string.otp_dialog_authorize) { dialog, _ ->
