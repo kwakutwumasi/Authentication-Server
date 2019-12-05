@@ -69,6 +69,7 @@ public class TOTPGeneratorImplTest {
 		clearFormatField(totpGenerator);
 		
 		assertThat(totpOptions.getOtpLength(), is(8));
+		format = "%0"+totpOptions.getOtpLength()+"d";
 		
 		String[] testTokens3 = totpGenerator.generateFor(device, time);
 		assertThat(testTokens3.length, is(2));

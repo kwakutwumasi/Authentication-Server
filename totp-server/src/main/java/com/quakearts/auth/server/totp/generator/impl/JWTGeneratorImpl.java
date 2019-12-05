@@ -46,11 +46,11 @@ public class JWTGeneratorImpl implements JWTGenerator {
 	@Override
 	public String generateJWT(Map<String, String> customKeyValues)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
-		String algorithm = (String) totpLoginConfiguration.getConfigurationOptions()
+		String algorithm = (String) totpLoginConfiguration.getServerConfigurationOptions()
 				.get(JWTLoginModule.ALGORITHMPARAMETER);
 		
 		JWTSigner jwtSigner = JWTFactory.getInstance()
-				.getSigner(algorithm, totpLoginConfiguration.getConfigurationOptions());
+				.getSigner(algorithm, totpLoginConfiguration.getServerConfigurationOptions());
 		
 		JWTHeader header = JWTFactory.getInstance().createEmptyClaimsHeader();
 		JWTClaims claims = JWTFactory.getInstance().createJWTClaimsFromMap(customKeyValues);
@@ -61,11 +61,11 @@ public class JWTGeneratorImpl implements JWTGenerator {
 	@Override
 	public JWTClaims verifyJWT(byte[] jwt)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
-		String algorithm = (String) totpLoginConfiguration.getConfigurationOptions()
+		String algorithm = (String) totpLoginConfiguration.getServerConfigurationOptions()
 				.get(JWTLoginModule.ALGORITHMPARAMETER);
 		
 		JWTVerifier jwtVerifier = JWTFactory.getInstance()
-				.getVerifier(algorithm, totpLoginConfiguration.getConfigurationOptions());
+				.getVerifier(algorithm, totpLoginConfiguration.getServerConfigurationOptions());
 		
 		jwtVerifier.verify(jwt);
 		

@@ -26,26 +26,26 @@ public class TOTPLoginConfigurationImpl implements TOTPLoginConfiguration {
 	@Override
 	public Map<String, ?> getConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
 		if(options==null){
-			loadOptions("login.config");
+			options = loadOptions("login.config");
 		}
 		
 		return options;
 	}
 
-	protected void loadOptions(String resourceName) throws URISyntaxException, NoSuchAlgorithmException {
+	protected Map<String, ?> loadOptions(String resourceName) throws URISyntaxException, NoSuchAlgorithmException {
 		URL resource = Thread.currentThread().getContextClassLoader().
 		        getResource(resourceName);
 		URI uri = resource.toURI();
 		Configuration jaasConfig = Configuration.getInstance("JavaLoginConfig", 
 				new URIParameter(uri));
 		AppConfigurationEntry entry = jaasConfig.getAppConfigurationEntry(TOTPAuthenticationFilter.LOGIN_MODULE)[0];
-		options = entry.getOptions();
+		return entry.getOptions();
 	}
 
 	@Override
 	public Map<String, ?> getServerConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
 		if(serverOptions==null){
-			loadOptions(totpOptions.getServerJwtConfigName());
+			serverOptions = loadOptions(totpOptions.getServerJwtConfigName());
 		}
 		
 		return serverOptions;
