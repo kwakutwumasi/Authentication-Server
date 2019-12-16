@@ -7,6 +7,14 @@
 	<version>0.0.1</version>
 	<name>Time Based OTP Edge Server</name>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.8</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -56,7 +64,6 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
 				<executions>
 					<execution>
 						<id>copy-wars</id>
@@ -66,10 +73,10 @@
 						</goals>
 						<configuration>
 							<target name="Create Folders">
-								<echo>Creating etc, webserver</echo>
-								<copy todir="target/etc">
-									<fileset dir="etc" />
-								</copy>
+								<echo>Creating etc</echo>
+								<mkdir dir="target/etc"></mkdir>
+								<echo>Creating server folders and files</echo>
+								<copy file="live-config/main-webapp.config.json" toDir="target/etc"></copy>
 							</target>
 						</configuration>
 					</execution>
@@ -78,7 +85,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.9.0.Final</resteasy-version>
+		<resteasy-version>3.9.3.Final</resteasy-version>
 	</properties>
 	<dependencies>
 		<!-- QA-Appbase -->
@@ -98,6 +105,12 @@
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-servlet-initializer</artifactId>
 			<version>${resteasy-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jboss.logging</groupId>
+					<artifactId>jboss-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
