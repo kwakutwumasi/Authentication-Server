@@ -59,7 +59,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 		secureRandomInstance = propertyMap.getString("secure.random.instance");
 		secureRandomProvider = propertyMap.getString("secure.random.provider");
 		timeStep = propertyMap.getInt("time.step")*1000l;
-		gracePeriod = propertyMap.getInt("grace.period")*1000l;
+		gracePeriod = propertyMap.getInt("grace.period");
 		maxAttempts = propertyMap.getInt("max.attempts");
 		lockoutTime = propertyMap.getInt("lockout.time");
 		installedAdministrators = propertyMap.get("installed.administrators", Map.class);

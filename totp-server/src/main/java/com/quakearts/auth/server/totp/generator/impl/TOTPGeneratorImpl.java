@@ -1,6 +1,7 @@
 package com.quakearts.auth.server.totp.generator.impl;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -19,22 +20,23 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 	@Inject
 	private TOTPOptions totpOptions;
 	private String format;
+	private static final int[] POWER = {1,10,100,1000,10000,100000,1000000,10000000,100000000};
 	
 	@Override
 	public String[] generateFor(Device device, long currentTimeInMillis) {
 		String[] totps = new String[2];
-		byte[] idBytes = device.getId().getBytes();
+		byte[] idBytes = device.getId().getBytes(StandardCharsets.UTF_8);
 		try {
 			long deltaInitCounter = currentTimeInMillis - device.getInitialCounter();
-			long timestamp = deltaInitCounter / totpOptions.getTimeStep();
+			long timeCounter = deltaInitCounter / totpOptions.getTimeStep();
 			long lifespan = deltaInitCounter % totpOptions.getTimeStep();
 			totps[0] = truncatedStringOf(generatedHmacFrom(
-					timeValueUsing(timestamp), idBytes,
+					timeValueUsing(timeCounter), idBytes,
 					device.getSeed().getValue()));
 			if (lifespan < totpOptions.getGracePeriod()) {
-				timestamp = (currentTimeInMillis - device.getInitialCounter() - totpOptions.getTimeStep()) / totpOptions.getTimeStep();
+				timeCounter = (currentTimeInMillis - device.getInitialCounter() - totpOptions.getTimeStep()) / totpOptions.getTimeStep();
 				totps[1] = truncatedStringOf(generatedHmacFrom(
-						timeValueUsing(timestamp), idBytes, 
+						timeValueUsing(timeCounter), idBytes, 
 						device.getSeed().getValue()));
 			}
 		} catch (GeneralSecurityException e) {
@@ -44,8 +46,8 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 		return totps;
 	}
 
-	private byte[] timeValueUsing(long timestamp) {
-		return ByteBuffer.allocate(8).putLong(timestamp).array();
+	private byte[] timeValueUsing(long timeCounter) {
+		return ByteBuffer.allocate(8).putLong(timeCounter).array();
 	}
 	
 	private byte[] generatedHmacFrom(byte[] currentTime, byte[] deviceIdBytes, byte[] seed) throws GeneralSecurityException {
@@ -57,13 +59,12 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 	}
 	
 	private String truncatedStringOf(byte[] hashBytes) {
-		int offset = Math.abs(hashBytes[hashBytes.length-1] 
-				% (hashBytes.length-4));
+		int offset = hashBytes[hashBytes.length - 1] & 0xf;
 		int code = (hashBytes[offset] & 0x7f) << 24 |
 				(hashBytes[offset+1] & 0xff) << 16 |
 				(hashBytes[offset+2] & 0xff) << 8 |
 				hashBytes[offset+3] & 0xff;
-		code = (int) (code % Math.pow(10, totpOptions.getOtpLength()));
+		code = code % POWER[totpOptions.getOtpLength()];
 		return String.format(getTemplate(), code);
 	}
 

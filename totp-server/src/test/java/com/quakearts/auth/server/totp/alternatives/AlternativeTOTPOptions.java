@@ -90,6 +90,12 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 		returnConnectionPort = newConnectionPort;
 	}
 	
+	private static Long returnTimeStep;
+	
+	public static void returnTimeStep(Long newReturnTimeStep) {
+		returnTimeStep = newReturnTimeStep;
+	}
+		
 	@Override
 	public String getDataStoreName() {
 		return wrapped.getDataStoreName();
@@ -112,7 +118,7 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 
 	@Override
 	public int getOtpLength() {
-		if(returnOtpLength!=null){
+		if(returnOtpLength != null){
 			return returnOtpLength;
 		}
 		
@@ -151,6 +157,10 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 
 	@Override
 	public long getTimeStep() {
+		if(returnTimeStep != null){
+			return returnTimeStep;
+		}
+		
 		return wrapped.getTimeStep();
 	}
 
