@@ -10,3 +10,4 @@
 /webservers/
 /tomcat-test/
 .DS_Store
+/etc/
