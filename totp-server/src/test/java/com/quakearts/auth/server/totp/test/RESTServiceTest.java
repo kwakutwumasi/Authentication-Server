@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 
@@ -48,7 +47,7 @@ import com.quakearts.auth.server.totp.rest.model.TokenResponse;
 import com.quakearts.auth.server.totp.resttest.RESTTestClient;
 import com.quakearts.auth.server.totp.resttest.RESTTestClient.SyncResponse;
 import com.quakearts.auth.server.totp.resttest.RESTTestClientBuilder;
-import com.quakearts.auth.server.totp.setup.CreatorService;
+import com.quakearts.auth.server.totp.runner.TOTPDatabaseServiceRunner;
 import com.quakearts.rest.client.exception.HttpClientException;
 import com.quakearts.security.cryptography.CryptoResource;
 import com.quakearts.security.cryptography.exception.IllegalCryptoActionException;
@@ -57,16 +56,12 @@ import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 import com.quakearts.webapp.orm.exception.DataStoreException;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webapp.security.rest.exception.RestSecurityException;
-import com.quakearts.webtools.test.AllServicesRunner;
 
-@RunWith(AllServicesRunner.class)
+@RunWith(TOTPDatabaseServiceRunner.class)
 public class RESTServiceTest {
 	
 	@BeforeClass
 	public static void createDatabase(){
-		CreatorService creatorService = CDI.current().select(CreatorService.class).get();
-		creatorService.dropAndCreateDatabase();
-		creatorService.createEntitiesForTest();
 		client = new RESTTestClientBuilder()
 				.setURLAs("http://localhost:8080")
 				.thenBuild();

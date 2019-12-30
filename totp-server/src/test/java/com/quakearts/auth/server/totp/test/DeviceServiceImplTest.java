@@ -7,14 +7,11 @@ import static org.hamcrest.core.IsNull.*;
 import java.util.List;
 import java.util.Optional;
 
-
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -35,14 +32,13 @@ import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
-import com.quakearts.auth.server.totp.setup.CreatorService;
-import com.quakearts.webtools.test.AllServicesRunner;
+import com.quakearts.auth.server.totp.runner.TOTPDatabaseServiceRunner;
 import com.quakearts.webapp.orm.DataStore;
 import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
 
-@RunWith(AllServicesRunner.class)
+@RunWith(TOTPDatabaseServiceRunner.class)
 public class DeviceServiceImplTest {
 
 	@Inject
@@ -57,13 +53,6 @@ public class DeviceServiceImplTest {
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 	
-	@BeforeClass
-	public static void createDevice(){
-		CreatorService creatorService = CDI.current().select(CreatorService.class).get();
-		creatorService.dropAndCreateDatabase();
-		creatorService.createEntitiesForTest();
-	}
-
 	@Test
 	@Transactional(TransactionType.SINGLETON)
 	public void testFindDevice() {
