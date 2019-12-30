@@ -51,7 +51,7 @@ public class TOTPGeneratorImplTest {
 		assertThat(testTokens[0], is(notNullValue()));
 		assertThat(testTokens[1], is(nullValue()));
 				
-		time+=3000;
+		time+=3500;
 		String[] testTokens2 = totpGenerator.generateFor(device, time);
 		assertThat(testTokens2.length, is(2));
 		assertThat(testTokens2[0], is(notNullValue()));
