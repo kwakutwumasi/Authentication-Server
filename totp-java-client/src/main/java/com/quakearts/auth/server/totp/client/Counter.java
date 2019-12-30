@@ -7,6 +7,7 @@ public class Counter {
 	private boolean run;
 	private Label label;
 	private Runnable counterAction;
+	private long initialCounter;
 	
 	public Counter(Label label, Runnable counterAction) {
 		this.label = label;
@@ -17,7 +18,8 @@ public class Counter {
 	public synchronized void start(){
 		if(run)
 			return;
-		
+		if(initialCounter == 0)
+			initialCounter = DeviceStorage.getInstance().getDevice().getInitialCounter();
 		run = true;
 		new Thread(this::runCounter).start();
 	}
@@ -26,7 +28,8 @@ public class Counter {
 	
 	private void runCounter(){
 		while (run) {
-			long time = (System.currentTimeMillis() % Options.getInstance().getTimeStep())/1000;
+			long time = ((System.currentTimeMillis() - initialCounter) 
+					% Options.getInstance().getTimeStep())/1000;
 			Display.getDefault()
 				.syncExec(()->{
 				if(label.isDisposed())

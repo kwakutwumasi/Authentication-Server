@@ -5,7 +5,6 @@ import com.squareup.moshi.*
 import org.junit.Assert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.Test
-import java.util.*
 import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.HashMap
 
@@ -33,9 +32,9 @@ class GeneralTest {
 
     @Test
     fun generateOtp(){
-        val device = Device("testDevice",86400000*18000, SecretKeySpec(HexTool
-            .hexAsByte("6139383631303261383365323830343865373838313364386439393364363036"),Options.macAlgorithm))
-        assertThat(device.generateOtpFromTimestamp(86400000*18001),`is`("749908"))
+        val device = Device("",0, SecretKeySpec("12345678901234567890123456789012".toByteArray(),
+            Options.macAlgorithm))
+        assertThat(device.generateOtpFromTimestamp(59000),`is`("119246"))
     }
 
     @Test
@@ -57,5 +56,4 @@ class GeneralTest {
         assertThat(parsedPayload!!.message["totp-timestamp"], `is`("98992390"))
         assertThat(parsedPayload!!.message["Amount"], `is`("GHS 50.00"))
     }
-
 }

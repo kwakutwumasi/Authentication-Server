@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import android.security.KeyPairGeneratorSpec
 import android.telephony.TelephonyManager
 import android.view.animation.Interpolator
 import androidx.core.content.ContextCompat
@@ -24,24 +25,31 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import java.io.*
+import java.math.BigInteger
 import javax.crypto.spec.SecretKeySpec
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.security.KeyPairGenerator
+import java.security.KeyStore
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.spec.KeySpec
-import java.util.Properties
-import java.util.Locale
-import java.util.Random
-import java.util.Date
+import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.PBEKeySpec
+import javax.security.auth.x500.X500Principal
 import kotlin.collections.HashMap
+import kotlin.experimental.and
 import kotlin.math.E
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.pow
 
 object Options{
+    const val counterSleepTime = 500L
+    const val keyPairValidity = 10
+    const val keyPairAlias = "PBEKeyPair"
+    const val deviceFileSaltName = "device.salt"
+    const val keyPairAlgorithm = "RSA/ECB/PKCS1Padding"
     const val pbeKeyAlgorithm = "PBEwithSHAANDTWOFISH-CBC"
     const val fileStoreAlgorithm = "PBEwithSHAANDTWOFISH-CBC"
     const val deviceFileName = "device.properties"
@@ -50,14 +58,14 @@ object Options{
     const val timeStep = 30000L
     const val totpUrl = "http://10.0.2.2:8082/totp-provisioning"
     const val totpWsUrl = "ws://10.0.2.2:8082/device-connection"
-    val pbeSalt = "64MTYEQN4HSLRWEW".toByteArray()
     const val aliasProperty = "ALIAS"
     const val pbeIterations = 23
-    const val resetThreshold = 2
+    const val resetThreshold = 3
 }
 
 class Counter(val updateTimeAction:(timeString:String)->Unit,
-              val updateOTPAction:()->Unit){
+              val updateOTPAction:()->Unit,
+              private val initialCounter: Long){
     private var run = false
 
     @Synchronized
@@ -71,12 +79,12 @@ class Counter(val updateTimeAction:(timeString:String)->Unit,
 
     private fun runCounter() {
         while (run){
-            val time = (System.currentTimeMillis() % Options.timeStep)/1000
+            val time = ((System.currentTimeMillis()-initialCounter) % Options.timeStep)/1000
             updateTimeAction(String.format(":%02d", time))
-            if(time < Options.resetThreshold){
+            if(time <= Options.resetThreshold){
                 updateOTPAction()
             }
-            Thread.sleep(500)
+            Thread.sleep(Options.counterSleepTime)
         }
     }
 
@@ -91,6 +99,7 @@ class Device(private val _id:String="",
              private val _key:SecretKey=SecretKeyFactory.getInstance(Options.pbeKeyAlgorithm)
                  .generateSecret(PBEKeySpec("default".toCharArray()))){
     private val format = "%0"+ Options.otpLength +"d"
+    private val power = intArrayOf(1,10,100,1000,10000,100000,1000000,10000000,100000000)
     val id : String
         get() = _id
     val initialCounter : Long
@@ -109,13 +118,12 @@ class Device(private val _id:String="",
     }
 
     private fun truncatedStringOf(hashBytes:ByteArray) : String{
-        val offset = abs(hashBytes[hashBytes.size - 1] % (hashBytes.size - 4))
+        val offset = (hashBytes[hashBytes.size - 1] and 0xf).toInt()
         var code = hashBytes[offset].toInt() and 0x7f shl 24 or (
                 hashBytes[offset + 1].toInt() and 0xff shl 16) or (
                 hashBytes[offset + 2].toInt() and 0xff shl 8) or (
                 hashBytes[offset + 3].toInt() and 0xff)
-        code = (code % (10.0).pow(Options.otpLength
-                .toDouble())).toInt()
+        code %= power[Options.otpLength]
         return String.format(format, code)
     }
 
@@ -127,8 +135,9 @@ class Device(private val _id:String="",
     }
 
     private fun timeValueUsing(timesStamp:Long):ByteArray {
-        val timestamp = (timesStamp - initialCounter) / Options.timeStep
-        return ByteBuffer.allocate(8).putLong(timestamp).array()
+        val deltaCounter = timesStamp - initialCounter
+        val timeCounter = deltaCounter / Options.timeStep
+        return ByteBuffer.allocate(8).putLong(timeCounter).array()
     }
 }
 
@@ -150,7 +159,7 @@ class PayloadMessageAdapter : JsonAdapter<HashMap<String,String>>() {
     override fun toJson(writer: JsonWriter, value: HashMap<String, String>?) {
         if(value!=null) {
             writer.beginObject()
-            value!!.map { writer.name(it.key).value(it.value) }
+            value.map { writer.name(it.key).value(it.value) }
             writer.endObject()
         }
     }
@@ -297,8 +306,8 @@ object DeviceProvisioner {
         totpServiceClient.newCall(provisioningRequest).execute().use {
             if(!it.isSuccessful)throw IOException("Provisioning for device ID $deviceId failed with code ${it.code()}")
 
-            val provisioningResponse = provisioningResponseAdapter.fromJson(it.body()!!.source())
-            seed = HexTool.hexAsByte(provisioningResponse!!.seed)
+            val provisioningResponse = provisioningResponseAdapter.fromJson(it.body()?.source())
+            seed = HexTool.hexAsByte(provisioningResponse?.seed)
             val key = SecretKeySpec(seed, Options.macAlgorithm)
 
             device = Device(deviceId, provisioningResponse!!.initialCounter, key)
@@ -323,12 +332,18 @@ object DeviceProvisioner {
 }
 
 object DeviceStorage {
+    private val keystore =  KeyStore.getInstance("AndroidKeyStore")
+    init {
+        keystore.load(null)
+    }
+
     fun hasDeviceFile(context: Context):Boolean {
         return File(context.filesDir,Options.deviceFileName).isFile
     }
 
     fun loadDeviceFromStorage(pin:String, context: Context):Device{
-        val cipher = prepareCipher(pin, Cipher.DECRYPT_MODE)
+        val salt = decryptAndLoadSalt(context)
+        val cipher = prepareCipher(pin, salt, Cipher.DECRYPT_MODE)
         val fileIn = CipherInputStream(FileInputStream(File(context.filesDir,Options.deviceFileName)), cipher)
         val deviceProperties = Properties()
         fileIn.use {
@@ -344,25 +359,78 @@ object DeviceStorage {
         return Device(deviceId,initialCounter,key)
     }
 
+    private fun decryptAndLoadSalt(context: Context): ByteArray{
+        val privateKeyEntry = keystore.getEntry(Options.keyPairAlias, null) as KeyStore.PrivateKeyEntry
+
+        val cipher = Cipher.getInstance(Options.keyPairAlgorithm)
+        cipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.privateKey)
+
+        val fileIn = CipherInputStream(FileInputStream(File(context.filesDir,Options.deviceFileSaltName)), cipher)
+        val salt = ByteArray(32)
+        fileIn.use {
+            it.read(salt)
+        }
+        return salt
+    }
+
     fun saveDevice(device: Device, seed:ByteArray, pin:String, context: Context){
         val deviceProperties = Properties()
         deviceProperties.setProperty("seed",HexTool.byteAsHex(seed))
         deviceProperties.setProperty("initial.counter", device.initialCounter.toString())
         deviceProperties.setProperty("device.id", device.id)
 
-        val cipher = prepareCipher(pin, Cipher.ENCRYPT_MODE)
+        val salt = createAndSaveSalt(context)
+        val cipher = prepareCipher(pin, salt, Cipher.ENCRYPT_MODE)
         val fileOut = CipherOutputStream(FileOutputStream(File(context.filesDir,Options.deviceFileName)), cipher)
         fileOut.use {
-            deviceProperties.store(fileOut,"")
+            deviceProperties.store(it,"")
         }
     }
 
-    private fun generatePBEKeySpec(pin:String): KeySpec {
-        return PBEKeySpec(pin.toCharArray(),Options.pbeSalt,Options.pbeIterations, 128)
+    private fun createAndSaveSalt(context: Context):ByteArray {
+        val salt = ByteArray(32)
+        val secureRandom = SecureRandom()
+        secureRandom.nextBytes(salt)
+        generateKeyPair(context)
+        encryptSalt(salt,context)
+        return salt
     }
 
-    private fun prepareCipher(pin: String, mode:Int): Cipher {
-        val keySpec = generatePBEKeySpec(pin)
+    private fun generateKeyPair(context: Context) {
+        val start = Calendar.getInstance()
+        val end = Calendar.getInstance()
+        end.add(Calendar.YEAR, Options.keyPairValidity)
+        val spec = KeyPairGeneratorSpec.Builder(context)
+            .setAlias(Options.keyPairAlias)
+            .setSubject(X500Principal("CN=PBE Salt Key, O=Android Authority"))
+            .setSerialNumber(BigInteger.ONE)
+            .setStartDate(start.time)
+            .setEndDate(end.time)
+            .build()
+        val generator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
+        generator.initialize(spec)
+
+        generator.generateKeyPair()
+    }
+
+    private fun encryptSalt(salt:ByteArray, context: Context) {
+        val privateKeyEntry = keystore.getEntry(Options.keyPairAlias, null) as KeyStore.PrivateKeyEntry
+
+        val cipher = Cipher.getInstance(Options.keyPairAlgorithm, "AndroidOpenSSL")
+        cipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.certificate.publicKey)
+
+        val fileOut = CipherOutputStream(FileOutputStream(File(context.filesDir,Options.deviceFileSaltName)), cipher)
+        fileOut.use {
+            it.write(salt)
+        }
+    }
+
+    private fun generatePBEKeySpec(pin:String, pbeSalt:ByteArray): KeySpec {
+        return PBEKeySpec(pin.toCharArray(),pbeSalt,Options.pbeIterations, 128)
+    }
+
+    private fun prepareCipher(pin: String, pbeSalt:ByteArray, mode:Int): Cipher {
+        val keySpec = generatePBEKeySpec(pin, pbeSalt)
         val keyFactory = SecretKeyFactory.getInstance(Options.pbeKeyAlgorithm)
         val key = keyFactory.generateSecret(keySpec)
         val cipher = Cipher.getInstance(Options.fileStoreAlgorithm)
@@ -399,7 +467,7 @@ object TOTPApplication {
     }
 
     private fun generateUniqueId(application: Application):String {
-        var manager = application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val manager = application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
         val permission = ContextCompat.checkSelfPermission(application, Manifest.permission.READ_PHONE_STATE)
 
@@ -415,6 +483,10 @@ object TOTPApplication {
 
     fun generateOtp() : String? {
         return device?.generateOtp()
+    }
+
+    fun getInitialCounter():Long? {
+        return device?.initialCounter
     }
 
     fun registerListeners(

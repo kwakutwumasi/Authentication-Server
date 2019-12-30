@@ -124,16 +124,7 @@ class LoaderActivity : AppCompatActivity() {
     }
 
     companion object {
-        /**
-         * If [AUTO_HIDE] is set, the number of milliseconds to wait after
-         * user interaction before hiding the system UI.
-         */
         private const val AUTO_HIDE_DELAY_MILLIS = 1000
-
-        /**
-         * Some older devices needs a small delay between UI widget updates
-         * and a change of the status and navigation bar.
-         */
         private const val UI_ANIMATION_DELAY = 300
     }
 }
@@ -178,7 +169,7 @@ class PinActivity : AppCompatActivity() {
     private fun doDeviceLoading() {
         progress_overlay.visibility = View.VISIBLE
         continue_device_load.setClickable(false)
-        LoadAndOrProvisionTask().execute(alias, pin_text.text.toString())
+        LoadOrProvisionTask().execute(alias, pin_text.text.toString())
     }
 
     override fun onRequestPermissionsResult(
@@ -191,10 +182,10 @@ class PinActivity : AppCompatActivity() {
         }
     }
 
-    inner class LoadAndOrProvisionTask:AsyncTask<String,Unit,Boolean>(){
+    inner class LoadOrProvisionTask:AsyncTask<String,Unit,Boolean>(){
         override fun doInBackground(vararg params: String): Boolean{
-            val alias = params[0]!!
-            val pin = params[1]!!
+            val alias = params[0]
+            val pin = params[1]
             try {
                 TOTPApplication.loadDevice(alias, pin, application)
             } catch (e:Throwable){
@@ -236,7 +227,7 @@ class TOTPActivity : AppCompatActivity() {
             runOnUiThread{
                 pin_view.text = TOTPApplication.generateOtp()
             }
-        })
+        }, TOTPApplication.getInitialCounter()!!)
 
         TOTPApplication.registerListeners(otpAuthorizationRequestListener = { onOk, onCancel, _->
             runOnUiThread{
@@ -294,7 +285,7 @@ class TOTPActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         stopCounter()
-        unregisterListeners()
+        TOTPApplication.unRegisterListener()
     }
 
     private fun stopCounter() {
@@ -307,10 +298,6 @@ class TOTPActivity : AppCompatActivity() {
     private fun clearTextView() {
         pin_view.text = getText(R.string.otp_at_rest)
         counter_view.text = getText(R.string.counter_at_rest)
-    }
-
-    private fun unregisterListeners(){
-        TOTPApplication.unRegisterListener()
     }
 
     override fun onDestroy() {

@@ -6,6 +6,7 @@ import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -134,8 +135,13 @@ public class DeviceConnection {
 			MessageBox approveRequestSigning = new MessageBox(shell, 
 					SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
 			approveRequestSigning.setText("Sign In Request");
-			approveRequestSigning.setMessage("A request has been received for signing. Do you want to approve it?\nThe details: "
-					+request.getMessage().get("details"));
+			String message = request.getMessage().entrySet()
+					.stream().filter(e->!e.getKey().equals("iat") 
+							&& !e.getKey().equals("deviceId")
+							&& !e.getKey().equals("requestType"))
+					.map(e->e.getKey()+":"+e.getValue()).collect(Collectors.joining("\n"));
+			approveRequestSigning.setMessage("A request has been received for signing. Do you want to approve it?\nThe details:\n"
+					+message);
 			if(approveRequestSigning.open() == SWT.OK){
 				generateSigningTOTPandStoreIn(response);
 			} else {
