@@ -129,10 +129,10 @@ See [RFC 6238](https://tools.ietf.org/html/rfc6238) for more details on how the 
 
 3) Use the selected HMAC algorithm and the secret seed value salted by the ID of the device provided during provisioning to generate the HMAC of the value from step 2
 
-4) Calculate an offset value using the absolute value of the last byte of the HMAC result modulo the length of the HMAC result minus four (4) i.e.
+4) Calculate an offset value using the value of the last byte of the HMAC masked by 15 in binary i.e.
 
-```
-	offset = absolute(hmacresult[0]) mod (hmacresult.length - 4)
+```java
+	offset = hmacresult[hmacresult.length] & 0xf
 ```
 
 5) Combine the four byte values starting from the offset into an integer. An example from the TOTP server code (Java):
@@ -146,10 +146,10 @@ int code = (hmacresult[offset] & 0x7f) << 24 |
 
 6) Calculate the OTP token as the resulting integer mod 10 raised to the power of the selected token length i.e.
 
-```
-int tokencode = code mod 10^(otp length)
+```java
+int tokencode = code % Math.pow(10, codelength)
 ```
 
-The last step will shorten the (possibly) longer integer to at most the length required.
+The last step will shorten the (possibly) longer integer to at most the length required. The result is 0 padded to fit the required length.
 
-A reference implementation of an authentication device is provided in this repository.
+Reference implementations of an authentication device is provided in this repository (Android/Java SWT App).
