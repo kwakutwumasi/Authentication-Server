@@ -232,7 +232,7 @@ public class ManagementResource {
 	@Path("get-devices")
 	public List<DeviceResponse> getDevices(@QueryParam("status")Status status, 
 			@QueryParam("lastid") long lastId, @QueryParam("maxrows") int maxRows,
-			@QueryParam("deviceFilter") String deviceFilter){
+			@QueryParam("device-filter") String deviceFilter){
 		return deviceManagementService.fetchDevices(status, lastId, maxRows, deviceFilter)
 				.stream().map(DeviceResponse::new)
 				.collect(Collectors.toList());
