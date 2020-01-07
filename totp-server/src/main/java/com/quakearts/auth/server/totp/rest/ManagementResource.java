@@ -230,8 +230,10 @@ public class ManagementResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("get-devices")
-	public List<DeviceResponse> getDevices(@QueryParam("status")Status status, @QueryParam("lastid") long lastId, @QueryParam("maxrows") int maxRows){
-		return deviceManagementService.fetchDevices(status, lastId, maxRows)
+	public List<DeviceResponse> getDevices(@QueryParam("status")Status status, 
+			@QueryParam("lastid") long lastId, @QueryParam("maxrows") int maxRows,
+			@QueryParam("deviceFilter") String deviceFilter){
+		return deviceManagementService.fetchDevices(status, lastId, maxRows, deviceFilter)
 				.stream().map(DeviceResponse::new)
 				.collect(Collectors.toList());
 	}

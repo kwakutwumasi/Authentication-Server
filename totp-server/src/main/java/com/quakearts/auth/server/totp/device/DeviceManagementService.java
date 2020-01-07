@@ -25,5 +25,5 @@ public interface DeviceManagementService {
 	List<Administrator> listAdministrators();
 	long deviceCount();
 	boolean deactivate(Device device);
-	List<Device> fetchDevices(Status status, long lastId, int maxRows);
+	List<Device> fetchDevices(Status status, long lastId, int maxRows, String deviceFilter);
 }

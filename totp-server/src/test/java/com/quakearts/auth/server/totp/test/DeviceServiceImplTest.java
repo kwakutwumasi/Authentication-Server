@@ -303,9 +303,51 @@ public class DeviceServiceImplTest {
 	@Test
 	@Transactional(TransactionType.SINGLETON)
 	public void testFetchDevices() throws Exception {
-		assertThat(deviceService.fetchDevices(Status.LOCKED, 0l, 1).size(), is(1));
-		assertThat(deviceService.fetchDevices(null, 0l, 5).size(), is(5));
-		assertThat(deviceService.fetchDevices(Status.INITIATED, 0l, 5).size(), is(1));
+		assertThat(deviceService.fetchDevices(Status.LOCKED, 0l, 1, null).size(), is(1));
+		List<Device> devices = deviceService.fetchDevices(null, 0l, 3, null);
+		assertThat(devices.size(), is(3));
+		long lastItemCount = -1;
+		for(Device fetchedDevice:devices){
+			if(lastItemCount == fetchedDevice.getItemCount())
+				fail("Repeated item. lastItemCount: "+lastItemCount);
+			
+			lastItemCount = fetchedDevice.getItemCount();
+		}
+		Device device = devices.get(devices.size()-1);
+		devices = deviceService.fetchDevices(null, device.getItemCount(), 3, null);
+		assertThat(devices.size(), is(3));
+		for(Device fetchedDevice:devices){
+			if(fetchedDevice.getItemCount()<=device.getItemCount()){
+				fail("Returned an item that had an item count "
+						+(fetchedDevice.getItemCount()==device.getItemCount()?"equal to":"less than")
+						+" the last item count");
+			}
+		}
+		assertThat(deviceService.fetchDevices(Status.INITIATED, 0l, 3, null).size(), is(1));
+		
+		assertThat(deviceService.fetchDevices(null, 0l, 5, "testalias").size(), is(1));
+		assertThat(deviceService.fetchDevices(Status.INACTIVE, 0l, 2, "alias").size(), is(2));
+		devices = deviceService.fetchDevices(null, 0l, 3, "");
+		assertThat(devices.size(), is(3));
+		device = devices.get(devices.size()-1);
+		devices = deviceService.fetchDevices(null, device.getItemCount(), 2, "");
+		assertThat(devices.size(), is(2));
+		for(Device fetchedDevice:devices){
+			if(fetchedDevice.getItemCount()<=device.getItemCount()){
+				fail("Returned an item that had an item count "
+						+(fetchedDevice.getItemCount()==device.getItemCount()?"equal to":"less than")
+						+" the last item count");
+			}
+		}
+		assertThat(deviceService.fetchDevices(null, 0l, 5, "testinactivedevice1").size(), is(1));
+		assertThat(deviceService.fetchDevices(null, 0l, 5, "test").size(), is(5));
+		lastItemCount = -1;
+		for(Device fetchedDevice:devices){
+			if(lastItemCount == fetchedDevice.getItemCount())
+				fail("Repeated item. lastItemCount: "+lastItemCount);
+			
+			lastItemCount = fetchedDevice.getItemCount();
+		}
 	}
 	
 	@Test

@@ -56,5 +56,4 @@ public class DeviceResponse {
 	public void setAliases(Set<String> aliases) {
 		this.aliases = aliases;
 	}
-
 }

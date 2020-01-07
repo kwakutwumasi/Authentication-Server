@@ -4,8 +4,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -29,6 +32,10 @@ import com.quakearts.webapp.orm.query.QueryOrder;
 
 @Singleton
 public class DeviceManagementServiceImpl implements DeviceManagementService {
+
+	private static final String DEVICE_ITEM_COUNT = "device.itemCount";
+
+	private static final String ITEM_COUNT = "itemCount";
 
 	@Inject @DataStoreFactoryHandle
 	private DataStoreFactory factory;
@@ -184,16 +191,67 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	}
 	
 	@Override
-	public List<Device> fetchDevices(Status status, long lastId, int maxRows) {
-		ListBuilder<Device> builder = getTOTPDataStore()
-				.find(Device.class)
-				.filterBy("itemCount").withValues().startingFrom(lastId+1)
-				.useAResultLimitOf(maxRows)
-				.orderBy(new QueryOrder("itemCount", true));
-		
-		if(status!=null)
-			builder.filterBy("status").withAValueEqualTo(status);
-		
-		return builder.thenList();
+	public List<Device> fetchDevices(Status status, long lastId, int maxRows,
+			String deviceFilter) {
+		if(deviceFilter == null){
+			ListBuilder<Device> builder = getTOTPDataStore()
+					.find(Device.class)
+					.filterBy(ITEM_COUNT).withValues().startingFrom(lastId+1)
+					.useAResultLimitOf(maxRows)
+					.orderBy(new QueryOrder(ITEM_COUNT, true));
+			
+			if(status!=null)
+				builder.filterBy("status").withAValueEqualTo(status);
+
+			return builder.thenList();
+		} else {
+			deviceFilter = "%"+deviceFilter+"%";
+			ListBuilder<Alias> aliasBuilder = getTOTPDataStore()
+					.find(Alias.class)
+					.filterBy(DEVICE_ITEM_COUNT).withValues().startingFrom(lastId+1)
+						.usingAnyMatchingFilter()
+						.filterBy("name").withAValueLike(deviceFilter)
+					.orderBy(new QueryOrder(DEVICE_ITEM_COUNT, true));
+			
+			if(status!=null)
+				aliasBuilder.filterBy("device.status").withAValueEqualTo(status);
+			
+			List<Device> devices = aliasBuilder.thenList().stream().map(Alias::getDevice)
+					.collect(Collectors.toList());
+			
+			ListBuilder<Device> deviceBuilder = getTOTPDataStore()
+					.find(Device.class)
+					.filterBy("id").withAValueLike(deviceFilter)
+					.filterBy(ITEM_COUNT).withValues().startingFrom(lastId+1)
+					.orderBy(new QueryOrder(ITEM_COUNT, true));
+			
+			if(status!=null)
+				deviceBuilder.filterBy("status").withAValueEqualTo(status);
+			
+			devices.addAll(deviceBuilder.thenList());
+			
+			Collections.sort(devices, (d1,d2)->(int)(-1*(d1.getItemCount()-d2.getItemCount())));
+			
+			List<Device> trimmedDevices = new ArrayList<>(maxRows);
+			
+			long lastCount = -1;
+			int count = 0;
+			int index = 0;
+			while(index<devices.size() && count<maxRows){
+				try {
+					Device device = devices.get(index);
+					if(device.getItemCount()==lastCount)
+						continue;
+					
+					trimmedDevices.add(device);
+					lastCount = device.getItemCount();
+				} finally {					
+					count++;
+					index++;
+				}
+			}
+			
+			return trimmedDevices;
+		}
 	}
 }

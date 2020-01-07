@@ -130,7 +130,7 @@ public class AlternativeDeviceService implements DeviceManagementService {
 	}
 	
 	@Override
-	public List<Device> fetchDevices(Status status, long lastId, int maxRows) {
-		return deviceService.fetchDevices(status, lastId, maxRows);
+	public List<Device> fetchDevices(Status status, long lastId, int maxRows, String deviceString) {
+		return deviceService.fetchDevices(status, lastId, maxRows, deviceString);
 	}
 }

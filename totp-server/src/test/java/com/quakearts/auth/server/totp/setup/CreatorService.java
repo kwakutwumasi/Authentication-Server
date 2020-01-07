@@ -117,6 +117,12 @@ public class CreatorService {
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
+			alias = new Alias();
+			alias.setName("testinactivedevice1alias");
+			alias.setDevice(device);
+			alias.getCheckValue().setDataStoreName(totpOptions.getDataStoreName());
+			dataStore.save(alias);
+			
 			device = new Device();
 			device.setId("testlockeddevice1");
 			keyGenerator.generateAndStoreIn(device);
