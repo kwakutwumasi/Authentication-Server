@@ -24,7 +24,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>repo</classpathPrefix>
 							<classpathLayoutType>repository</classpathLayoutType>
-							<mainClass></mainClass>
+							<mainClass>com.quakearts.auth.server.proxy.Main</mainClass>
 						</manifest>
 						<manifestEntries>
 							<Class-Path>etc/</Class-Path>
@@ -37,11 +37,10 @@
 				<artifactId>appassembler-maven-plugin</artifactId>
 				<configuration>
 					<assembleDirectory>target</assembleDirectory>
-					<extraJvmArguments></extraJvmArguments>
 					<programs>
 						<program>
 							<id>webapp</id>
-							<mainClass></mainClass>
+							<mainClass>com.quakearts.auth.server.proxy.Main</mainClass>
 						</program>
 					</programs>
 				</configuration>
@@ -54,34 +53,10 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
-				<executions>
-					<execution>
-						<id>copy-wars</id>
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target name="Create Folders">
-								<echo>Creating etc, webserver</echo>
-								<copy todir="target/etc">
-									<fileset dir="etc" />
-								</copy>
-								<copy todir="target/webserver">
-									<fileset dir="webserver" />
-								</copy>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.9.0.Final</resteasy-version>
+		<resteasy-version>3.9.3.Final</resteasy-version>
 	</properties>
 	<dependencies>
 		<!-- QA-Appbase -->

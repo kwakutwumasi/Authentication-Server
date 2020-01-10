@@ -122,7 +122,7 @@ public class AuthenticationEdgeApplicationTest {
 				.withCodeAs("com.quakearts.rest.client.exception.HttpClientException")
 				.addExplanation("Unable to de-serialize response")
 				.addExplanation("Unexpected end-of-input: expected close marker for Object (start marker at [Source: (byte[])\"{\"; line: 1, column: 1])\n" + 
-						" at [Source: (byte[])\"{\"; line: 1, column: 3]"), 500));
+						" at [Source: (byte[])\"{\"; line: 1, column: 2]"), 500));
 		client.authenticate("test-main", "Test", "testuser", "wrong-response");
 	}
 	

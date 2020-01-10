@@ -102,7 +102,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.9.0.Final</resteasy-version>
+		<resteasy-version>3.9.3.Final</resteasy-version>
 	</properties>
 	<dependencies>
 	<!-- QA Appbase -->
