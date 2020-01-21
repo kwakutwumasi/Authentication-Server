@@ -40,6 +40,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private String deviceConnectionKeyPassword;
 	private int authorizationThreads = 3;
 	private String serverJwtConfigName;
+	private String allowedOrigins = "http://localhost:3000";
 	
 	@Inject
 	private TOTPConfigurationProvider totpConfigurationProvider;
@@ -68,7 +69,9 @@ public class TOTPOptionsImpl implements TOTPOptions {
 					+ totpConfigurationProvider.getConfigurationPropertyMapName()
 					+" and is required");
 		}
-		
+		if(propertyMap.containsKey("allowed.origins")){			
+			allowedOrigins = propertyMap.getString("allowed.origins");
+		}		
 		if(propertyMap.containsKey("server.jwt.config")){
 			serverJwtConfigName = propertyMap.getString("server.jwt.config");
 		} else {
@@ -260,5 +263,10 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	@Override
 	public String getServerJwtConfigName() {
 		return serverJwtConfigName;
+	}
+	
+	@Override
+	public String getAllowedOrigins() {
+		return allowedOrigins;
 	}
 }

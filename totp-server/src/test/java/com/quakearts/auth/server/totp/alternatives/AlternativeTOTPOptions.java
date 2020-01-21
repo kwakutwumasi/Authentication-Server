@@ -307,4 +307,9 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	public String getServerJwtConfigName() {
 		return wrapped.getServerJwtConfigName();
 	}
+
+	@Override
+	public String getAllowedOrigins() {
+		return wrapped.getAllowedOrigins();
+	}
 }

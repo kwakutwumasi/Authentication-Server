@@ -87,4 +87,6 @@ public interface TOTPOptions {
 	long getDeviceAuthenticationTimeout();
 
 	String getServerJwtConfigName();
+
+	String getAllowedOrigins();
 }

@@ -15,6 +15,7 @@
 	},
 	"count.query":"SELECT COUNT(ID) AS TOTAL FROM DEVICE",
 	"server.jwt.config":"login2.config",
+	"allowed.origins":"http://localhost:8080;http://localhost:8081",
 	"device.connection":{
 		"threads":5,
 		"port":9001,
