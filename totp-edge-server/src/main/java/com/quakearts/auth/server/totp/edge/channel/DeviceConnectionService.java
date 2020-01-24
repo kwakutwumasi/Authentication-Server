@@ -9,4 +9,5 @@ public interface DeviceConnectionService {
 	void registerConnection(DeviceConnection connection);
 	void unregisterConnection(DeviceConnection connection);
 	void send(Payload payload, Consumer<Payload> callback) throws UnconnectedDeviceException;
+	boolean isConnected(String deviceId);
 }

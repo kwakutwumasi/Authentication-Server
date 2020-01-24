@@ -22,15 +22,14 @@ public abstract class ExceptionMapperBase<T extends Throwable>
 	}
 
 	protected Response processThrowable(T exception) {
-		ErrorResponse errorResponse = new ErrorResponse();
 		StringBuilder errorBuilder = new StringBuilder(extractMessage(exception));
 		
 		Throwable cause = exception.getCause();
 		if(cause != null)
-			errorBuilder.append(extractMessage(cause));
+			errorBuilder.append("\n").append(extractMessage(cause));
 		
-		errorResponse.setMessage(errorBuilder.toString());
-		return createResponse(exception).entity(errorResponse)
+		return createResponse(exception).entity(new ErrorResponse()
+				.withMessageAs(errorBuilder.toString()))
 				.type(MediaType.APPLICATION_JSON_TYPE)
 				.build();
 	}

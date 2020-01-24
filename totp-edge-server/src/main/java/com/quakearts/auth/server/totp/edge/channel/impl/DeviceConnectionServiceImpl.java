@@ -41,4 +41,11 @@ public class DeviceConnectionServiceImpl implements DeviceConnectionService {
 		}
 	}
 
+	@Override
+	public boolean isConnected(String deviceId) {
+		if(connections.containsKey(deviceId)){
+			return connections.get(deviceId).isConnected();
+		}
+		return false;
+	}
 }

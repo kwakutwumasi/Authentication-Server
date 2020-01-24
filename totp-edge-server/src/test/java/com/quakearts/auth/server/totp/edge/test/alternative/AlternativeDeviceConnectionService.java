@@ -50,4 +50,9 @@ public class AlternativeDeviceConnectionService implements DeviceConnectionServi
 	public static interface Function {
 		Payload apply(Payload payload) throws UnconnectedDeviceException;
 	}
+
+	@Override
+	public boolean isConnected(String deviceId) {
+		return wrapped.isConnected(deviceId);
+	}
 }

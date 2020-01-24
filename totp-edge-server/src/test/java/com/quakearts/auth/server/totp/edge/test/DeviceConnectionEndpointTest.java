@@ -88,7 +88,7 @@ public class DeviceConnectionEndpointTest {
 			service.send(payload, payloadResponse->{
 				holder.response = payloadResponse;
 			});
-			return true;
+			return service.isConnected("testdevice1");
 		});
 		
 		await().atMost(Duration.TWO_SECONDS).until(()->{			
@@ -136,5 +136,10 @@ public class DeviceConnectionEndpointTest {
 				}).thenBuild();
 		CDI.current().select(DeviceConnectionEndpoint.class)
 		.get().received(session, new Payload());
+	}
+	
+	@Test
+	public void testIsConnectedWithNonConnectedDevice() throws Exception {
+		assertThat(service.isConnected("notconnecteddevice"), is(false));
 	}
 }

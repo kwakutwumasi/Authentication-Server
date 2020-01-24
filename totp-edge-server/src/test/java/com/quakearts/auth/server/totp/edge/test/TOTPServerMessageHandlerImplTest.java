@@ -2,6 +2,7 @@ package com.quakearts.auth.server.totp.edge.test;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import static org.hamcrest.core.Is.*;
@@ -37,6 +38,7 @@ public class TOTPServerMessageHandlerImplTest {
 	
 	@Test
 	public void testHandle() throws Exception {
+		AlternativeTOTPEdgeOptions.returnInvalidAlgorithm(false);
 		AlternativeDeviceConnectionService.returnPayload(payload->{
 			assertThat(payload, is(notNullValue()));
 			assertThat(payload.getMessage(), is(notNullValue()));
@@ -69,6 +71,23 @@ public class TOTPServerMessageHandlerImplTest {
 			
 			assertThat(responseClaims.getPrivateClaim("test"), is("response"));
 		});
+		
+		claims = factory.createEmptyClaims();
+		claims.addPrivateClaim("ping", "ping");
+		claims.addPrivateClaim("deviceId", "notconnecteddevice");
+		impl.handle(new Message(1l, jwtSigner.sign(header, claims).getBytes()), responseMessage->{			
+			JWTVerifier verifier;
+			try {
+				verifier = factory.getVerifier(totpEdgeOptions.getJwtalgorithm(),
+						totpEdgeOptions.getJwtOptions());
+				verifier.verify(responseMessage.getValue());
+			} catch (JWTException e) {
+				throw new AssertionError(e);
+			}
+			JWTClaims responseClaims = verifier.getClaims();
+			
+			assertThat(responseClaims.getPrivateClaim("connected"), is("false"));
+		});
 	}
 	
 	@Test
@@ -79,6 +98,36 @@ public class TOTPServerMessageHandlerImplTest {
 		});
 	}
 
+	@Test
+	public void testHandleIOException() throws Exception {		
+		AlternativeTOTPEdgeOptions.returnInvalidAlgorithm(false);
+		AlternativeDeviceConnectionService.returnPayload(payload->{
+			assertThat(payload, is(notNullValue()));
+			assertThat(payload.getMessage(), is(notNullValue()));
+			assertThat(payload.getMessage().get("test"), is("message"));
+			Payload responsePayload = new Payload();
+			responsePayload.setMessage(new HashMap<>());
+			responsePayload.getMessage().put("test", "response");
+			responsePayload.getMessage().put("iat", "1829234998734");
+			return responsePayload;
+		});
+		try {
+			JWTFactory factory = JWTFactory.getInstance();
+			JWTSigner jwtSigner = factory.getSigner(totpEdgeOptions.getJwtalgorithm(), totpEdgeOptions.getJwtOptions());
+			JWTHeader header = factory.createEmptyClaimsHeader();
+			JWTClaims claims = factory.createEmptyClaims();
+			
+			claims.addPrivateClaim("test", "message");
+
+			impl.handle(new Message(1l, jwtSigner.sign(header, claims).getBytes()), responseMessage->{			
+				throw new IOException("test");
+			});
+		} catch (Throwable e) {
+			e.printStackTrace();
+			fail("Exception not handled");
+		}
+	}
+	
 	@Test
 	public void testHandleJWTException() throws Exception {
 		AlternativeDeviceConnectionService.returnPayload(payload->{

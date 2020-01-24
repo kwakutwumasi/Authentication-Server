@@ -8,4 +8,5 @@ public interface DeviceConnection {
 	String getDeviceId();
 	void send(Payload payload, Consumer<Payload> callback);
 	void respond(Payload payload);
+	boolean isConnected();
 }

@@ -90,5 +90,10 @@ public class DeviceConnectionServiceImplTest {
 
 		@Override
 		public void respond(Payload payload) {}
+
+		@Override
+		public boolean isConnected() {
+			return true;
+		}
 	}
 }

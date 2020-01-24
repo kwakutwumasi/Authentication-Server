@@ -53,4 +53,9 @@ public class WebsocketSessionDeviceConnection implements DeviceConnection {
 			log.error("Payload with ID {} timed out", payload.getId());
 		}
 	}
+	
+	@Override
+	public boolean isConnected() {
+		return session.isOpen();
+	}
 }

@@ -33,33 +33,33 @@ public class TOTPServerHttpClient extends HttpClient {
 	private ObjectMapper objectMapper = new ObjectMapper();
 	protected String file;
 
-	public ProvisioningResponse provision(String deviceid) throws IOException, HttpClientException, ConnectorException {
+	public ProvisioningResponse provision(String deviceid) throws IOException, HttpClientException {
 		return getHttpResponseUsing(file+"/provisioning/{0}",
 				"{}", APPLICATION_JSON , HttpVerb.POST,
 				encode(deviceid)).thenCoerceTo(ProvisioningResponse.class);
 	}
 	
 	public void activate(String deviceid, ActivationRequest request) 
-			throws IOException, HttpClientException, ConnectorException {
+			throws IOException, HttpClientException {
 		getHttpResponseUsing(file+"/provisioning/{0}",
 				request, APPLICATION_JSON , HttpVerb.PUT,
 				encode(deviceid));
 	}
 	
 	public void authentication(AuthenticationRequest request) 
-			throws IOException, HttpClientException, ConnectorException {
+			throws IOException, HttpClientException {
 		getHttpResponseUsing(file+"/authenticate",
 				request, APPLICATION_JSON , HttpVerb.POST);
 	}
 	
 	public SyncResponse synchronize() 
-			throws IOException, HttpClientException, ConnectorException {
+			throws IOException, HttpClientException {
 		return getHttpResponseUsing(file+"/sync", null, null, HttpVerb.GET)
 				.thenCoerceTo(SyncResponse.class);
 	}
 	
 	private HttpResponseBuilder getHttpResponseUsing(String template, Object requestValue, String contentType,
-			HttpVerb verb, Object... parameters) throws IOException, HttpClientException, ConnectorException {
+			HttpVerb verb, Object... parameters) throws IOException, HttpClientException {
 		HttpResponse httpResponse = sendRequest(withTemplate(template, parameters), 
 				requestValue != null ? stringify(requestValue) : null, verb, contentType);
 		if (httpResponse.getHttpCode() > 299) {
