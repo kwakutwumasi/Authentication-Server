@@ -1,9 +1,14 @@
 package com.quakearts.auth.server.store.impl;
 
+import java.util.Arrays;
+
 import javax.enterprise.inject.Produces;
 
 import org.infinispan.Cache;
+import org.infinispan.commons.configuration.ClassWhiteList;
+import org.infinispan.commons.marshall.JavaSerializationMarshaller;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.eviction.EvictionType;
 import org.infinispan.manager.CacheContainer;
 import org.infinispan.manager.DefaultCacheManager;
@@ -20,7 +25,13 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 
 	private static CacheContainer getCacheContainer() {
 		if (cacheContainer == null) {
-			cacheContainer = new DefaultCacheManager(new ConfigurationBuilder()
+			cacheContainer = new DefaultCacheManager(new GlobalConfigurationBuilder()
+					.serialization()
+					.marshaller(new JavaSerializationMarshaller(new ClassWhiteList(Arrays
+							.asList("com.quakearts.auth.server.rest.models.*","java.util.ArrayList"))))
+					.defaultCacheName("global.default")
+					.build(),
+					new ConfigurationBuilder()
 					.memory()
 						.evictionType(EvictionType.COUNT)
 						.size(10)
