@@ -147,8 +147,13 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	
 	@Override
 	public Optional<Administrator> findAdministrator(String id) {
+		Optional<Device> optionalDevice = findDevice(id);
+		
+		if(!optionalDevice.isPresent())
+			return Optional.empty();
+		
 		Optional<Administrator> optionalAdministrator = getTOTPDataStore().find(Administrator.class)
-				.filterBy("device.id").withAValueEqualTo(id)
+				.filterBy("device").withAValueEqualTo(optionalDevice.get())
 				.thenGetFirst();
 		if(optionalAdministrator.isPresent() && !optionalAdministrator.get().notTamperedWith()){
 			return Optional.empty();

@@ -208,6 +208,10 @@ public class DeviceServiceImplTest {
 		optionalAdministrator = deviceService.findAdministrator("testinactivedevice1");
 		assertThat(optionalAdministrator.isPresent(), is(false));
 		
+		//Test non existent
+		optionalAdministrator = deviceService.findAdministrator("nonexistentdevice");
+		assertThat(optionalAdministrator.isPresent(), is(false));
+		
 		List<Administrator> administrators = deviceService.listAdministrators();
 		assertThat(administrators.isEmpty(), is(false));
 		
