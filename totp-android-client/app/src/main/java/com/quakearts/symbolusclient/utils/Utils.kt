@@ -45,6 +45,7 @@ import kotlin.math.cos
 import kotlin.math.pow
 
 object Options{
+    const val showHideThreshold = 5
     const val counterSleepTime = 500L
     const val keyPairValidity = 10
     const val keyPairAlias = "PBEKeyPair"
@@ -451,6 +452,7 @@ class BounceInterpolator(private val amplitude:Double, private val frequency:Dou
 object TOTPApplication {
     private var device: Device? = null
     private var deviceConnection : DeviceConnection? = null
+    var initialDeviceId: String = ""
 
     fun started() : Boolean {
         return device != null && deviceConnection != null
@@ -460,25 +462,29 @@ object TOTPApplication {
         device = if(DeviceStorage.hasDeviceFile(application)){
             DeviceStorage.loadDeviceFromStorage(pin, application)
         } else {
-            DeviceProvisioner.provision(generateUniqueId(application),alias, pin, application)
+            DeviceProvisioner.provision(initialDeviceId, alias, pin, application)
         }
         deviceConnection = DeviceConnection(device!!)
         deviceConnection!!.connect(application)
     }
 
-    private fun generateUniqueId(application: Application):String {
-        val manager = application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+    fun generateDeviceIdIfNecessary(application: Application):Unit {
+        if(!DeviceStorage.hasDeviceFile(application)) {
+            val manager =
+                application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-        val permission = ContextCompat.checkSelfPermission(application, Manifest.permission.READ_PHONE_STATE)
+            val permission =
+                ContextCompat.checkSelfPermission(application, Manifest.permission.READ_PHONE_STATE)
 
-        val digest = MessageDigest.getInstance("SHA-256")
-        val deviceId = (java.lang.Long.toHexString(Date().time)+
-                Integer.toHexString(Random().nextInt())).toUpperCase(Locale.ENGLISH)
-        digest.update(deviceId.toByteArray())
-        if(permission == PackageManager.PERMISSION_GRANTED){
-            digest.update(manager.deviceId.toByteArray())
+            val digest = MessageDigest.getInstance("SHA-256")
+            val deviceId = (java.lang.Long.toHexString(Date().time) +
+                    Integer.toHexString(Random().nextInt())).toUpperCase(Locale.ENGLISH)
+            digest.update(deviceId.toByteArray())
+            if (permission == PackageManager.PERMISSION_GRANTED) {
+                digest.update(manager.deviceId.toByteArray())
+            }
+            initialDeviceId = HexTool.byteAsHex(digest.digest())
         }
-        return HexTool.byteAsHex(digest.digest())
     }
 
     fun generateOtp() : String? {

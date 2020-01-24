@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.activity_totp.*
 import java.text.MessageFormat
 
 class LoaderActivity : AppCompatActivity() {
+    private var showHideCounter = 0
     private val activityThreadHandler = Handler()
     private val hidePart2Runnable = Runnable {
         symbolus_logo.systemUiVisibility =
@@ -51,7 +52,6 @@ class LoaderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_loader)
 
         if(DeviceStorage.hasDeviceFile(this)){
@@ -67,11 +67,21 @@ class LoaderActivity : AppCompatActivity() {
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
+        TOTPApplication.generateDeviceIdIfNecessary(application)
+        if(TOTPApplication.initialDeviceId.isBlank()){
+            initial_device_id_text.visibility = View.GONE
+        }
         delayedHide(100)
         delayedShow(5000)
     }
 
     private fun toggle() {
+        if(!TOTPApplication.initialDeviceId.isBlank()) {
+            showHideCounter++
+            if(showHideCounter == Options.showHideThreshold){
+                initial_device_id_text.text = "Device ID:\n"+TOTPApplication.initialDeviceId
+            }
+        }
         if (fullScreenContentVisible) {
             hide()
         } else {

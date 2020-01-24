@@ -67,6 +67,7 @@ public class TOTPApplication {
 	private Label lblDeviceId;
 	private Button btnAction;
 	private Cursor cursor;
+	private String initialDeviceId;
 	
 	/**
 	 * Open the window.
@@ -112,6 +113,11 @@ public class TOTPApplication {
 		fdLblDeviceId.top = new FormAttachment(0, 10);
 		fdLblDeviceId.left = new FormAttachment(0, 10);
 		lblDeviceId.setLayoutData(fdLblDeviceId);
+		if(mode == Mode.PROVISION){
+			lblDeviceId.setText("Device ID: "
+					+getInitialDeviceId());
+			lblDeviceId.getParent().layout();
+		}
 		
 		shell.open();
 		shell.layout();
@@ -448,12 +454,9 @@ public class TOTPApplication {
 		Display.getDefault().asyncExec(()->{
 			try {
 				Device device = DeviceProvisioner.getInstance()
-						.provision(UUID.randomUUID().toString().toUpperCase(), txtAlias.getText());
+						.provision(getInitialDeviceId(), txtAlias.getText());
 				DeviceStorage.getInstance().storeDevice(device, txtPin.getText());
 				DeviceConnection.getInstance().init(device, shell);
-				lblDeviceId.setText("Device ID: "
-						+device.getId());
-				lblDeviceId.getParent().layout();
 				pages[2].setVisible(false);
 				pages[1].setVisible(true);
 				currentAction = this::generateAndDisplayOTP;
@@ -471,5 +474,12 @@ public class TOTPApplication {
 				showCursor(SWT.CURSOR_ARROW);
 			}
 		});
+	}
+	
+	private String getInitialDeviceId() {
+		if(initialDeviceId == null){
+			initialDeviceId = UUID.randomUUID().toString().toUpperCase();
+		}
+		return initialDeviceId;
 	}
 }
