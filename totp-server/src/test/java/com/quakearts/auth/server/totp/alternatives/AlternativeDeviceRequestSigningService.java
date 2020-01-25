@@ -39,7 +39,7 @@ public class AlternativeDeviceRequestSigningService implements DeviceRequestSign
 	}
 
 	@Override
-	public void signRequest(String deviceId, Map<String, String> requestMap, Consumer<String> callback,
+	public void signRequest(Device device, Map<String, String> requestMap, Consumer<String> callback,
 			Consumer<String> errorCallback) throws TOTPException {
 		if(throwException != null) {
 			TOTPException toreturn = throwException;
@@ -58,7 +58,7 @@ public class AlternativeDeviceRequestSigningService implements DeviceRequestSign
 			return;
 		}
 		
-		wrapped.signRequest(deviceId, requestMap, callback, errorCallback);
+		wrapped.signRequest(device, requestMap, callback, errorCallback);
 	}
 	
 	@Override

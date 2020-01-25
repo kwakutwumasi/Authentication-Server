@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
+import com.quakearts.auth.server.totp.authentication.AuthenticationService;
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
@@ -30,16 +31,20 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 	
 	@Inject
 	private TOTPGenerator totpGenerator;
+	
+	@Inject
+	private AuthenticationService authenticationService;
 
 	@Override
-	public void signRequest(String deviceId, Map<String, String> requestMap, Consumer<String> callback,
+	public void signRequest(Device device, Map<String, String> requestMap, Consumer<String> callback,
 			Consumer<String> errorCallback) throws TOTPException {
 		requestMap.put("requestType", "otp-signing");
-		requestMap.put("deviceId", deviceId);
+		requestMap.put("deviceId", device.getId());
 		deviceConnectionChannel.sendMessage(requestMap, response->{
 			String otp = response.get("otp");
 			String timestamp = response.get(TIMESTAMP);
 			if(otp != null && timestamp != null) {
+				authenticationService.authenticate(device, otp);
 				requestMap.put(TIMESTAMP, timestamp);
 				requestMap.remove("requestType");
 				requestMap.remove("deviceId");

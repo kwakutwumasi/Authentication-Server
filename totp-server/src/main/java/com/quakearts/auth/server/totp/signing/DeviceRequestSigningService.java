@@ -8,7 +8,7 @@ import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Device;
 
 public interface DeviceRequestSigningService {
-	void signRequest(String deviceId, Map<String, String> requestMap, Consumer<String> callback, 
+	void signRequest(Device device, Map<String, String> requestMap, Consumer<String> callback, 
 			Consumer<String> errorCallback) throws TOTPException;
 	void verifySignedRequest(Device device, String signedRequest)
 		throws InvalidSignatureException;

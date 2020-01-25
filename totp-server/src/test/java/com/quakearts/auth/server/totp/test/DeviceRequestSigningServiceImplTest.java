@@ -47,7 +47,7 @@ public class DeviceRequestSigningServiceImplTest {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
 		Map<String, String> message = new HashMap<>();
 		message.put("request", "sensitive");
-		deviceRequestSigningService.signRequest("123456", message, signedMessage->{			
+		deviceRequestSigningService.signRequest(getErrorTestDevice(), message, signedMessage->{			
 			JWTFactory factory = JWTFactory.getInstance();
 			Map<String, String> options = new HashMap<>();
 			options.put("secret", "7890");
@@ -75,7 +75,7 @@ public class DeviceRequestSigningServiceImplTest {
 		AlternativeConnectionManager.run(this::missingOtp);
 		Map<String, String> message = new HashMap<>();
 		message.put("request", "sensitive");
-		deviceRequestSigningService.signRequest("123456", message, signedMessage->{			
+		deviceRequestSigningService.signRequest(getErrorTestDevice(), message, signedMessage->{			
 			throw new AssertionFailedError("Callback should not be called");
 		}, error->{
 			assertThat(error, is("Error message"));
@@ -87,11 +87,18 @@ public class DeviceRequestSigningServiceImplTest {
 		AlternativeConnectionManager.run(this::missingTimestamp);
 		Map<String, String> message = new HashMap<>();
 		message.put("request", "sensitive");
-		deviceRequestSigningService.signRequest("123456", message, signedMessage->{			
+		deviceRequestSigningService.signRequest(getErrorTestDevice(), message, signedMessage->{			
 			throw new AssertionFailedError("Callback should not be called");
 		}, error->{
 			assertThat(error, is("Error message 2"));
 		});
+	}
+	
+	private Device getErrorTestDevice(){
+		Device device = new Device();
+		device.setId("123456");
+		
+		return device;
 	}
 	
 	private byte[] expectedMessageAndResponse(byte[] message){

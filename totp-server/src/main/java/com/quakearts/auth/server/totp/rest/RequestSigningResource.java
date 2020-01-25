@@ -65,7 +65,7 @@ public class RequestSigningResource {
 			CompletableFuture.runAsync(()->{
 				Device device = optionalDevice.get();
 				try {
-					deviceRequestSigningService.signRequest(device.getId(), requestMap,
+					deviceRequestSigningService.signRequest(device, requestMap,
 						signedMessage->asyncResponse.resume(new TokenResponse().withTokenAs(signedMessage)), 
 						error->asyncResponse.resume(new WebApplicationException(Response.status(417)
 								.entity(new ErrorResponse().withMessageAs(error)).build())));
