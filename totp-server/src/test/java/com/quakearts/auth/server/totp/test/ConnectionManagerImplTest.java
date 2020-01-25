@@ -39,8 +39,6 @@ public class ConnectionManagerImplTest {
 	private static final String TEST_MESSAGE = "test.message";
 	@Inject
 	private ConnectionManagerImpl connectionManagerImpl;
-	@Inject
-	private ConnectionManagerImpl connectionManagerImpl2;
 	private SSLContext context;
 	
 	@Test
@@ -70,7 +68,7 @@ public class ConnectionManagerImplTest {
 		AlternativeTOTPOptions.returnConnectionReuseAddress(Boolean.FALSE);
 		AlternativeTOTPOptions.returnPerformancePreferences(new PerformancePreferences(1, 1, 1024));
 		
-		connectionManagerImpl2.init();
+		connectionManagerImpl.init();
 		try(Socket socket = createClientSocket(9002)){
 			TestEchoClient client = new TestEchoClient(socket);
 			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
@@ -80,7 +78,7 @@ public class ConnectionManagerImplTest {
 			TestEchoClient client = new TestEchoClient(socket);
 			await().atMost(TWO_SECONDS).until(client::testReceiveEcho);
 		} finally {
-			connectionManagerImpl2.shutdown();
+			connectionManagerImpl.shutdown();
 		}
 	}
 
