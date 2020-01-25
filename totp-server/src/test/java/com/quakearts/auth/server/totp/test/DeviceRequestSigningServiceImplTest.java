@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import com.quakearts.appbase.cdi.annotation.Transactional;
 import com.quakearts.appbase.cdi.annotation.Transactional.TransactionType;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
+import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPGenerator;
 import com.quakearts.auth.server.totp.device.impl.DeviceManagementServiceImpl;
 import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
@@ -45,6 +46,7 @@ public class DeviceRequestSigningServiceImplTest {
 	@Test
 	public void testSignRequest() throws Exception {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
+		AlternativeTOTPGenerator.simulate(true);
 		Map<String, String> message = new HashMap<>();
 		message.put("request", "sensitive");
 		deviceRequestSigningService.signRequest(getErrorTestDevice(), message, signedMessage->{			
@@ -58,8 +60,8 @@ public class DeviceRequestSigningServiceImplTest {
 				assertThat(verifier.getClaims().getPrivateClaim("request"), is("sensitive"));
 				assertThat(verifier.getClaims().getPrivateClaim("totp-timestamp"), is("12345678901234"));
 				for(Claim claim : verifier.getClaims()){
-					if(claim.getName().equals("requestType") || 
-							claim.getName().equals("deviceId"))
+					if(claim.getName().equals("requestType") 
+							|| claim.getName().equals("deviceId"))
 						fail("Contains restricted data");
 				}
 			} catch (JWTException e) {
@@ -153,6 +155,7 @@ public class DeviceRequestSigningServiceImplTest {
 		
 		long now = System.currentTimeMillis();
 		
+		AlternativeTOTPGenerator.simulate(true);
 		String[] totp = totpGenerator.generateFor(device, now);
 		JWTFactory factory = JWTFactory.getInstance();
 		
@@ -168,7 +171,7 @@ public class DeviceRequestSigningServiceImplTest {
 		JWTSigner signer = factory.getSigner("HS256", options);
 		
 		String signature = signer.sign(header, claims);
-		
+		AlternativeTOTPGenerator.simulate(true);
 		deviceRequestSigningService.verifySignedRequest(device, signature);
 	}
 	

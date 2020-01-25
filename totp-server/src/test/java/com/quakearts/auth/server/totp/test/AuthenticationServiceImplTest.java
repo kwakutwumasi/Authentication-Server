@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPGenerator;
 import com.quakearts.auth.server.totp.authentication.impl.AuthenticationServiceImpl;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
@@ -29,15 +30,18 @@ public class AuthenticationServiceImplTest {
 
 	@Test
 	public void testAuthenticate() throws Exception {
+		AlternativeTOTPGenerator.simulate(true);
 		Device device = generateDevice();
 		assertThat(authenticationService.authenticate(device, "123456"), is(true));
 		device.setId("generatetwo");
+		AlternativeTOTPGenerator.simulate(true);
 		assertThat(authenticationService.authenticate(device, "789101"), is(true));
 		assertThat(authenticationService.authenticate(device, ""), is(false));
 		for(int i=0;i<totpOptions.getMaxAttempts();i++){
 			authenticationService.authenticate(device, "");
 		}
 		assertThat(authenticationService.isLocked(device), is(true));
+		AlternativeTOTPGenerator.simulate(true);
 		assertThat(authenticationService.authenticate(device, "789101"), is(false));
 	}
 
