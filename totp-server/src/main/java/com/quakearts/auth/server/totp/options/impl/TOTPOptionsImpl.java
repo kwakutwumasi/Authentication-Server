@@ -38,7 +38,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private String deviceConnectionKeystore;
 	private String deviceConnectionKeystorePassword;
 	private String deviceConnectionKeyPassword;
-	private int authorizationThreads = 3;
+	private int executorServiceThreads = 3;
 	private String serverJwtConfigName;
 	private String allowedOrigins = "http://localhost:3000";
 	
@@ -108,8 +108,8 @@ public class TOTPOptionsImpl implements TOTPOptions {
 						performancePreferencesMap.getInt("bandwidth"));
 			}
 			deviceConnectionEchoInterval = deviceConnectionMap.getLong("echo.interval");
-			if(deviceConnectionMap.containsKey("authorization.threads")) {
-				authorizationThreads = deviceConnectionMap.getInt("authorization.threads");
+			if(deviceConnectionMap.containsKey("executor.service.threads")) {
+				executorServiceThreads = deviceConnectionMap.getInt("executor.service.threads");
 			}
 			
 			deviceAuthenticationTimeout = deviceConnectionMap.getLong("authentication.timeout");
@@ -251,8 +251,8 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	}
 	
 	@Override
-	public int getAuthorizationThreads() {
-		return authorizationThreads;
+	public int getExecutorServiceThreads() {
+		return executorServiceThreads;
 	}
 	
 	@Override

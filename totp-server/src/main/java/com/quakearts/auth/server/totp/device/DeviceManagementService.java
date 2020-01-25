@@ -2,11 +2,13 @@ package com.quakearts.auth.server.totp.device;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
@@ -26,4 +28,5 @@ public interface DeviceManagementService {
 	long deviceCount();
 	boolean deactivate(Device device);
 	List<Device> fetchDevices(Status status, long lastId, int maxRows, String deviceFilter);
+	void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException;
 }

@@ -27,7 +27,7 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationServ
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceRequestSigningService;
-import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceManagementService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
@@ -323,6 +323,18 @@ public class RESTServiceTest {
 		SyncResponse syncResponse = client.synchronize();
 		assertThat(syncResponse, is(notNullValue()));
 		assertThat((syncResponse.getTime()-System.currentTimeMillis())<2, is(true));
+		
+		AlternativeConnectionManager.run(incoming->{
+			Map<String, String> connectedResponse = new HashMap<>();
+			connectedResponse.put("connected", "true");
+			try {
+				return jwtGenerator.generateJWT(connectedResponse).getBytes();
+			} catch (NoSuchAlgorithmException | JWTException | URISyntaxException e) {
+				throw new AssertionError(e);
+			}
+		});
+		
+		assertThat(client.checkConnection("testdevice1").isConnected(), is(true));
 	}
 
 	private Device provisionTestProvisionDevice1() throws IOException, HttpClientException, IllegalCryptoActionException {
@@ -584,7 +596,7 @@ public class RESTServiceTest {
 	public void testDataStoreExceptionMapper() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"DataStoreException\"}"));
-		AlternativeDeviceService.throwError(new DataStoreException("DataStoreException"));
+		AlternativeDeviceManagementService.throwRuntimeException(new DataStoreException("DataStoreException"));
 		
 		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
 		
@@ -598,7 +610,7 @@ public class RESTServiceTest {
 	public void testDataStoreExceptionMapperWithCause() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"DataStoreExceptionOtherException\"}"));
-		AlternativeDeviceService.throwError(new DataStoreException("DataStoreException", new Exception("OtherException")));
+		AlternativeDeviceManagementService.throwRuntimeException(new DataStoreException("DataStoreException", new Exception("OtherException")));
 		
 		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
 		
@@ -612,7 +624,7 @@ public class RESTServiceTest {
 	public void testGeneralExceptionMapper() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"IllegalArgumentException\"}"));
-		AlternativeDeviceService.throwError(new IllegalArgumentException("IllegalArgumentException"));
+		AlternativeDeviceManagementService.throwRuntimeException(new IllegalArgumentException("IllegalArgumentException"));
 		
 		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
 		
@@ -626,7 +638,7 @@ public class RESTServiceTest {
 	public void testGeneralExceptionMapperWithCause() throws Exception {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"IllegalArgumentExceptionOtherException\"}"));
-		AlternativeDeviceService.throwError(new IllegalArgumentException("IllegalArgumentException", new Exception("OtherException")));
+		AlternativeDeviceManagementService.throwRuntimeException(new IllegalArgumentException("IllegalArgumentException", new Exception("OtherException")));
 		
 		AuthenticationRequest authenticateRequest = new AuthenticationRequest();
 		
@@ -756,4 +768,50 @@ public class RESTServiceTest {
 		requestMap.put("request", "value");
 		client.signRequest(device.getId(), requestMap);
 	}
+	
+	@Test
+	public void testVerifySignRequestWithInvalidDevice() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"Device with ID notFoundDeviceId not found\"}"));
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("request", "value");
+		requestMap.put("totp-timestamp", Long.toString(System.currentTimeMillis()));
+		client.verifySignedRequest(jwtGenerator.generateJWT(requestMap),"notFoundDeviceId");
+	}
+	
+	@Test
+	public void testCheckConnectionWithInvalidDevice() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"Device with ID notFoundDeviceId not found\"}"));
+		Device device2 = provisionAdministrator1();
+		
+		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
+
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
+		authorizationRequest.setDeviceId("testadministrator1");
+		authorizationRequest.setOtp(totp2[0]);
+
+		client.login(authorizationRequest);
+		client.checkConnection("notFoundDeviceId");
+	}
+
+	
+	@Test
+	public void testCheckConnectionWithTOTPException() throws Exception {
+		expectedException.expect(HttpClientException.class);
+		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"Message generation failed. Thrown error\"}"));
+
+		AlternativeDeviceManagementService.throwTOTPException(new MessageGenerationException(new Exception("Thrown error")));
+		
+		Device device2 = provisionAdministrator1();
+		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
+
+		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
+		authorizationRequest.setDeviceId("testadministrator1");
+		authorizationRequest.setOtp(totp2[0]);
+
+		client.login(authorizationRequest);
+		client.checkConnection("testadministrator1");
+	}
+
 }

@@ -200,4 +200,21 @@ public class RESTTestClient extends HttpClient {
 		}
 	}
 
+	public ConnectedResponse checkConnection(String deviceId) throws IOException, HttpClientException{
+		return execute("/totp/manage/check-connection/{0}", null, 
+				APPLICATION_JSON, HttpVerb.GET, ConnectedResponse.class, deviceId);
+	}
+	
+	public static class ConnectedResponse {
+		private boolean connected;
+
+		public boolean isConnected() {
+			return connected;
+		}
+
+		public void setConnected(boolean connected) {
+			this.connected = connected;
+		}
+	}
+	
 }

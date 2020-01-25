@@ -17,7 +17,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceManagementService;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.RequestSigningResource;
@@ -39,7 +39,7 @@ public class RequestSigningResourceTest {
 	public void testSignRequestWithDeviceMissing() {
 		expectedException.expect(WebApplicationException.class);
 		expectedException.expect(responseMessageIs("Device with ID testDirect2 not found"));
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect2"));
 			return Optional.empty();
 		});
@@ -55,7 +55,7 @@ public class RequestSigningResourceTest {
 		expectedException.expect(responseMessageIs("Device with ID testDirect2 not found"));
 		Device device = new Device();
 		device.setStatus(Status.INITIATED);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect2"));
 			return Optional.of(device);
 		});
@@ -72,7 +72,7 @@ public class RequestSigningResourceTest {
 		expectedException.expect(responseMessageIs("Device with ID testDirect2 not found"));
 		Device device = new Device();
 		device.setStatus(Status.INACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect2"));
 			return Optional.of(device);
 		});	

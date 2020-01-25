@@ -2,6 +2,7 @@ package com.quakearts.auth.server.totp.alternatives;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.annotation.Priority;
 import javax.enterprise.inject.Alternative;
@@ -15,6 +16,7 @@ import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
@@ -22,7 +24,7 @@ import com.quakearts.auth.server.totp.model.Device.Status;
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
 @Singleton
-public class AlternativeDeviceService implements DeviceManagementService {
+public class AlternativeDeviceManagementService implements DeviceManagementService {
 
 	private static TestLockFunction returnLock;
 	
@@ -32,7 +34,7 @@ public class AlternativeDeviceService implements DeviceManagementService {
 	}
 	
 	public static void returnLock(TestLockFunction returnLock) {
-		AlternativeDeviceService.returnLock = returnLock;
+		AlternativeDeviceManagementService.returnLock = returnLock;
 	}
 	
 	private static TestFindDeviceFunction returnDevice;
@@ -43,23 +45,29 @@ public class AlternativeDeviceService implements DeviceManagementService {
 	}
 	
 	public static void returnDevice(TestFindDeviceFunction returnDevice) {
-		AlternativeDeviceService.returnDevice = returnDevice;
+		AlternativeDeviceManagementService.returnDevice = returnDevice;
 	}
 	
-	private static RuntimeException throwException;
+	private static RuntimeException throwRuntimeException;
 	
-	public static void throwError(RuntimeException newThrowException) {
-		throwException = newThrowException;
+	public static void throwRuntimeException(RuntimeException newThrowException) {
+		throwRuntimeException = newThrowException;
 	}
 	
+	private static TOTPException throwTotpException;
+	
+	public static void throwTOTPException(TOTPException newThrowTotpException) {
+		throwTotpException = newThrowTotpException;
+	}
+
 	@Inject
 	private DeviceManagementServiceImpl deviceService;
 	
 	@Override
 	public Optional<Device> findDevice(String id) {
-		if(throwException != null) {
-			RuntimeException toThrow = throwException;
-			throwException = null;
+		if(throwRuntimeException != null) {
+			RuntimeException toThrow = throwRuntimeException;
+			throwRuntimeException = null;
 			throw toThrow;
 		}
 		if(returnDevice!=null){
@@ -132,5 +140,15 @@ public class AlternativeDeviceService implements DeviceManagementService {
 	@Override
 	public List<Device> fetchDevices(Status status, long lastId, int maxRows, String deviceString) {
 		return deviceService.fetchDevices(status, lastId, maxRows, deviceString);
+	}
+	
+	@Override
+	public void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException {
+		if(throwTotpException!=null){
+			TOTPException exception = throwTotpException;
+			throwTotpException = null;
+			throw exception;
+		}
+		deviceService.isConnected(device, callback);
 	}
 }

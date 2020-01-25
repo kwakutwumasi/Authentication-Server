@@ -4,7 +4,11 @@ import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
 
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -19,6 +23,7 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.appbase.cdi.annotation.Transactional;
 import com.quakearts.appbase.cdi.annotation.Transactional.TransactionType;
+import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.device.impl.DeviceManagementServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
@@ -27,6 +32,7 @@ import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.exception.TOTPExceptionMapper;
+import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
@@ -37,6 +43,7 @@ import com.quakearts.webapp.orm.DataStore;
 import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
+import com.quakearts.webapp.security.jwt.exception.JWTException;
 
 @RunWith(TOTPDatabaseServiceRunner.class)
 public class DeviceServiceImplTest {
@@ -52,6 +59,9 @@ public class DeviceServiceImplTest {
 	
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
+	
+	@Inject
+	private JWTGeneratorImpl jwtGenerator;
 	
 	@Test
 	@Transactional(TransactionType.SINGLETON)
@@ -361,6 +371,24 @@ public class DeviceServiceImplTest {
 		assertThat(tamperedDeviceOptional.isPresent(), is(false));
 	}
 	
+	@Test
+	@Transactional(TransactionType.SINGLETON)
+	public void testIsConnected() throws Exception {
+		AlternativeConnectionManager.run(incoming->{
+			Map<String, String> response = new HashMap<>();
+			response.put("connected", "true");
+			try {
+				return jwtGenerator.generateJWT(response).getBytes();
+			} catch (NoSuchAlgorithmException | JWTException | URISyntaxException e) {
+				throw new AssertionError(e);
+			}
+		});
+		
+		Optional<Device> optionalDevice = deviceService.findDevice("testdevice1");
+		deviceService.isConnected(optionalDevice.get(), connected->
+				assertThat(connected, is(true)));
+	}
+
 	static class TOTPExceptionMatch extends BaseMatcher<TOTPException> {
 		TOTPException toMatch;
 		

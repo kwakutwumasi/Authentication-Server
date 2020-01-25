@@ -6,18 +6,23 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.model.Alias;
 import com.quakearts.auth.server.totp.model.Device;
@@ -42,6 +47,9 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
 	@Inject
 	private TOTPOptions totpOptions;
+	
+	@Inject
+	private DeviceConnectionChannel deviceConnectionChannel;
 	
 	@Override
 	public Optional<Device> findDevice(String id) {
@@ -258,5 +266,15 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 			
 			return trimmedDevices;
 		}
+	}
+	
+	@Override
+	public void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException {
+		Map<String, String> requestMap = new HashMap<>();
+		requestMap.put("requestType", "otp");
+		requestMap.put("deviceId", device.getId());
+		deviceConnectionChannel.sendMessage(requestMap, response->{
+			callback.accept(Boolean.parseBoolean(response.get("connected")));
+		});
 	}
 }

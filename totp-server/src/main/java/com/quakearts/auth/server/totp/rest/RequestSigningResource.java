@@ -19,6 +19,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
@@ -26,7 +27,6 @@ import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
-import com.quakearts.auth.server.totp.rest.authorization.AuthorizationExecutorService;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.auth.server.totp.rest.model.TokenResponse;
 import com.quakearts.auth.server.totp.signing.DeviceRequestSigningService;
@@ -42,7 +42,7 @@ public class RequestSigningResource {
 	private DeviceRequestSigningService deviceRequestSigningService;
 	
 	@Inject
-	private AuthorizationExecutorService authorizationExecutorService;
+	private DeviceConnectionExecutorService deviceConnectionExecutorService;
 	
 	@Inject
 	private TOTPOptions totpOptions;
@@ -72,11 +72,11 @@ public class RequestSigningResource {
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}
-			}, authorizationExecutorService.getExecutorService());
+			}, deviceConnectionExecutorService.getExecutorService());
 			asyncResponse.setTimeout(totpOptions.getDeviceAuthenticationTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);			
 		} else {
-			throwNotFound(deviceId);
+			throw notFound(deviceId);
 		}
 	}
 
@@ -92,12 +92,12 @@ public class RequestSigningResource {
 		if(optionalDevice.isPresent()){
 			deviceRequestSigningService.verifySignedRequest(optionalDevice.get(), signature);
 		} else {
-			throwNotFound(deviceId);
+			throw notFound(deviceId);
 		}
 	}
 
-	private void throwNotFound(String deviceId) {
-		throw new WebApplicationException(Response.status(403)
+	private WebApplicationException notFound(String deviceId) {
+		return new WebApplicationException(Response.status(404)
 				.entity(new ErrorResponse().withMessageAs("Device with ID "+deviceId+" not found"))
 				.build());
 	}

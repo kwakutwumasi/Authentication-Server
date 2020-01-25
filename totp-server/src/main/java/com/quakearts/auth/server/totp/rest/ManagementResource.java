@@ -2,6 +2,7 @@ package com.quakearts.auth.server.totp.rest;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -10,23 +11,32 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.ManagementException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
+import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequest;
 import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
+import com.quakearts.auth.server.totp.rest.model.ConnectedResponse;
 import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceRequest;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
+import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
 import com.quakearts.auth.server.totp.rest.model.ManagementResponseEntry;
 import com.quakearts.auth.server.totp.rest.model.ManagementResponse;
@@ -45,6 +55,9 @@ public class ManagementResource {
 	
 	@Inject
 	private DeviceManagementService deviceManagementService;
+	
+	@Inject
+	private DeviceConnectionExecutorService deviceConnectionExecutorService;
 	
 	@FunctionalInterface
 	private interface RequestProcessor {
@@ -230,11 +243,33 @@ public class ManagementResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("get-devices")
-	public List<DeviceResponse> getDevices(@QueryParam("status")Status status, 
+	public List<DeviceResponse> getDevices(@QueryParam("status") Status status, 
 			@QueryParam("lastid") long lastId, @QueryParam("maxrows") int maxRows,
 			@QueryParam("device-filter") String deviceFilter){
 		return deviceManagementService.fetchDevices(status, lastId, maxRows, deviceFilter)
 				.stream().map(DeviceResponse::new)
 				.collect(Collectors.toList());
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("check-connection/{deviceId}")
+	public void checkConnection(@PathParam("deviceId") String deviceId, 
+			@Suspended AsyncResponse asyncResponse) {
+		Optional<Device> optionalDevice = deviceManagementService.findDevice(deviceId);
+		if(!optionalDevice.isPresent()){
+			throw new WebApplicationException(Response.status(404)
+					.entity(new ErrorResponse().withMessageAs("Device with ID "+deviceId+" not found"))
+					.type(MediaType.APPLICATION_JSON_TYPE)
+					.build());
+		}
+		CompletableFuture.runAsync(()->{
+			try {
+				deviceManagementService.isConnected(optionalDevice.get(), connected->
+					asyncResponse.resume(new ConnectedResponse().withConnectedAs(connected)));
+			} catch (TOTPException e) {
+				asyncResponse.resume(e);
+			}
+		}, deviceConnectionExecutorService.getExecutorService());
 	}
 }

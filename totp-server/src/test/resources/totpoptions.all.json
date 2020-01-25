@@ -33,7 +33,7 @@
 		 	"bandwidth":1024
 		},
 		"echo.interval":"30000l",
-		"authorization.threads":3,
+		"executor.service.threads":3,
 		"authentication.timeout":"1000l"
 	}
 }

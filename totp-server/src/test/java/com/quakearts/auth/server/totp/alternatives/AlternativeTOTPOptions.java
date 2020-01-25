@@ -288,8 +288,8 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	}
 	
 	@Override
-	public int getAuthorizationThreads() {
-		return wrapped.getAuthorizationThreads();
+	public int getExecutorServiceThreads() {
+		return wrapped.getExecutorServiceThreads();
 	}
 	
 	@Override

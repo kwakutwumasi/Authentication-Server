@@ -82,7 +82,7 @@ public interface TOTPOptions {
 	
 	long getDeviceConnectionEchoInterval();
 	
-	int getAuthorizationThreads();
+	int getExecutorServiceThreads();
 	
 	long getDeviceAuthenticationTimeout();
 

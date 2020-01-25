@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.quakearts.auth.server.totp.authentication.AuthenticationService;
+import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.AuthenticationException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
@@ -25,7 +26,6 @@ import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
-import com.quakearts.auth.server.totp.rest.authorization.AuthorizationExecutorService;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
@@ -47,7 +47,7 @@ public class AuthenticationResource {
 	private TOTPOptions totpOptions;
 	
 	@Inject
-	private AuthorizationExecutorService authorizationExecutorService;
+	private DeviceConnectionExecutorService deviceConnectionExecutorService;
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -99,11 +99,11 @@ public class AuthenticationResource {
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}
-			}, authorizationExecutorService.getExecutorService());
+			}, deviceConnectionExecutorService.getExecutorService());
 			asyncResponse.setTimeout(totpOptions.getDeviceAuthenticationTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);
 		} else {
-			throw new WebApplicationException(Response.status(403)
+			throw new WebApplicationException(Response.status(404)
 					.entity(new ErrorResponse().withMessageAs("Device with ID "+deviceId+" not found"))
 					.type(MediaType.APPLICATION_JSON_TYPE)
 					.build());

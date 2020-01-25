@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
-import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceManagementService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.exception.AuthenticationException;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
@@ -58,7 +58,7 @@ public class AuthenticationResourceTest {
 	public void testLoginOk() throws Exception {
 		Device device = new Device();
 		device.setStatus(Status.ACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -95,7 +95,7 @@ public class AuthenticationResourceTest {
 	public void testLoginDeviceNotFound() throws Exception {
 		expectedException.expect(AuthenticationException.class);
 		expectedException.expectMessage("Device with ID testlogin1 not found");
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.empty();
 		});
@@ -109,7 +109,7 @@ public class AuthenticationResourceTest {
 		expectedException.expectMessage("Device with ID testlogin1 not found");
 		Device device = new Device();
 		device.setStatus(Status.INITIATED);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -123,7 +123,7 @@ public class AuthenticationResourceTest {
 		expectedException.expectMessage("Device with ID testlogin1 not found");
 		Device device = new Device();
 		device.setStatus(Status.INACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -137,7 +137,7 @@ public class AuthenticationResourceTest {
 		expectedException.expectMessage("Device with ID testlogin1 not found");
 		Device device = new Device();
 		device.setStatus(Status.LOCKED);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -151,7 +151,7 @@ public class AuthenticationResourceTest {
 		expectedException.expectMessage("OTP did not match");
 		Device device = new Device();
 		device.setStatus(Status.ACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -178,7 +178,7 @@ public class AuthenticationResourceTest {
 		expectedException.expectMessage("OTP did not match");
 		Device device = new Device();
 		device.setStatus(Status.ACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testlogin1"));
 			return Optional.of(device);
 		});
@@ -194,7 +194,7 @@ public class AuthenticationResourceTest {
 			return true;
 		});
 		
-		AlternativeDeviceService.returnLock(lockDevice->{
+		AlternativeDeviceManagementService.returnLock(lockDevice->{
 			assertThat(lockDevice, is(device));
 			wasLocked = true;
 			return true;
@@ -212,7 +212,7 @@ public class AuthenticationResourceTest {
 		Device device = new Device();
 		device.setStatus(Status.ACTIVE);
 		device.setId("testDirect1");
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect1"));
 			return Optional.of(device);
 		});
@@ -262,57 +262,61 @@ public class AuthenticationResourceTest {
 	}
 	
 	@Test
-	public void testAuthenticateDirectLoginFailed() throws Exception {
-		Device device = new Device();
-		device.setStatus(Status.ACTIVE);
-		device.setId("testDirectFailed1");
-		AlternativeDeviceService.returnDevice(id-> {
-			return Optional.of(device);
-		});
-		
-		AlternativeAuthenticationService.returnAuthenticate((authDevice,otp)->{
-			return false;
-		});
-		
-		AlternativeAuthenticationService.returnLocked(checkDevice->{
-			return false;
-		});
-		
-		AlternativeConnectionManager.run(bite->{
-			Map<String, String> responseMap = new HashMap<>();
-			responseMap.put("otp", "123456");
-			try {
-				return jwtGenerator.generateJWT(responseMap).getBytes();
-			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
-				throw new AssertionError(e);
+	public void testAuthenticateDirectLoginFailed(){
+		try {
+			Device device = new Device();
+			device.setStatus(Status.ACTIVE);
+			device.setId("testDirectFailed1");
+			AlternativeDeviceManagementService.returnDevice(id-> {
+				return Optional.of(device);
+			});
+			
+			AlternativeAuthenticationService.returnAuthenticate((authDevice,otp)->{
+				return false;
+			});
+			
+			AlternativeAuthenticationService.returnLocked(checkDevice->{
+				return false;
+			});
+			
+			AlternativeConnectionManager.run(bite->{
+				Map<String, String> responseMap = new HashMap<>();
+				responseMap.put("otp", "123456");
+				try {
+					return jwtGenerator.generateJWT(responseMap).getBytes();
+				} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+					throw new AssertionError(e);
+				}
+			});
+			
+			AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
+			
+			class Response {
+				Object value;
 			}
-		});
-		
-		AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
-		
-		class Response {
-			Object value;
+			
+			Response response = new Response();
+			
+			authenticationResource.authenticateDirect("testDirectFailed1", 
+					mockAsyncResponse(arguments->{
+						response.value = arguments.get(0);
+					}));
+			await().atMost(Duration.ONE_SECOND)
+			.until(()->{
+				return response.value instanceof AuthenticationException
+						&& ((AuthenticationException)response.value)
+						.getMessage().equals("OTP did not match");
+			});			
+		} catch (Exception e) {
+			fail("Error thrown: "+e.getLocalizedMessage());
 		}
-		
-		Response response = new Response();
-		
-		authenticationResource.authenticateDirect("testDirectFailed1", 
-				mockAsyncResponse(arguments->{
-					response.value = arguments.get(0);
-				}));
-		await().atMost(Duration.ONE_SECOND)
-		.until(()->{
-			return response.value instanceof AuthenticationException
-					&& ((AuthenticationException)response.value)
-					.getMessage().equals("OTP did not match");
-		});
 	}
 	
 	@Test
 	public void testAuthenticateDirectDeviceNotFound() throws Exception {
 		expectedException.expect(WebApplicationException.class);
 		expectedException.expect(responseMessageIs("Device with ID testDirect2 not found"));
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect2"));
 			return Optional.empty();
 		});
@@ -325,7 +329,7 @@ public class AuthenticationResourceTest {
 		expectedException.expect(responseMessageIs("Device with ID testDirect2 not found"));
 		Device device = new Device();
 		device.setStatus(Status.INACTIVE);
-		AlternativeDeviceService.returnDevice(id-> {
+		AlternativeDeviceManagementService.returnDevice(id-> {
 			assertThat(id, is("testDirect2"));
 			return Optional.of(device);
 		});
