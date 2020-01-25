@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
 import javax.websocket.EncodeException;
 import javax.websocket.Endpoint;
@@ -34,7 +35,7 @@ import com.quakearts.auth.server.totp.edge.websocket.model.Payload;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 
 @RunWith(MainRunner.class)
-public class DeviceConnectionEndpointTest {
+public class DeviceConnectionEndpointTest extends TestServerTest {
 
 	@Inject
 	private DeviceConnectionService service;
@@ -73,22 +74,23 @@ public class DeviceConnectionEndpointTest {
 			}, ClientEndpointConfig.Builder.create()
 					.decoders(Arrays.asList(JSONConverter.class))
 					.encoders(Arrays.asList(JSONConverter.class))
-					.build(), new URI("ws://localhost:8082/device-connection/testdevice1"));
+					.build(), new URI("ws://localhost:8082/device-connection/NBV7-ST2R-3U47-6HFE-CSAQ-K9XC-NCJC-QZ4B/346304"));
 		Payload payload = new Payload();
 		payload.setMessage(new HashMap<>());
 		payload.getMessage().put("test", "request");
-		payload.getMessage().put("deviceId", "testdevice1");
+		payload.getMessage().put("deviceId", "NBV7-ST2R-3U47-6HFE-CSAQ-K9XC-NCJC-QZ4B");
 		class Holder {
 			Payload response;
+			CloseReason closeReason;
 		}
 		
 		Holder holder = new Holder();
-		
-		await().atMost(Duration.ONE_SECOND).until(()->{
+				
+		await().atMost(Duration.FIVE_SECONDS).until(()->{
 			service.send(payload, payloadResponse->{
 				holder.response = payloadResponse;
 			});
-			return service.isConnected("testdevice1");
+			return service.isConnected("NBV7-ST2R-3U47-6HFE-CSAQ-K9XC-NCJC-QZ4B");
 		});
 		
 		await().atMost(Duration.TWO_SECONDS).until(()->{			
@@ -102,7 +104,7 @@ public class DeviceConnectionEndpointTest {
 		Payload rejectPayload = new Payload();
 		rejectPayload.setMessage(new HashMap<>());
 		rejectPayload.getMessage().put("test", "request");
-		rejectPayload.getMessage().put("deviceId", "testdevice1");
+		rejectPayload.getMessage().put("deviceId", "NBV7-ST2R-3U47-6HFE-CSAQ-K9XC-NCJC-QZ4B");
 		await().atMost(Duration.FIVE_SECONDS).until(()->{
 			try {				
 				service.send(rejectPayload, response->{});
@@ -111,31 +113,78 @@ public class DeviceConnectionEndpointTest {
 			}
 			return false;
 		});
+		
+		ContainerProvider.getWebSocketContainer()
+		.connectToServer(new Endpoint() {
+			@Override
+			public void onOpen(Session session, EndpointConfig config) {}
+			
+			@Override
+			public void onClose(Session session, CloseReason closeReason) {
+				holder.closeReason = closeReason;
+			}
+		}, ClientEndpointConfig.Builder.create()
+				.decoders(Arrays.asList(JSONConverter.class))
+				.encoders(Arrays.asList(JSONConverter.class))
+				.build(), new URI("ws://localhost:8082/device-connection/NBV7-ST2R-3U47-6HFE-CSAQ-K9XC-NCJC-QZ4B/WRONG"));
+		
+		await().atMost(Duration.FIVE_SECONDS).until(()->{
+			try {				
+				service.send(rejectPayload, response->{});
+			} catch (Throwable e) {
+				return holder.closeReason!=null && holder.closeReason.getReasonPhrase()
+						.startsWith("OTP Authentication failure. ")
+						&& holder.closeReason.getCloseCode() == CloseReason.CloseCodes.CANNOT_ACCEPT;
+			}
+			return false;
+		});
 	}
 	
-	
 	@Test
-	public void testClosedWithNoConnectionInSession() throws Exception {
-		Map<String, Object> props = new HashMap<>();
-		Session session = MockingProxyBuilder
-				.createMockingInvocationHandlerFor(Session.class)
-				.mock("getUserProperties").withEmptyMethod(()->{
-					return props;
-				}).thenBuild();
-		
-		new DeviceConnectionEndpoint().closed(session);
+	public void testClosedWithNoConnectionInSession() {
+		try {
+			Map<String, Object> props = new HashMap<>();
+			Session session = MockingProxyBuilder
+					.createMockingInvocationHandlerFor(Session.class)
+					.mock("getUserProperties").withEmptyMethod(()->{
+						return props;
+					}).thenBuild();
+			
+			new DeviceConnectionEndpoint().closed(session);			
+		} catch (Exception e) {
+			fail("Exception thrown: "+e.getMessage());
+		}
+	}
+
+	@Test
+	public void testOpenWithInvalidClientCredentialsAndIOExceptionOnSessionClose() {
+		try {
+			Session session = MockingProxyBuilder
+					.createMockingInvocationHandlerFor(Session.class)
+					.mock("close").withEmptyMethod(()->{
+						throw new IOException("Error Thrown");
+					}).thenBuild();
+			
+			CDI.current().select(DeviceConnectionEndpoint.class).get().opened(session, "invalid", "invalid");
+		} catch (Exception e) {
+			fail("Exception thrown: "+e.getMessage());
+		}
 	}
 	
 	@Test
 	public void testReceivedWithNoDeviceConnectionInSession() throws Exception {
-		Map<String, Object> props = new HashMap<>();
-		Session session = MockingProxyBuilder
-				.createMockingInvocationHandlerFor(Session.class)
-				.mock("getUserProperties").withEmptyMethod(()->{
-					return props;
-				}).thenBuild();
-		CDI.current().select(DeviceConnectionEndpoint.class)
-		.get().received(session, new Payload());
+		try {
+			Map<String, Object> props = new HashMap<>();
+			Session session = MockingProxyBuilder
+					.createMockingInvocationHandlerFor(Session.class)
+					.mock("getUserProperties").withEmptyMethod(()->{
+						return props;
+					}).thenBuild();
+			CDI.current().select(DeviceConnectionEndpoint.class)
+			.get().received(session, new Payload());
+		} catch (Exception e) {
+			fail("Exception thrown: "+e.getMessage());
+		}
 	}
 	
 	@Test

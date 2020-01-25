@@ -25,7 +25,6 @@ public class TOTPEdgeOptionsImpl implements TOTPEdgeOptions {
 	private String jwtalgorithm;
 	private Map<String, Object> jwtOptions;
 	private long payloadQueueTimeout;
-	private int payloadQueueSize;
 	
 	public TOTPEdgeOptionsImpl() {
 		Properties properties = new Properties();
@@ -53,7 +52,6 @@ public class TOTPEdgeOptionsImpl implements TOTPEdgeOptions {
 					jwtOptions.put(entry.getKey().toString().substring(4), entry.getValue());
 				}
 			});
-		payloadQueueSize = Integer.parseInt(properties.getProperty("payload.queue.size", "10"));
 		payloadQueueTimeout = Long.parseLong(properties.getProperty("payload.queue.timeout", "30000"));
 	}
 
@@ -105,11 +103,6 @@ public class TOTPEdgeOptionsImpl implements TOTPEdgeOptions {
 	@Override
 	public Map<String, ?> getJwtOptions() {
 		return jwtOptions;
-	}
-	
-	@Override
-	public int getPayloadQueueSize() {
-		return payloadQueueSize;
 	}
 	
 	@Override

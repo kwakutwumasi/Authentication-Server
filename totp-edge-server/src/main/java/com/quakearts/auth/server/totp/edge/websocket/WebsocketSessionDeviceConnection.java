@@ -22,7 +22,7 @@ public class WebsocketSessionDeviceConnection implements DeviceConnection {
 	private long retrievalTimeout;
 	private AtomicLong counter = new AtomicLong();
 	
-	public WebsocketSessionDeviceConnection(Session session, String deviceId, long retrievalTimeout, int queueBounds) {
+	public WebsocketSessionDeviceConnection(Session session, String deviceId, long retrievalTimeout) {
 		this.session = session;
 		this.retrievalTimeout = retrievalTimeout;
 		session.getUserProperties().put(DEVICE_ID, deviceId);

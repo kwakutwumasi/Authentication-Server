@@ -14,5 +14,4 @@ public interface TOTPEdgeOptions {
 	Map<String, ?> getJwtOptions();
 	String getJwtalgorithm();
 	long getPayloadQueueTimeout();
-	int getPayloadQueueSize();
 }
