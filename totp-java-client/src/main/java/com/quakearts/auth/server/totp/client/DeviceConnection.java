@@ -45,19 +45,12 @@ public class DeviceConnection {
 		this.device = device;
 		this.shell = shell;
 		client = new WebSocketClient();
+		client.setStopAtShutdown(true);
+		client.getPolicy().setIdleTimeout(Options.getInstance().getIdleTimeout());
 		client.start();
 		client.connect(this, new URI(MessageFormat.format(Options.getInstance().getTotpWsUrl(), device.getId(), device.generateOTP())));
-		Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
 	}
 	
-	private void stop(){
-		try {
-			client.stop();
-		} catch (Exception e) {
-			//Do nothing
-		}
-	}
-
 	@OnWebSocketConnect
 	public void onConnect(Session session){
 		this.session = session;

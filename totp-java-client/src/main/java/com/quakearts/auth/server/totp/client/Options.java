@@ -19,6 +19,8 @@ public class Options {
 	private byte[] pbeSalt;
 
 	private int pbeIterations;
+
+	private long idleTimeout;
 	
 	public static Options getInstance() {
 		return instance;
@@ -42,6 +44,8 @@ public class Options {
 		totpWsUrl = properties.getProperty("totpWsUrl", "ws://localhost:8082/device-connection/{0}/{1}");
 		pbeIterations = Integer.parseInt(properties.getProperty("pbeIterations", "23"));
 		pbeSalt = properties.getProperty("pbeSalt","TOTP7079").getBytes();
+		idleTimeout = Double.doubleToLongBits(
+				Double.parseDouble(properties.getProperty("idleTimeout","30"))*60000d);
 	}
 
 	public String getMacAlgorithm() {
@@ -70,5 +74,9 @@ public class Options {
 
 	public int getPbeIterations() {
 		return pbeIterations;
+	}
+
+	public long getIdleTimeout() {
+		return idleTimeout;
 	}
 }
