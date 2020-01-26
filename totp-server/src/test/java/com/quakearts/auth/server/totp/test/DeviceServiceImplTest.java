@@ -341,7 +341,7 @@ public class DeviceServiceImplTest {
 		assertThat(deviceService.fetchDevices(Status.INITIATED, 0l, 3, null).size(), is(1));
 		
 		assertThat(deviceService.fetchDevices(null, 0l, 5, "testalias").size(), is(1));
-		assertThat(deviceService.fetchDevices(Status.INACTIVE, 0l, 2, "alias").size(), is(2));
+		assertThat(deviceService.fetchDevices(Status.ACTIVE, 0l, 2, "test").size(), is(2));
 		devices = deviceService.fetchDevices(null, 0l, 3, "");
 		assertThat(devices.size(), is(3));
 		device = devices.get(devices.size()-1);

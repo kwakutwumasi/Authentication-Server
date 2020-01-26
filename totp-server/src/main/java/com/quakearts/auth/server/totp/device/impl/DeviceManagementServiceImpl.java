@@ -258,8 +258,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 					
 					trimmedDevices.add(device);
 					lastCount = device.getItemCount();
-				} finally {					
 					count++;
+				} finally {					
 					index++;
 				}
 			}
