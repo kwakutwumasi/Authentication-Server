@@ -188,7 +188,7 @@ class DeviceConnection(private val device: Device){
         val protocol = OkHttpWebSocket(
             okHTTPClient,
             OkHttpWebSocket.SimpleRequestFactory(
-                {Request.Builder().url(Options.totpWsUrl+"/"+device.id).build()},
+                {Request.Builder().url(Options.totpWsUrl+"/"+device.id+"/"+device.generateOtp()).build()},
                 { ShutdownReason.GRACEFUL }
             )
         )

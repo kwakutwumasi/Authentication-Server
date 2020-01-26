@@ -39,7 +39,7 @@ public class Options {
 		otpLength = Integer.parseInt(properties.getProperty("otpLength","6"));
 		timeStep = Long.parseLong(properties.getProperty("timeStep","30000"));
 		totpUrl = properties.getProperty("totpUrl", "http://localhost:8082/totp-provisioning");
-		totpWsUrl = properties.getProperty("totpWsUrl", "ws://localhost:8082/device-connection/{0}");
+		totpWsUrl = properties.getProperty("totpWsUrl", "ws://localhost:8082/device-connection/{0}/{1}");
 		pbeIterations = Integer.parseInt(properties.getProperty("pbeIterations", "23"));
 		pbeSalt = properties.getProperty("pbeSalt","TOTP7079").getBytes();
 	}

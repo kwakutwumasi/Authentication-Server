@@ -46,7 +46,7 @@ public class DeviceConnection {
 		this.shell = shell;
 		client = new WebSocketClient();
 		client.start();
-		client.connect(this, new URI(MessageFormat.format(Options.getInstance().getTotpWsUrl(), device.getId())));
+		client.connect(this, new URI(MessageFormat.format(Options.getInstance().getTotpWsUrl(), device.getId(), device.generateOTP())));
 		Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
 	}
 	

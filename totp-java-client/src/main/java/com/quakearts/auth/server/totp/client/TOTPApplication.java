@@ -64,7 +64,7 @@ public class TOTPApplication {
 	private Counter counter;
 	private Text txtTOTP;
 	private Text txtAlias;
-	private Label lblDeviceId;
+	private Text txtDeviceId;
 	private Button btnAction;
 	private Cursor cursor;
 	private String initialDeviceId;
@@ -108,15 +108,16 @@ public class TOTPApplication {
 			pages[2] = createProvisioningComposite(shell, label);
 			pages[2].setVisible(false);
 		}
-		lblDeviceId = new Label(shell, SWT.NONE);
+		txtDeviceId = new Text(shell, SWT.NONE);
+		txtDeviceId.setEditable(false);
 		FormData fdLblDeviceId = new FormData();
 		fdLblDeviceId.top = new FormAttachment(0, 10);
 		fdLblDeviceId.left = new FormAttachment(0, 10);
-		lblDeviceId.setLayoutData(fdLblDeviceId);
+		txtDeviceId.setLayoutData(fdLblDeviceId);
 		if(mode == Mode.PROVISION){
-			lblDeviceId.setText("Device ID: "
+			txtDeviceId.setText("Device ID: "
 					+getInitialDeviceId());
-			lblDeviceId.getParent().layout();
+			txtDeviceId.getParent().layout();
 		}
 		
 		shell.open();
@@ -367,8 +368,8 @@ public class TOTPApplication {
 					DeviceStorage.getInstance().loadDevice(txtPin.getText());
 					Device device = DeviceStorage.getInstance().getDevice();
 					DeviceConnection.getInstance().init(device, shell);
-					lblDeviceId.setText("Device ID: "+device.getId());
-					lblDeviceId.getParent().layout();
+					txtDeviceId.setText("Device ID: "+device.getId());
+					txtDeviceId.getParent().layout();
 					pages[0].setVisible(false);
 					pages[1].setVisible(true);
 					currentAction = this::generateAndDisplayOTP;
