@@ -243,7 +243,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 			
 			devices.addAll(deviceBuilder.thenList());
 			
-			Collections.sort(devices, (d1,d2)->(int)(-1*(d1.getItemCount()-d2.getItemCount())));
+			Collections.sort(devices, (d1,d2)->(int)(d1.getItemCount()-d2.getItemCount()));
 			
 			List<Device> trimmedDevices = new ArrayList<>(maxRows);
 			
