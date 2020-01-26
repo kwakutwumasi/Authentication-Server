@@ -222,8 +222,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 			ListBuilder<Alias> aliasBuilder = getTOTPDataStore()
 					.find(Alias.class)
 					.filterBy(DEVICE_ITEM_COUNT).withValues().startingFrom(lastId+1)
-						.usingAnyMatchingFilter()
-						.filterBy("name").withAValueLike(deviceFilter)
+					.filterBy("name").withAValueLike(deviceFilter)
+					.useAResultLimitOf(maxRows)
 					.orderBy(new QueryOrder(DEVICE_ITEM_COUNT, true));
 			
 			if(status!=null)
@@ -236,6 +236,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 					.find(Device.class)
 					.filterBy("id").withAValueLike(deviceFilter)
 					.filterBy(ITEM_COUNT).withValues().startingFrom(lastId+1)
+					.useAResultLimitOf(maxRows)
 					.orderBy(new QueryOrder(ITEM_COUNT, true));
 			
 			if(status!=null)
