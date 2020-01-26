@@ -271,10 +271,10 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	@Override
 	public void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException {
 		Map<String, String> requestMap = new HashMap<>();
-		requestMap.put("requestType", "otp");
+		requestMap.put("ping", "ping");
 		requestMap.put("deviceId", device.getId());
-		deviceConnectionChannel.sendMessage(requestMap, response->{
-			callback.accept(Boolean.parseBoolean(response.get("connected")));
-		});
+		deviceConnectionChannel.sendMessage(requestMap, response->
+			callback.accept(Boolean.parseBoolean(response.get("connected")))
+		);
 	}
 }

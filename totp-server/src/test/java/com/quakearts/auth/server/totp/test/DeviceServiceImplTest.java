@@ -43,6 +43,7 @@ import com.quakearts.webapp.orm.DataStore;
 import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
+import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
 @RunWith(TOTPDatabaseServiceRunner.class)
@@ -374,10 +375,14 @@ public class DeviceServiceImplTest {
 	@Test
 	@Transactional(TransactionType.SINGLETON)
 	public void testIsConnected() throws Exception {
-		AlternativeConnectionManager.run(incoming->{
-			Map<String, String> response = new HashMap<>();
-			response.put("connected", "true");
+		AlternativeConnectionManager.run(incoming->{			
 			try {
+				JWTClaims jwtClaims = jwtGenerator.verifyJWT(incoming);
+				assertThat(jwtClaims.getPrivateClaim("ping"), is("ping"));
+				assertThat(jwtClaims.getPrivateClaim("deviceId"), is("testdevice1"));
+				
+				Map<String, String> response = new HashMap<>();
+				response.put("connected", "true");
 				return jwtGenerator.generateJWT(response).getBytes();
 			} catch (NoSuchAlgorithmException | JWTException | URISyntaxException e) {
 				throw new AssertionError(e);
