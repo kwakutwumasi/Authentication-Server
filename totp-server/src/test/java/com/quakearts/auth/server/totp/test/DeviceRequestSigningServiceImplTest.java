@@ -23,6 +23,7 @@ import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Device;
+import com.quakearts.auth.server.totp.runner.TOTPDatabaseServiceRunner;
 import com.quakearts.auth.server.totp.signing.impl.DeviceRequestSigningServiceImpl;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTHeader;
@@ -31,11 +32,10 @@ import com.quakearts.webapp.security.jwt.JWTVerifier;
 import com.quakearts.webapp.security.jwt.JWTClaims.Claim;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webapp.security.jwt.factory.JWTFactory;
-import com.quakearts.webtools.test.AllServicesRunner;
 
 import junit.framework.AssertionFailedError;
 
-@RunWith(AllServicesRunner.class)
+@RunWith(TOTPDatabaseServiceRunner.class)
 public class DeviceRequestSigningServiceImplTest {
 
 	@Inject
