@@ -47,7 +47,7 @@ import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
 @RunWith(TOTPDatabaseServiceRunner.class)
-public class DeviceServiceImplTest {
+public class DeviceManagementServiceImplTest {
 
 	@Inject
 	private DeviceManagementServiceImpl deviceService;
@@ -274,7 +274,7 @@ public class DeviceServiceImplTest {
 	
 	@Test
 	@Transactional(TransactionType.SINGLETON)
-	public void testRemoveAsAdminWithNonAdminDevice() {
+	public void testRemoveAsAdminWithNonAdminDevice() throws Exception {
 		Optional<Device> optionalDevice = deviceService.findDevice("testlockeddevice1");
 		assertThat(optionalDevice.isPresent(), is(true));
 		Device device = optionalDevice.get();

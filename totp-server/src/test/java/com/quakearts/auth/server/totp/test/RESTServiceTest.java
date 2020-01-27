@@ -273,40 +273,44 @@ public class RESTServiceTest {
 		authorizationRequest.setOtp(totp3[0]);
 		
 		deviceRequest1.setAlias(null);
-		deviceRequest2.setDeviceId("testinactivedevice1");
 		deviceRequest2.setAlias(null);
 		deviceRequest3.setAlias(null);
+		deviceRequest4.setAlias(null);
 		
 		ManagementRequest removeAsAdminRequest = new ManagementRequest();
-		removeAsAdminRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3});		
+		removeAsAdminRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3, deviceRequest4});		
 		removeAsAdminRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.removeAsAdmin(removeAsAdminRequest);
 		assertThat(response.getResponses(), is(notNullValue()));
-		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses().length, is(4));
 		assertThat(response.getResponses()[0].getMessage(), is("Success"));
 		assertThat(response.getResponses()[0].isError(), is(false));		
-		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 is not an administrator device"));
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device is an installed administrator and cannot be removed"));
 		assertThat(response.getResponses()[1].isError(), is(true));		
 		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
 		assertThat(response.getResponses()[2].isError(), is(true));		
+		assertThat(response.getResponses()[3].getMessage(), is("Error: The device testinactivedevice1 is not an administrator device"));
+		assertThat(response.getResponses()[3].isError(), is(true));		
 		
 		totp3 = totpGenerator.generateFor(device3, System.currentTimeMillis());
 		authorizationRequest.setOtp(totp3[0]);
 				
 		ManagementRequest deactivateRequest = new ManagementRequest();
-		deactivateRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3});		
+		deactivateRequest.setRequests(new DeviceRequest[]{deviceRequest1, deviceRequest2, deviceRequest3, deviceRequest4});		
 		deactivateRequest.setAuthorizationRequest(authorizationRequest);
 		
 		response = client.deactivate(deactivateRequest);
 		assertThat(response.getResponses(), is(notNullValue()));
-		assertThat(response.getResponses().length, is(3));
+		assertThat(response.getResponses().length, is(4));
 		assertThat(response.getResponses()[0].getMessage(), is("Success"));
 		assertThat(response.getResponses()[0].isError(), is(false));		
-		assertThat(response.getResponses()[1].getMessage(), is("Error: The device testinactivedevice1 cannot be deactivated. It is INACTIVE"));
-		assertThat(response.getResponses()[1].isError(), is(true));		
+		assertThat(response.getResponses()[1].getMessage(), is("Error: The device is an installed administrator and cannot be deactivated"));
+		assertThat(response.getResponses()[1].isError(), is(true));
 		assertThat(response.getResponses()[2].getMessage(), is("Error: Device was not found"));
 		assertThat(response.getResponses()[2].isError(), is(true));		
+		assertThat(response.getResponses()[3].getMessage(), is("Error: The device testinactivedevice1 cannot be deactivated. It is INACTIVE"));
+		assertThat(response.getResponses()[3].isError(), is(true));		
 
 		List<AdministratorResponse> administrators = client.listAdministrators();
 		assertThat(administrators.size(), is(4));

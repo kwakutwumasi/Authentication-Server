@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorDeactivationException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorRemovalException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
@@ -22,11 +24,11 @@ public interface DeviceManagementService {
 	boolean unlock(Device device);
 	void addAsAdmin(String name, Device device) 
 			throws MissingNameException, InvalidDeviceStatusException;
-	boolean removeAsAdmin(Device device);
+	boolean removeAsAdmin(Device device) throws InstalledAdministratorRemovalException;
 	Optional<Administrator> findAdministrator(String id);
 	List<Administrator> listAdministrators();
 	long deviceCount();
-	boolean deactivate(Device device);
+	boolean deactivate(Device device) throws InstalledAdministratorDeactivationException;
 	List<Device> fetchDevices(Status status, long lastId, int maxRows, String deviceFilter);
 	void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException;
 }

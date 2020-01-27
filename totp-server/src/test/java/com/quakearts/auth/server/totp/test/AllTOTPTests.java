@@ -12,7 +12,7 @@ import com.quakearts.auth.server.totp.options.impl.TOTPOptionsImplTest;
 		DeviceAuthorizationServiceTest.class,
 		DeviceConnectionChannelImplTest.class,
 		DeviceRequestSigningServiceImplTest.class,
-		DeviceServiceImplTest.class,
+		DeviceManagementServiceImplTest.class,
 		KeyGeneratorImplTest.class,
 		ModelTests.class, 
 		RESTServiceTest.class, 

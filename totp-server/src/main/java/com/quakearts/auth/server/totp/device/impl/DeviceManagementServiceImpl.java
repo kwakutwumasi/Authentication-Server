@@ -19,6 +19,8 @@ import javax.inject.Singleton;
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorDeactivationException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorRemovalException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
@@ -141,8 +143,11 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	}
 	
 	@Override
-	public boolean removeAsAdmin(Device device) {
+	public boolean removeAsAdmin(Device device) throws InstalledAdministratorRemovalException {
 		DataStore dataStore = getTOTPDataStore();
+		if(totpOptions.getInstalledAdministrators().containsKey(device.getId())){
+			throw new InstalledAdministratorRemovalException();
+		}
 		Optional<Administrator> optionalAdministrator = dataStore.find(Administrator.class)
 				.filterBy("device").withAValueEqualTo(device)
 				.thenGetFirst();
@@ -194,7 +199,10 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	}
 	
 	@Override
-	public boolean deactivate(Device device) {
+	public boolean deactivate(Device device) throws InstalledAdministratorDeactivationException {
+		if(totpOptions.getInstalledAdministrators().containsKey(device.getId())){
+			throw new InstalledAdministratorDeactivationException();
+		}
 		if(device.getStatus()==Status.ACTIVE){
 			device.setStatus(Status.INACTIVE);
 			getTOTPDataStore().update(device);

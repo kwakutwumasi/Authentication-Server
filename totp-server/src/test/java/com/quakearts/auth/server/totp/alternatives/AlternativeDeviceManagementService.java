@@ -13,6 +13,8 @@ import javax.interceptor.Interceptor;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.device.impl.DeviceManagementServiceImpl;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorDeactivationException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorRemovalException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
@@ -113,7 +115,7 @@ public class AlternativeDeviceManagementService implements DeviceManagementServi
 	}
 
 	@Override
-	public boolean removeAsAdmin(Device device) {
+	public boolean removeAsAdmin(Device device) throws InstalledAdministratorRemovalException {
 		return deviceService.removeAsAdmin(device);
 	}
 
@@ -133,7 +135,7 @@ public class AlternativeDeviceManagementService implements DeviceManagementServi
 	}
 	
 	@Override
-	public boolean deactivate(Device device) {
+	public boolean deactivate(Device device) throws InstalledAdministratorDeactivationException {
 		return deviceService.deactivate(device);
 	}
 	

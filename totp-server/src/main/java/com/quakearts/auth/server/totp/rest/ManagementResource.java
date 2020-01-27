@@ -23,6 +23,8 @@ import javax.ws.rs.core.Response;
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorDeactivationException;
+import com.quakearts.auth.server.totp.exception.InstalledAdministratorRemovalException;
 import com.quakearts.auth.server.totp.exception.InvalidAliasException;
 import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.ManagementException;
@@ -173,7 +175,7 @@ public class ManagementResource {
 		return execute(managementRequest, this::removeAsAdmin);
 	}
 	
-	private void removeAsAdmin(String alias, Optional<Device> deviceOptional) throws ManagementException {
+	private void removeAsAdmin(String alias, Optional<Device> deviceOptional) throws ManagementException, InstalledAdministratorRemovalException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
 			if(!deviceManagementService.removeAsAdmin(device)){
@@ -192,7 +194,7 @@ public class ManagementResource {
 		return execute(managementRequest, this::deactivate);
 	}
 	
-	private void deactivate(String alias, Optional<Device> deviceOptional) throws ManagementException {
+	private void deactivate(String alias, Optional<Device> deviceOptional) throws ManagementException, InstalledAdministratorDeactivationException {
 		if(deviceOptional.isPresent()){
 			Device device = deviceOptional.get();
 			if(!deviceManagementService.deactivate(device)){
