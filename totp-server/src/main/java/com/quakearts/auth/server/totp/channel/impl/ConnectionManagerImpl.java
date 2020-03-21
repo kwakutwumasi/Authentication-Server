@@ -192,7 +192,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		callbackStore.entrySet().forEach(entry->{
 			CallbackItem callbackItem = entry.getValue();
 			if(System.currentTimeMillis()-callbackItem.timestamp>
-				totpOptions.getDeviceAuthenticationTimeout()+100) {
+				totpOptions.getDeviceConnectionRequestTimeout()+100) {
 				callbackStore.remove(entry.getKey());
 			}
 		});

@@ -84,7 +84,7 @@ public interface TOTPOptions {
 	
 	int getExecutorServiceThreads();
 	
-	long getDeviceAuthenticationTimeout();
+	long getDeviceConnectionRequestTimeout();
 
 	String getServerJwtConfigName();
 

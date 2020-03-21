@@ -100,7 +100,7 @@ public class AuthenticationResource {
 					asyncResponse.resume(e);
 				}
 			}, deviceConnectionExecutorService.getExecutorService());
-			asyncResponse.setTimeout(totpOptions.getDeviceAuthenticationTimeout(), TimeUnit.MILLISECONDS);
+			asyncResponse.setTimeout(totpOptions.getDeviceConnectionRequestTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);
 		} else {
 			throw new WebApplicationException(Response.status(404)

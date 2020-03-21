@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.TimeoutHandler;
+import javax.ws.rs.core.Response;
 
 import org.awaitility.Duration;
 import org.hamcrest.BaseMatcher;
@@ -240,20 +241,19 @@ public class AuthenticationResourceTest {
 		
 		AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
 		
-		class Response {
+		class ResponseHolder {
 			Object value = new Object();
 		}
 		
-		Response response = new Response();
+		ResponseHolder response = new ResponseHolder();
 		
 		authenticationResource.authenticateDirect("testDirect1", 
 				mockAsyncResponse(arguments->{
 					response.value = arguments.get(0);
 				}));
-		await().atMost(Duration.ONE_SECOND)
-			.until(()->{
+		await().atMost(Duration.ONE_SECOND).until(()->{
 				return response.value != null
-						&& ((javax.ws.rs.core.Response) response.value).getStatus() == 204;
+						&& ((Response) response.value).getStatus() == 204;
 			});
 		
 		assertThat(time, is(2000l));
@@ -291,11 +291,11 @@ public class AuthenticationResourceTest {
 			
 			AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
 			
-			class Response {
+			class ResponseHolder {
 				Object value;
 			}
 			
-			Response response = new Response();
+			ResponseHolder response = new ResponseHolder();
 			
 			authenticationResource.authenticateDirect("testDirectFailed1", 
 					mockAsyncResponse(arguments->{

@@ -293,14 +293,14 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	}
 	
 	@Override
-	public long getDeviceAuthenticationTimeout() {
+	public long getDeviceConnectionRequestTimeout() {
 		if(returnDeviceAuthenticationTimeout != null) {
 			Long toreturn = returnDeviceAuthenticationTimeout;
 			returnDeviceAuthenticationTimeout = null;
 			return toreturn;			
 		}
 		
-		return wrapped.getDeviceAuthenticationTimeout();
+		return wrapped.getDeviceConnectionRequestTimeout();
 	}
 	
 	@Override

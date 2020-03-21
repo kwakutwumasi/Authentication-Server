@@ -3,6 +3,7 @@ package com.quakearts.auth.server.totp.rest;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -30,8 +31,10 @@ import com.quakearts.auth.server.totp.exception.InvalidDeviceStatusException;
 import com.quakearts.auth.server.totp.exception.ManagementException;
 import com.quakearts.auth.server.totp.exception.MissingNameException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
+import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequest;
 import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
 import com.quakearts.auth.server.totp.rest.model.ConnectedResponse;
@@ -60,6 +63,9 @@ public class ManagementResource {
 	
 	@Inject
 	private DeviceConnectionExecutorService deviceConnectionExecutorService;
+	
+	@Inject
+	private TOTPOptions totpOptions;
 	
 	@FunctionalInterface
 	private interface RequestProcessor {
@@ -265,6 +271,8 @@ public class ManagementResource {
 					.type(MediaType.APPLICATION_JSON_TYPE)
 					.build());
 		}
+		asyncResponse.setTimeout(totpOptions.getDeviceConnectionRequestTimeout(), TimeUnit.MILLISECONDS);
+		asyncResponse.setTimeoutHandler(this::handleTimeout);
 		CompletableFuture.runAsync(()->{
 			try {
 				deviceManagementService.isConnected(optionalDevice.get(), connected->
@@ -273,5 +281,9 @@ public class ManagementResource {
 				asyncResponse.resume(e);
 			}
 		}, deviceConnectionExecutorService.getExecutorService());
+	}
+	
+	private void handleTimeout(AsyncResponse asyncResponse) {
+		asyncResponse.resume(new UnconnectedDeviceException("Connection timed out"));
 	}
 }

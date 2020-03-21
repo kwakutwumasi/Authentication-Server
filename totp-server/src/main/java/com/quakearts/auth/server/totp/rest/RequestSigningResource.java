@@ -73,7 +73,7 @@ public class RequestSigningResource {
 					asyncResponse.resume(e);
 				}
 			}, deviceConnectionExecutorService.getExecutorService());
-			asyncResponse.setTimeout(totpOptions.getDeviceAuthenticationTimeout(), TimeUnit.MILLISECONDS);
+			asyncResponse.setTimeout(totpOptions.getDeviceConnectionRequestTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);			
 		} else {
 			throw notFound(deviceId);

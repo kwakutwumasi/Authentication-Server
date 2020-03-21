@@ -22,6 +22,6 @@
 		"keystore":"totp.keystore",
 		"socket.timeout":300000,
 		"ssl.instance":"TLSv1.2",
-		"authentication.timeout":"1000l"
+		"request.timeout":"1000l"
 	}
 }
