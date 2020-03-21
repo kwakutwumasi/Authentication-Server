@@ -31,10 +31,10 @@ import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.webapp.orm.DataStore;
+import com.quakearts.webapp.orm.DataStore.ListBuilder;
 import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
-import com.quakearts.webapp.orm.query.ListBuilder;
 import com.quakearts.webapp.orm.query.QueryOrder;
 
 @Singleton
@@ -219,7 +219,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 					.find(Device.class)
 					.filterBy(ITEM_COUNT).withValues().startingFrom(lastId+1)
 					.useAResultLimitOf(maxRows)
-					.orderBy(new QueryOrder(ITEM_COUNT, true));
+					.orderBy(QueryOrder.property(ITEM_COUNT).ascending());
 			
 			if(status!=null)
 				builder.filterBy("status").withAValueEqualTo(status);
@@ -232,7 +232,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 					.filterBy(DEVICE_ITEM_COUNT).withValues().startingFrom(lastId+1)
 					.filterBy("name").withAValueLike(deviceFilter)
 					.useAResultLimitOf(maxRows)
-					.orderBy(new QueryOrder(DEVICE_ITEM_COUNT, true));
+					.orderBy(QueryOrder.property(DEVICE_ITEM_COUNT).ascending());
 			
 			if(status!=null)
 				aliasBuilder.filterBy("device.status").withAValueEqualTo(status);
@@ -245,7 +245,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 					.filterBy("id").withAValueLike(deviceFilter)
 					.filterBy(ITEM_COUNT).withValues().startingFrom(lastId+1)
 					.useAResultLimitOf(maxRows)
-					.orderBy(new QueryOrder(ITEM_COUNT, true));
+					.orderBy(QueryOrder.property(ITEM_COUNT).ascending());
 			
 			if(status!=null)
 				deviceBuilder.filterBy("status").withAValueEqualTo(status);
