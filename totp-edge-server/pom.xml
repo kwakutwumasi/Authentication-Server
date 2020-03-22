@@ -85,7 +85,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.9.3.Final</resteasy-version>
+		<resteasy-version>3.11.0.Final</resteasy-version>
 	</properties>
 	<dependencies>
 		<!-- QA-Appbase -->
@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resteasy-cdi</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3</version>
 		</dependency>
 		<!-- QA-AUth -->
 		<dependency>
