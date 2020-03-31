@@ -76,12 +76,12 @@ public class StoreCommandUtilitiesTest {
 			"Size: 2\n" + 
 			"Size: 2\n" + 
 			"Registrations:\n" + 
-			"	ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"	ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
 			"	ImmortalCacheEntry{key=YB293SJ, value=Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
+			"	ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
+			"	ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
 			"Aliases:\n" + 
-			"	ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
 			"	ImmortalCacheEntry{key=Test1, value=4cf5dbf}\n" + 
+			"	ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
 			"Secrets:\n" + 
 			"	ImmortalCacheEntry{key=Secrets1, value=3c3cd4ee}\n" + 
 			"	ImmortalCacheEntry{key=Secrets2, value=3c3cd4ef}\n" + 
@@ -90,26 +90,26 @@ public class StoreCommandUtilitiesTest {
 			"	YB283SJ\n" + 
 			"	YB293SJ\n" + 
 			"Aliases:\n" + 
-			"	Test2\n" + 
 			"	Test1\n" + 
+			"	Test2\n" + 
 			"Secrets:\n" + 
 			"	Secrets1\n" + 
 			"	Secrets2\n" + 
 			"Registrations:\n" + 
-			"	Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
-			"	Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
 			"	Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
+			"	Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
+			"	Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
 			"Aliases:\n" + 
-			"	4cf5dc0\n" + 
 			"	4cf5dbf\n" + 
+			"	4cf5dc0\n" + 
 			"Secrets:\n" + 
 			"	3c3cd4ee\n" + 
 			"	3c3cd4ef\n" + 
-			"ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
 			"ImmortalCacheEntry{key=YB293SJ, value=Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
+			"ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
+			"ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
 			"ImmortalCacheEntry{key=Test1, value=4cf5dbf}\n" + 
+			"ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
 			"ImmortalCacheEntry{key=Secrets1, value=3c3cd4ee}\n" + 
 			"ImmortalCacheEntry{key=Secrets2, value=3c3cd4ef}\n" + 
 			"Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
@@ -137,7 +137,6 @@ public class StoreCommandUtilitiesTest {
 			CommandMain.main(new String[] {StoreCommandUtilities.class.getName(),"-key","Test1","-store","Aliases"});
 			CommandMain.main(new String[] {StoreCommandUtilities.class.getName(),"-key","Secrets1","-store","Secrets"});
 			CommandMain.main(new String[] {StoreCommandUtilities.class.getName(),"-key","Secrets1"});
-			
 			assertEquals(expectedOut, new String(stream.toByteArray()));
 		} finally {
 			System.setOut(oldOut);
