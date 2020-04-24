@@ -48,7 +48,7 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 			embeddedCacheManager = new DefaultCacheManager(new GlobalConfigurationBuilder()
 					.serialization()
 					.marshaller(new JavaSerializationMarshaller(new ClassWhiteList(Arrays
-							.asList("com.quakearts.auth.server.rest.models.*","java.util.ArrayList", "java.util.HashMap"))))
+							.asList("com.quakearts.auth.server.rest.models.*","java.util.*"))))
 					.defaultCacheName("global.default")
 					.build(), configuration);
 
