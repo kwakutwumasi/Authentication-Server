@@ -1,6 +1,7 @@
 package com.quakearts.auth.server.store.impl;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Singleton;
@@ -47,8 +48,7 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 			
 			embeddedCacheManager = new DefaultCacheManager(new GlobalConfigurationBuilder()
 					.serialization()
-					.marshaller(new JavaSerializationMarshaller(new ClassWhiteList(Arrays
-							.asList("com.quakearts.auth.server.rest.models.*","java.util.*"))))
+					.marshaller(new JavaSerializationMarshaller(new ClassWhiteList(getWhiteList())))
 					.defaultCacheName("global.default")
 					.build(), configuration);
 
@@ -61,6 +61,13 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 
 		}
 		return embeddedCacheManager;
+	}
+
+	private List<String> getWhiteList() {
+		String[] whiteList = System.getProperty("serialization.whitelist", 
+				"com.quakearts.auth.server.rest.models.*,java.util.*").split(",");
+
+		return Arrays.asList(whiteList);
 	}
 
 	@Override
