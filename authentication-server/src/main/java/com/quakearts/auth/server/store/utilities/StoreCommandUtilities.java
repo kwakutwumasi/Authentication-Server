@@ -34,7 +34,7 @@ public class StoreCommandUtilities extends CommandBase {
 		if(getCommandParametersMap().containsKey(STORE)) {
 			switch (getCommandParametersMap().get(STORE).getValue()) {
 			case "Registrations":
-				executeOn(impl.getCache());
+				executeOn(impl.getRegistryCache());
 				break;
 			case "Aliases":
 				executeOn(impl.getAliasCache());
@@ -48,7 +48,7 @@ public class StoreCommandUtilities extends CommandBase {
 		} else {
 			indent=true;
 			output.append("Registrations:\n");
-			executeOn(impl.getCache());
+			executeOn(impl.getRegistryCache());
 			output.append("Aliases:\n");
 			executeOn(impl.getAliasCache());
 			output.append("Secrets:\n");

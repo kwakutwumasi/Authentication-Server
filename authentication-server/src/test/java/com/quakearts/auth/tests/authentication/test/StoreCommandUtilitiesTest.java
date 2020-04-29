@@ -28,7 +28,7 @@ public class StoreCommandUtilitiesTest {
 		impl.getSecretsCache().put("Secrets1", Integer.toHexString("Secrets1".hashCode()));
 		impl.getSecretsCache().put("Secrets2", Integer.toHexString("Secrets2".hashCode()));
 		
-		impl.getCache().clear();
+		impl.getRegistryCache().clear();
 		Registration registration1 = new Registration().withIdAs("YB293SJ")
 					.withAliasAs("Test1")
 					.createConfiguration()
@@ -61,9 +61,9 @@ public class StoreCommandUtilitiesTest {
 						.setModuleFlagAs(ModuleFlag.REQUIRED)
 					.thenAdd()
 				.thenAdd();
-		impl.getCache().put(registration1.getId(), registration1);
-		impl.getCache().put(registration2.getId(), registration2);
-		impl.getCache().put(registration3.getId(), registration3);
+		impl.getRegistryCache().put(registration1.getId(), registration1);
+		impl.getRegistryCache().put(registration2.getId(), registration2);
+		impl.getRegistryCache().put(registration3.getId(), registration3);
 	}
 	
 	private String expectedOut = "Registrations:\n" + 
@@ -148,6 +148,6 @@ public class StoreCommandUtilitiesTest {
 		RegistryStoreManagerImpl impl = new RegistryStoreManagerImpl();
 		impl.getAliasCache().clear();
 		impl.getSecretsCache().clear();
-		impl.getCache().clear();		
+		impl.getRegistryCache().clear();		
 	}
 }

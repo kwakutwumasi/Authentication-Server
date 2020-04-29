@@ -72,7 +72,7 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 
 	@Override
 	@Produces @RegistryStore
-	public Cache<String, Registration> getCache() {
+	public Cache<String, Registration> getRegistryCache() {
 		return getCacheByName("default");
 	}
 
@@ -88,7 +88,8 @@ public class RegistryStoreManagerImpl implements RegistryStoreManager {
 		return getCacheByName("secrets-store");
 	}
 	
-	private <T> Cache<String, T> getCacheByName(String name) {
+	@Override
+	public <T> Cache<String, T> getCacheByName(String name) {
 		try {
 			return getEmbeddedCacheManager().getCache(name);
 		} catch (CacheConfigurationException e) {
