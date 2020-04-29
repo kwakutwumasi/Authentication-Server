@@ -216,7 +216,7 @@ public class RegistrationResource {
 			Switcher switcher = new Switcher();
 			if(oldRegistration==null) {
 				respondNotFound(asyncResponse);
-			} if(aliases.containsKey(registration.getAlias())
+			} else if(aliases.containsKey(registration.getAlias())
 					&& !aliases.get(registration.getAlias()).equals(id)) {
 				respondBadRequest(asyncResponse);
 			} else {
