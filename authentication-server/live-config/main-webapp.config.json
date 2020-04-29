@@ -9,7 +9,7 @@
 			"jackson-module-jaxb-annotations-2.10.1.jar",
 			"qa-resteasy-cdi-1.0.3.jar",
 			"resteasy-jaxrs-3.11.0.Final.jar",
-			"authentication-server-0.0.1.jar"]
+			"authentication-server-0.0.3.jar"]
 	},
 	"webapp.directories":{
 		"set":["etc"]
