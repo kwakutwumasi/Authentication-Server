@@ -82,7 +82,7 @@
 		<dependency>
 			<groupId>com.quakearts.webtools</groupId>
 			<artifactId>qa-resttools</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.swt</groupId>
