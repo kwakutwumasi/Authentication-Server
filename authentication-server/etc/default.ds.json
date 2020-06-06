@@ -1,6 +1,6 @@
 {
-	"jndi.name":"MainDS",
-	"driverClassName":"org.apache.derby.jdbc.EmbeddedDriver",
-	"url":"jdbc:derby:mainDS",
-	"connectionProperties":"create=true;"
+	"jndi.name":"FSBDS",
+	"driverClassName":"com.mysql.cj.jdbc.Driver",
+	"url":"jdbc:mysql://mifos.server:3306/fineract_servicebus_module",
+	"connectionProperties":"user=root;password=password1;autoReconnect=true"
 }

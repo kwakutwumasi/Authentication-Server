@@ -36,7 +36,7 @@ public class ModelTests {
 		assertThat(device1.getItemCount(), is(1L));
 		EncryptedValue seed = new EncryptedValue();
 		seed.setDataStoreName("dataStore");
-		seed.setStringValue("value");
+		seed.setValue("value".getBytes());
 		device1.setSeed(seed);
 		assertThat(device1.getSeed(), is(seed));
 		device1.setStatus(Status.INACTIVE);
@@ -61,7 +61,7 @@ public class ModelTests {
 		assertThat(device2.getItemCount(), is(1L));
 		EncryptedValue seed2 = new EncryptedValue();
 		seed2.setDataStoreName("dataStore");
-		seed2.setStringValue("value2");
+		seed2.setValue("value2".getBytes());
 		device2.setSeed(seed2);
 		device2.setId("78901");
 		assertThat(device2.getId(), is("78901"));

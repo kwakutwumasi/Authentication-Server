@@ -50,7 +50,7 @@ public class AuthenticationServiceImplTest {
 		device.setId("generateone");
 		EncryptedValue value = new EncryptedValue();
 		value.setDataStoreName(totpOptions.getDataStoreName());
-		value.setStringValue("test");
+		value.setValue("test".getBytes());
 		device.setSeed(value);
 		device.setStatus(Status.ACTIVE);
 		return device;
