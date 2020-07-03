@@ -26,6 +26,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.infinispan.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.rest.models.AuthenticationPack;
 import com.quakearts.auth.server.rest.models.Registration;
@@ -50,6 +52,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class AuthenticationResource {
 	private final Map<String, AuthenticationPack> 
 		authenticationPackCache = new ConcurrentHashMap<>();
+	
+	private static final Logger log = LoggerFactory.getLogger(AuthenticationResource.class);
 	
 	@Inject @RegistryStore
 	private Cache<String, Registration> store;
@@ -130,6 +134,7 @@ public class AuthenticationResource {
 			generateToken(clientId, pack, subject);
 			respondWithToken(asyncResponse, pack, subject);
 		} catch (LoginException e) {
+			log.trace("Error authenticating credential", e);
 			respondWithError(asyncResponse);
 		}
 	}
