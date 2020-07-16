@@ -51,6 +51,14 @@ public class OptionsServiceImplTest {
 		assertThat(options.get("validity.period"), is("15 Minutes"));
 		assertThat(options.get("grace.period"), is("1"));
 		assertThat(options.get("password"), is("{top.secret.2}"));
+		
+		testMap = new HashMap<>();
+		testMap.put("secret.hex", "FFFFFF");
+		
+		options = serviceImpl.buildOptions(testMap);
+		
+		assertThat(options.get("secret"), is(nullValue()));
+		assertThat(options.get("secret.hex"), is("FFFFFF"));
 	}
 
 	@Test

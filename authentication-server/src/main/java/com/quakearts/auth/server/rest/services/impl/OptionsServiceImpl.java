@@ -76,9 +76,16 @@ public class OptionsServiceImpl implements OptionsService {
 		resolveSecrets(customOptions);
 		Map<String, String> options = new HashMap<>(defaultOptions);
 		options.putAll(customOptions);
+		handleExceptions(options);
 		return options;
 	}
 	
+	private void handleExceptions(Map<String, String> options) {
+		if(options.containsKey("secret.hex")){
+			options.remove("secret");
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void resolveSecrets(Map<String, ? extends Object> parameters){
