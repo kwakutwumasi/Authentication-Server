@@ -29,6 +29,7 @@ import com.quakearts.auth.tests.authentication.test.client.TestClient;
 import com.quakearts.auth.tests.authentication.test.client.TestClientBuilder;
 import com.quakearts.auth.tests.authentication.test.client.TokenResponse;
 import com.quakearts.auth.tests.authentication.test.client.TestClient.AuthenticationRequest;
+import com.quakearts.auth.tests.authentication.test.client.TestClient.AuthenticationPOSTRequest;
 import com.quakearts.auth.tests.authentication.test.client.TestClient.TestClientException;
 import com.quakearts.webapp.security.jwt.JWTVerifier;
 import com.quakearts.webapp.security.jwt.factory.JWTFactory;
@@ -145,6 +146,16 @@ public class LiveTests {
 				JWTFactory.getInstance().getVerifier("HS256", registration.getOptions());
 		
 		verifier.verify(response.getIdToken().getBytes());
+		
+		response = client.authenticatePost(new AuthenticationPOSTRequest()
+				.setAliasAs("test-rest")
+				.setApplicationAs("Test")
+				.setClientAs("test")
+				.setCredentialAs("dGVzdDE="));
+		
+		assertThat(response.getExpiresIn()>0, is(true));
+		assertThat(response.getIdToken(), is(notNullValue()));
+		assertThat(response.getTokenType(), is(notNullValue()));
 		
 		client.delete("test-rest");
 		

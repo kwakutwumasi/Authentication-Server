@@ -13,7 +13,10 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.LoginException;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -118,6 +121,63 @@ public class AuthenticationResource {
 		});
 	}
 
+	@Operation(summary="Generate a JWT token for authenticating to a server. This can be used to avoid revealing "
+			+ "sensitive data over URLS that may be logged by the HTTP server or by a third party controlled HTTP "
+			+ "reverse proxy", 
+			description="Clients that need an authorization token for API services call this method with "
+					+ "credentials. If authenticated, an authorization token is generated and returned. "
+					+ "The token will contain the necessary information required by the API services to "
+					+ "verify and authorize access to the API methods.")
+	@ApiResponse(responseCode="200",
+				description="Authentication succeeded",
+				content=@Content(schema=@Schema(implementation=TokenResponse.class,
+												description="A JSON object containing the JWT token for authorization",
+												example="{\n" + 
+														"    \"tokenType\": \"bearer\",\n" + 
+														"    \"expiresIn\": 86400,\n" + 
+														"    \"idToken\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MzkyODgyNDEsImF1ZCI6Imh0dHBzOi8vZGVtby5xdWFrZWFydHMuY29tIiwiaXNzIjoiaHR0cHM6Ly9iYWNrb2ZmaWNlLmIxYWZyaWNhLmNvbSIsImV4cCI6MTUzOTM3NDY0MSwic3ViIjoidGVzdCIsInNhbWFjY291bnRuYW1lIjoidGVzdCIsInRlc3QiOiJ2YWx1ZSJ9.WekqQ9Q2j8I9ZwrswZfJmBLRdxhY5oDjFIiLEaKbGS4\"\n" + 
+														"}")))
+	@ApiResponse(responseCode="404",
+				description="Authentication alias is not valid",
+				content=@Content(schema=@Schema(
+						implementation=com.quakearts.auth.server.rest.models.ErrorResponse.class,
+				description="A JSON object describing and explaining the error",
+				example="{\n" + 
+						"    \"code\": \"invalid-id\",\n" + 
+						"    \"explanations\": [\n" + 
+						"        \"A registration with the provided ID could not be found\"\n" + 
+						"    ]\n" + 
+						"}")))
+	@ApiResponse(responseCode="400",
+				description="The presented credentials are not valid",
+				content=@Content(schema=@Schema(
+						implementation=com.quakearts.auth.server.rest.models.ErrorResponse.class,
+				description="A JSON object describing and explaining the error",
+				example="{\n" + 
+						"    \"code\": \"invalid-credentials\",\n" + 
+						"    \"explanations\": [\n" + 
+						"        \"The provided credentials could not be authenticated\"\n" + 
+						"    ]\n" + 
+						"}")))
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("{alias}/{application}")
+	public void authenticatePost(@PathParam("alias") final String alias,
+			@PathParam("application") final String application,
+			@NotNull @FormParam("clientId") final String clientId, 
+			@NotNull @FormParam("credential") final String credential, 
+			@Suspended AsyncResponse asyncResponse) {
+		CompletableFuture.runAsync(()->{
+			String registrationId = aliases.get(alias);
+			if(registrationId == null) {
+				respondNotFound(asyncResponse);
+			} else {
+				Registration registration = store.get(registrationId);
+				processAuthentication(application, clientId, credential, asyncResponse, registration);
+			}
+		});
+	}
+	
 	private void respondNotFound(AsyncResponse asyncResponse) {
 		asyncResponse.resume(new WebApplicationException(Response.status(Status.NOT_FOUND)
 				.entity(errorService.createErrorResponse("invalid-id",

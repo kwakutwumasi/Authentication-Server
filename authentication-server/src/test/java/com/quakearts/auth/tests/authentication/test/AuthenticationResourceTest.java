@@ -106,6 +106,19 @@ public class AuthenticationResourceTest {
 		assertThat(tokenResponse.getExpiresIn(), is(notNullValue()));
 		assertThat(tokenResponse.getTokenType(), is(notNullValue()));
 	}
+	
+	@Test
+	public void testAuthenticatePost() throws Exception {
+		
+		tokenResponses.clear();
+		AsyncResponse response = getOrCreateAsyncResponse();
+
+		authenticationResource.authenticatePost("test-main","Test", "test", "dGVzdDE=", response);
+		TokenResponse tokenResponse = tokenResponses.take();
+		assertThat(tokenResponse.getIdToken(), is(notNullValue()));
+		assertThat(tokenResponse.getExpiresIn(), is(notNullValue()));
+		assertThat(tokenResponse.getTokenType(), is(notNullValue()));
+	}
 
 	@Test
 	public void testAuthenticateWithOptions() throws Exception {
@@ -113,6 +126,24 @@ public class AuthenticationResourceTest {
 		AsyncResponse response = getOrCreateAsyncResponse();
 
 		authenticationResource.authenticate("test-options", "Test", "test", "dGVzdDE=", response);
+		TokenResponse tokenResponse = tokenResponses.take();
+		assertThat(tokenResponse.getIdToken(), is(notNullValue()));
+		assertThat(tokenResponse.getExpiresIn(), is(notNullValue()));
+		assertThat(tokenResponse.getTokenType(), is(notNullValue()));
+		
+		String[] tokenParts = tokenResponse.getIdToken().split("\\.",3);
+		assertThat(tokenParts.length, is(3));
+		JWTClaims claims = JWTFactory.getInstance().createEmptyClaims();
+		claims.unCompact(tokenParts[1]);
+		assertThat(claims.getIssuer(), is("https://mycashbagg.com"));
+	}
+	
+	@Test
+	public void testAuthenticatePostWithOptions() throws Exception {
+		tokenResponses.clear();
+		AsyncResponse response = getOrCreateAsyncResponse();
+
+		authenticationResource.authenticatePost("test-options", "Test", "test", "dGVzdDE=", response);
 		TokenResponse tokenResponse = tokenResponses.take();
 		assertThat(tokenResponse.getIdToken(), is(notNullValue()));
 		assertThat(tokenResponse.getExpiresIn(), is(notNullValue()));
@@ -153,11 +184,32 @@ public class AuthenticationResourceTest {
 	}
 	
 	@Test
+	public void testAuthenticatePostInvalid() throws Exception {
+		errorResponses.clear();		
+		AsyncResponse response = getOrCreateAsyncResponse();
+		authenticationResource.authenticatePost("test-main", "Test", "test", "test2", response);
+		ErrorResponse actualErrorResponse = errorResponses.take();
+		assertThat(actualErrorResponse.getCode(), is("invalid-credentials"));
+		assertThat(actualErrorResponse.getExplanations().contains("The provided credentials could not be authenticated"), is(true));
+	}
+	
+	@Test
 	public void testAuthenticateInvalidRegistrationId() throws Exception {
 		errorResponses.clear();		
 		AsyncResponse response = getOrCreateAsyncResponse();
 
 		authenticationResource.authenticate("test-error-id", "Test", "test", "test2", response);
+		ErrorResponse actualErrorResponse = errorResponses.take();
+		assertThat(actualErrorResponse.getCode(), is("invalid-id"));
+		assertThat(actualErrorResponse.getExplanations().contains("A registration with the provided ID could not be found"), is(true));
+	}
+	
+	@Test
+	public void testAuthenticatePostInvalidRegistrationId() throws Exception {
+		errorResponses.clear();		
+		AsyncResponse response = getOrCreateAsyncResponse();
+
+		authenticationResource.authenticatePost("test-error-id", "Test", "test", "test2", response);
 		ErrorResponse actualErrorResponse = errorResponses.take();
 		assertThat(actualErrorResponse.getCode(), is("invalid-id"));
 		assertThat(actualErrorResponse.getExplanations().contains("A registration with the provided ID could not be found"), is(true));

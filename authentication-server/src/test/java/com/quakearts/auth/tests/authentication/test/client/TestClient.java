@@ -166,32 +166,32 @@ public class TestClient extends HttpClient {
 		}
 	}
 	
+	public TokenResponse authenticatePost(AuthenticationPOSTRequest request) 
+			throws IOException, HttpClientException {
+		httpResponse = sendRequest("/authenticate/"+request.getPath(), request.getBody(), 
+				HttpVerb.POST, "application/x-www-form-urlencoded");
+		if(httpResponse.getHttpCode()==200) {
+			return objectMapper.readValue(httpResponse.getOutput(), 
+					TokenResponse.class);
+		} else {
+			throw processError(httpResponse);
+		}
+	}
+	
 	public static class AuthenticationRequest {
 		private String alias;
 		private String application;
 		private String client;
 		private String credential;
 
-		public String getAlias() {
-			return alias;
-		}
-
 		public AuthenticationRequest setAliasAs(String alias) {
 			this.alias = alias;
 			return this;
 		}
 		
-		public String getApplication() {
-			return application;
-		}
-
 		public AuthenticationRequest setApplicationAs(String application) {
 			this.application = application;
 			return this;
-		}
-
-		public String getClient() {
-			return client;
 		}
 
 		public AuthenticationRequest setClientAs(String client) {
@@ -199,10 +199,6 @@ public class TestClient extends HttpClient {
 			return this;
 		}
 
-		public String getCredential() {
-			return credential;
-		}
-		
 		public AuthenticationRequest setCredentialAs(String credential) {
 			this.credential = credential;
 			return this;
@@ -212,6 +208,46 @@ public class TestClient extends HttpClient {
 		public String toString() {
 			return MessageFormat.format("{0}/{1}?clientId={2}&credential={3}", 
 					alias, application, client, credential);
+		}
+	}
+	
+	public static class AuthenticationPOSTRequest {
+		private String alias;
+		private String application;
+		private String client;
+		private String credential;
+
+		public AuthenticationPOSTRequest setAliasAs(String alias) {
+			this.alias = alias;
+			return this;
+		}
+
+		public AuthenticationPOSTRequest setApplicationAs(String application) {
+			this.application = application;
+			return this;
+		}
+
+		public AuthenticationPOSTRequest setClientAs(String client) {
+			this.client = client;
+			return this;
+		}
+
+		public String getCredential() {
+			return credential;
+		}
+		
+		public AuthenticationPOSTRequest setCredentialAs(String credential) {
+			this.credential = credential;
+			return this;
+		}
+
+		public String getPath() {
+			return MessageFormat.format("{0}/{1}", 
+					alias, application);
+		}
+		
+		public String getBody() {
+			return MessageFormat.format("clientId={0}&credential={1}", client, credential);
 		}
 	}
 }
