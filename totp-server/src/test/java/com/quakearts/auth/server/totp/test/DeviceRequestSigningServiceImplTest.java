@@ -23,8 +23,10 @@ import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Device;
+import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.runner.TOTPDatabaseServiceRunner;
 import com.quakearts.auth.server.totp.signing.impl.DeviceRequestSigningServiceImpl;
+import com.quakearts.security.cryptography.jpa.EncryptedValue;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTHeader;
 import com.quakearts.webapp.security.jwt.JWTSigner;
@@ -49,10 +51,20 @@ public class DeviceRequestSigningServiceImplTest {
 		AlternativeTOTPGenerator.simulate(true);
 		Map<String, String> message = new HashMap<>();
 		message.put("request", "sensitive");
-		deviceRequestSigningService.signRequest(getErrorTestDevice(), message, signedMessage->{			
+		
+		EncryptedValue seed = new EncryptedValue();
+		seed.setValue("Test Value".getBytes());
+		seed.setDataStoreName("test");
+		
+		Device device = new Device();
+		device.setId("123456");
+		device.setStatus(Status.ACTIVE);
+		device.setSeed(seed);
+		
+		deviceRequestSigningService.signRequest(device, message, signedMessage->{			
 			JWTFactory factory = JWTFactory.getInstance();
 			Map<String, String> options = new HashMap<>();
-			options.put("secret", "7890");
+			options.put("secret", "7890"+device.getCheckValue().getStringValue());
 			JWTVerifier verifier;
 			try {
 				verifier = factory.getVerifier("HS256", options);
@@ -166,7 +178,7 @@ public class DeviceRequestSigningServiceImplTest {
 		claims.addPrivateClaim("totp-timestamp", now+"");
 		
 		Map<String, String> options = new HashMap<>();
-		options.put("secret", totp[0]);
+		options.put("secret", totp[0]+device.getCheckValue().getStringValue());
 		
 		JWTSigner signer = factory.getSigner("HS256", options);
 		

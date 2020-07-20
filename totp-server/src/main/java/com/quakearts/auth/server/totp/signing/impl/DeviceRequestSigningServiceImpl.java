@@ -51,7 +51,7 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 				JWTFactory factory = JWTFactory.getInstance();
 				JWTSigner jwtSigner;
 				try {
-					jwtSigner = factory.getSigner(HS256, createOptionsWith(otp));
+					jwtSigner = factory.getSigner(HS256, createOptionsWith(otp, device));
 					JWTHeader header = factory.createEmptyClaimsHeader();
 					JWTClaims claims = factory.createJWTClaimsFromMap(requestMap);
 					callback.accept(jwtSigner.sign(header, claims));
@@ -64,9 +64,9 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 		});
 	}
 
-	private Map<String, Object> createOptionsWith(String otp) {
+	private Map<String, Object> createOptionsWith(String otp, Device device) {
 		Map<String, Object> options = new HashMap<>();
-		options.put("secret", otp);
+		options.put("secret", otp+device.getCheckValue().getStringValue());
 		return options;
 	}
 
@@ -91,7 +91,7 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 		String[] totp = totpGenerator.generateFor(device, timestamp);
 		
 		try {
-			JWTVerifier verifier = factory.getVerifier(HS256, createOptionsWith(totp[0]));
+			JWTVerifier verifier = factory.getVerifier(HS256, createOptionsWith(totp[0], device));
 			verifier.verify(signedRequest);
 		} catch (JWTException e) {
 			throw new InvalidSignatureException(e);
