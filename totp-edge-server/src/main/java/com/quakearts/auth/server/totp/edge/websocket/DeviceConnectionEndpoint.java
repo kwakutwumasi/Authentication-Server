@@ -44,6 +44,7 @@ public class DeviceConnectionEndpoint {
 	@OnOpen
 	public void opened(Session session, @PathParam("deviceId") String deviceId, 
 			@PathParam("otp") String otp){
+		log.trace("Web Socket open request for deviceId {}", deviceId);
 		AuthenticationRequest request = new AuthenticationRequest();
 		request.setDeviceId(deviceId);
 		request.setOtp(otp);
@@ -54,8 +55,8 @@ public class DeviceConnectionEndpoint {
 				session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "OTP Authentication failure. "+e.getMessage()));
 			} catch (IOException e1) {
 				log.error("Unable to send close response to "+deviceId, e1);
-				return;
 			}
+			return;
 		}
 		
 		connectionService.registerConnection(new WebsocketSessionDeviceConnection(session, deviceId, 
@@ -64,16 +65,22 @@ public class DeviceConnectionEndpoint {
 	
 	@OnClose
 	public void closed(Session session){
+		log.trace("Web Socket close request received");
 		DeviceConnection deviceConnection = getDeviceConnection(session);
-		if(deviceConnection!=null)
+		if(deviceConnection!=null){
 			connectionService.unregisterConnection(deviceConnection);
+			log.trace("Web Socket closed for {}", deviceConnection.getDeviceId());
+		}
 	}
 
 	@OnMessage
 	public void received(Session session, Payload payload){
+		log.trace("Web Socket message received");
 		DeviceConnection deviceConnection = getDeviceConnection(session);
-		if(deviceConnection!=null)
+		if(deviceConnection!=null) {
 			deviceConnection.respond(payload);
+			log.trace("Web Socket message processed for {}", deviceConnection.getDeviceId());
+		}
 	}
 
 	private DeviceConnection getDeviceConnection(Session session) {
