@@ -188,7 +188,7 @@ class DeviceConnection(private val device: Device){
         val protocol = OkHttpWebSocket(
             okHTTPClient,
             OkHttpWebSocket.SimpleRequestFactory(
-                {Request.Builder().url(Options.totpWsUrl+"/"+device.id+"/"+device.generateOtp()).build()},
+                { Request.Builder().url(Options.totpWsUrl+"/"+device.id+"/"+device.generateOtp()).build() },
                 { ShutdownReason.GRACEFUL }
             )
         )
@@ -204,7 +204,6 @@ class DeviceConnection(private val device: Device){
         )
         val websocket = Scarlet(protocol, websocketConfiguration)
         val totpWebsocketService = websocket.create<TOTPWebsocketService>()
-
         subscription = totpWebsocketService.observePayload().subscribe{
             if(it.message.containsKey("requestType")
                 && otpAuthorizationRequestListener != null
@@ -231,7 +230,7 @@ class DeviceConnection(private val device: Device){
                     else -> sendError("Invalid request type",it,totpWebsocketService)
                 }
             } else {
-                sendError("Unavailable to respond",it,totpWebsocketService)
+                sendError("Unable to respond",it,totpWebsocketService)
                 it.message["error"]="Invalid request"
             }
         }

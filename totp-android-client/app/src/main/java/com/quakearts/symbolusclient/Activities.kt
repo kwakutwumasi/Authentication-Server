@@ -222,13 +222,42 @@ class TOTPActivity : AppCompatActivity() {
     private lateinit var counter : Counter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_totp)
+        setSupportActionBar(toolbar)
         if(!TOTPApplication.started()){
             startActivity(Intent(this,LoaderActivity::class.java))
         }
+    }
 
-        setContentView(R.layout.activity_totp)
-        setSupportActionBar(toolbar)
+    fun onPinTextClicked(view:View){
+        if(this::counter.isInitialized) {
+            val bounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce)
+            bounceAnimation.interpolator = BounceInterpolator(0.2, 15.0)
+            pin_view.startAnimation(bounceAnimation)
+            CounterTask().execute(counter)
+            stop_counter.setClickable(true)
+            pin_view.setClickable(false)
+            pin_view.text = TOTPApplication.generateOtp()
+        }
+    }
 
+    fun onStopClicked(view: View){
+        if(this::counter.isInitialized){
+            val bounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce)
+            bounceAnimation.interpolator = BounceInterpolator(0.2, 15.0)
+            stop_counter.startAnimation(bounceAnimation)
+            stopCounter()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopCounter()
+        TOTPApplication.unRegisterListener()
+    }
+
+    override fun onResume() {
+        super.onResume()
         counter = Counter({
             runOnUiThread {
                 counter_view.text = it
@@ -269,33 +298,6 @@ class TOTPActivity : AppCompatActivity() {
         })
 
         stop_counter.setClickable(false)
-    }
-
-    fun onPinTextClicked(view:View){
-        if(this::counter.isInitialized) {
-            val bounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce)
-            bounceAnimation.interpolator = BounceInterpolator(0.2, 15.0)
-            pin_view.startAnimation(bounceAnimation)
-            CounterTask().execute(counter)
-            stop_counter.setClickable(true)
-            pin_view.setClickable(false)
-            pin_view.text = TOTPApplication.generateOtp()
-        }
-    }
-
-    fun onStopClicked(view: View){
-        if(this::counter.isInitialized){
-            val bounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce)
-            bounceAnimation.interpolator = BounceInterpolator(0.2, 15.0)
-            stop_counter.startAnimation(bounceAnimation)
-            stopCounter()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        stopCounter()
-        TOTPApplication.unRegisterListener()
     }
 
     private fun stopCounter() {
