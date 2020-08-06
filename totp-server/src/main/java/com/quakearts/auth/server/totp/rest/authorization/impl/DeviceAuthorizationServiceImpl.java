@@ -18,11 +18,15 @@ public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationServic
 	private DeviceConnectionChannel deviceConnectionChannel;
 	
 	@Override
-	public void requestOTPCode(String deviceId, Consumer<String> callback, Consumer<String> errorCallback) 
-			throws TOTPException {
+	public void requestOTPCode(String deviceId, Map<String, String> authenticationData, 
+			Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
 		Map<String, String> requestMap = new HashMap<>();
+		if(authenticationData!=null && !authenticationData.isEmpty())
+			requestMap.putAll(authenticationData);
+
 		requestMap.put("requestType", "otp");
 		requestMap.put("deviceId", deviceId);
+		
 		deviceConnectionChannel.sendMessage(requestMap, response->{
 			String otp = response.get("otp");
 			if(otp != null) {				

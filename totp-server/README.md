@@ -61,12 +61,12 @@ Edge servers may connect to this server. The "device.connection" parameters of t
 
 The libraries for the TOTP server must be included in the Authentication Server class path. Since Authentication Server uses the QA-Appbase, the basic platform for running the login module is in place. Authentication Server uses JAX-RS to provide its interface. The web server within Authentication Server will automatically load the REST interfaces for TOTP. 
 
-The server will require an implementation of QA-ORM, specifically a Java Persistent Architecture compatible implementation. Non JPA implementations will work. However they must support transparent encryption and decryption of the secured fields, using QA-Crypto's _com.quakearts.security.cryptography.jpa.EncryptedValueConverter_ and _com.quakearts.security.cryptography.jpa.EncryptedValueStringConverter_. 
+The server will require an implementation of QA-ORM, specifically a Java Persistent Architecture compatible implementation. Non JPA implementations will work. However they must support transparent encryption and decryption of the secured fields, using QA-Crypto's  _com.quakearts.security.cryptography.jpa.EncryptedValueConverter_  and  _com.quakearts.security.cryptography.jpa.EncryptedValueStringConverter_ . 
 
 The reference implementation uses QA-ORM-Hibernate as its ORM implementation. QA-ORM-Hibernate requires a Java Connectivity Architecure (JCA) datasource. Since Authentication server excludes these libraries, they would need to be explicitly added. The Java Transacton Architecture (JTA) libraries can also be added to simplify transaction management.
 
 Two other files need to be on the classpath:
-1. login.config - this is a JAAS login configuration for authenticating tokens used to access the management interface. It must be configured with an appropriate _com.quakearts.webapp.security.auth.JWTLoginModule_ named 'TOTP-JWT-Login'. See QA-Auth for more information on configuring _JWTLoginModule_.
+1. login.config - this is a JAAS login configuration for authenticating tokens used to access the management interface. It must be configured with an appropriate  _com.quakearts.webapp.security.auth.JWTLoginModule_  named 'TOTP-JWT-Login'. See QA-Auth for more information on configuring  _JWTLoginModule_ .
 
 2. totpoptions.json - This file contains important setup information for the TOTP server:
 
@@ -105,7 +105,7 @@ device.connection -> port - The port edge servers connect to
 
 Prior to the first server initialization, a minimum of two (2) devices must be selected as administrators. One device is used to create records. The other is used to approve the record creation. 
 
-The selected devices will need to generate device ID's prior to provisioning. These device ID's are configured in the applications setup file _totpoptions.json_ in the 'installed.administrators' section of the configuration. Below is an example of the entries: 
+The selected devices will need to generate device ID's prior to provisioning. These device ID's are configured in the applications setup file  _totpoptions.json_  in the 'installed.administrators' section of the configuration. Below is an example of the entries: 
 
 ```
 	"installed.administrators":{
@@ -113,7 +113,7 @@ The selected devices will need to generate device ID's prior to provisioning. Th
 	}
 ```
 
-The map key is the device ID and the value is the name given to that device. It should be descriptive such as "Kofi Babone's iPhone 6S" or "John Smith's Samsung Galaxy 5" to make it easy for administrators to know the owner and the specific device.
+The map key is the device ID (or alias) and the value is the name given to that device. It should be descriptive such as "Kofi Babone's iPhone 6S" or "John Smith's Samsung Galaxy 5" to make it easy for administrators to know the owner and the specific device.
 
 Once this and other parameters have been set, the server can be started and the administrator device provisioned. The devices will be added to the set of administrator devices during provisioning.
 

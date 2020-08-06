@@ -1,9 +1,10 @@
 <resources>
     <string name="app_name">Symbolus TOTP</string>
-    <string name="otp_dialog">A \'Sign In\' request has been received. Do you want to authorize it?</string>
+    <string name="otp_dialog">A \'Sign In\' request has been received. Do you want to authorize it?{0}{1}</string>
+    <string name="otp_dialog_details">\nThe details are\n</string>
     <string name="otp_dialog_authorize">Authorize</string>
     <string name="otp_dialog_reject">Reject</string>
-    <string name="otp_signing_dialog">A signature request has been received. The details are\n {0}</string>
+    <string name="otp_signing_dialog">A signature request has been received. The details are\n{0}</string>
     <string name="pin_label_text">Enter Your Symbolus PIN</string>
     <string name="zero">0</string>
     <string name="one">1</string>

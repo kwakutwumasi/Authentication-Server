@@ -84,76 +84,84 @@ public class ConnectionManagerImplTest {
 
 	@SuppressWarnings({ "rawtypes", "serial" })
 	@Test
-	public void testSendUnsolicitedMessage() throws Exception {
-		AlternativeTOTPOptions.returnConnectionEchoInterval(100000l);
-		AlternativeTOTPOptions.returnConnectionPort(9003);
-		
-		class Checker {
-			boolean removed;
-		}
-		
-		Checker check = new Checker();
-		
-		ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
-			@Override
-			public Object remove(Object key) {
-				check.removed = (new Long(9223372036854775807l)).equals(key);
-				return super.remove(key);
+	public void testSendUnsolicitedMessage() {
+		try {
+			AlternativeTOTPOptions.returnConnectionEchoInterval(100000l);
+			AlternativeTOTPOptions.returnConnectionPort(9003);
+			
+			class Checker {
+				boolean removed;
 			}
-		};
-		Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
-		field.setAccessible(true);
-		field.set(connectionManagerImpl, monitoredMap);
-		
-		connectionManagerImpl.init();
-		try(Socket socket = createClientSocket(9003)){
-			OutputStream out = socket.getOutputStream();
-			byte[] message = new byte[] {1, 4, 127, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, 't', 'e','s','t'};
-			out.write(message);
-			out.flush();
-			await().atMost(TWO_SECONDS).until(()->check.removed);
-		} finally {
-			connectionManagerImpl.shutdown();
+			
+			Checker check = new Checker();
+			
+			ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
+				@Override
+				public Object remove(Object key) {
+					check.removed = (new Long(9223372036854775807l)).equals(key);
+					return super.remove(key);
+				}
+			};
+			Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
+			field.setAccessible(true);
+			field.set(connectionManagerImpl, monitoredMap);
+			
+			connectionManagerImpl.init();
+			try(Socket socket = createClientSocket(9003)){
+				OutputStream out = socket.getOutputStream();
+				byte[] message = new byte[] {1, 4, 127, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, (byte)255, 't', 'e','s','t'};
+				out.write(message);
+				out.flush();
+				await().atMost(TWO_SECONDS).until(()->check.removed);
+			} finally {
+				connectionManagerImpl.shutdown();
+			}
+		} catch (Exception e) {
+			fail(e.getMessage());
 		}
 	}
 	
 	@SuppressWarnings({ "rawtypes", "serial" })
 	@Test
-	public void testCleanOrphanedCallback() throws Exception {
-		AlternativeTOTPOptions.returnConnectionEchoInterval(1300l);
-		AlternativeTOTPOptions.returnConnectionPort(9004);
-		AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(100l);
-		
-		class Checker {
-			Long value;
-		}
-		
-		Checker check = new Checker();
-
-		Consumer<byte[]> callback = bites->{
-			check.value = 1l;
-		};
-		
-		ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
-			@Override
-			public Object remove(Object key) {
-				if(check.value == null) {
-					check.value = 2l;
-				}
-				return super.remove(key);
+	public void testCleanOrphanedCallback() {
+		try {
+			AlternativeTOTPOptions.returnConnectionEchoInterval(1300l);
+			AlternativeTOTPOptions.returnConnectionPort(9004);
+			AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(100l);
+			
+			class Checker {
+				Long value;
 			}
-		};
-		Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
-		field.setAccessible(true);
-		field.set(connectionManagerImpl, monitoredMap);
-		
-		connectionManagerImpl.init();
-		try(Socket socket = createClientSocket(9004)){
-			byte[] message = new byte[] {'t', 'e','s','t'};
-			connectionManagerImpl.send(message, callback);
-			await().atMost(TWO_SECONDS).until(()->Long.valueOf(2l).equals(check.value));
-		} finally {
-			connectionManagerImpl.shutdown();
+			
+			Checker check = new Checker();
+
+			Consumer<byte[]> callback = bites->{
+				check.value = 1l;
+			};
+			
+			ConcurrentHashMap monitoredMap = new ConcurrentHashMap(){
+				@Override
+				public Object remove(Object key) {
+					if(check.value == null) {
+						check.value = 2l;
+					}
+					return super.remove(key);
+				}
+			};
+			Field field = ConnectionManagerImpl.class.getDeclaredField("callbackStore");
+			field.setAccessible(true);
+			field.set(connectionManagerImpl, monitoredMap);
+			
+			connectionManagerImpl.init();
+			try(Socket socket = createClientSocket(9004)){
+				byte[] message = new byte[] {'t', 'e','s','t'};
+				connectionManagerImpl.send(message, callback);
+				await().atMost(TWO_SECONDS).until(()->Long.valueOf(2l).equals(check.value));
+			} finally {
+				connectionManagerImpl.shutdown();
+			}
+		} catch (Exception e) {
+			fail(e.getMessage());
 		}
 	}
 

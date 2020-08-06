@@ -61,8 +61,18 @@
                 }
               }
             }
-        },
-        "400" : {
+          },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
             "description" : "Data source error",
             "content" : {
               "application/json" : {
@@ -71,8 +81,8 @@
                 }
               }
             }
-        },
-        "500" : {
+          },
+          "500" : {
             "description" : "General internal server error",
             "content" : {
               "application/json" : {
@@ -85,27 +95,65 @@
         }
       }
     },
-    "/authenticate/device/{deviceId}" : {
-      "get" : {
+    "/authenticate/direct" : {
+      "post" : {
         "tags": [
           "Security Operations"
         ],
         "operationId" : "authenticateDirect",
         "summary": "Authenticate a user by connecting directly to the device",
         "description":"Verify/authenticate a user by connecting directly to the device and requesting the TOTP code",
-        "parameters" : [ {
-          "name" : "deviceId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DirectAuthenticationRequest"
+              }
+            }
           }
-        } ],
+        },
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "201" : {
+            "description" : "Login is successful"
+          },
+          "403" : {
+            "description" : "Authentication failed",
             "content" : {
-              "*/*" : { }
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
             }
           }
         }
@@ -833,7 +881,75 @@
         }
       }
     },
-    "/provisioning/{deviceid}" : {
+    "/manage/check-connection/{deviceId}" : {
+      "get" : {
+        "tags": [
+          "Report Operations"
+        ],
+        "operationId" : "checkConnection",
+        "parameters" : [ {
+          "name" : "deviceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Connection check was successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConnectedResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Data source error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/provisioning/{deviceId}" : {
       "put" : {
         "tags": [
           "Provisioning Operations"
@@ -842,7 +958,7 @@
         "summary": "Activate a previously provisioned device.",
         "description":"This is the last step of device provisioning and is required to activate the device for authentication.",
         "parameters" : [ {
-          "name" : "deviceid",
+          "name" : "deviceId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -875,6 +991,16 @@
               }
             }
           },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "500" : {
             "description" : "General internal server error",
             "content" : {
@@ -895,7 +1021,7 @@
         "summary": "Provision a new device.",
         "description":"This is the first step of device provisioning. A cryptographic seed and an inital counter will be generated and returned. The two peices of information, along with the previously (offline) shared time step and HMAC algorithm are used to generate TOTP tokens to authenticate the device and by extension its user.",
         "parameters" : [ {
-          "name" : "deviceid",
+          "name" : "deviceId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -909,6 +1035,16 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ProvisioningResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -998,6 +1134,16 @@
               "*/*" : { }
             }
           },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "400" : {
             "description" : "Data source error",
             "content" : {
@@ -1056,6 +1202,16 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "The Device was not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1131,6 +1287,37 @@
           "otp" : {
             "type" : "string"
           }
+        }
+      },
+      "ConnectedResponse" : {
+        "type" : "object",
+        "properties" : {
+          "connected" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "DirectAuthenticationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "deviceId" : {
+            "type" : "string"
+          },
+          "authenticationData" : {
+            "type" : "object",
+            "properties":{
+              "any": {
+                "type":"string"
+              }
+            }
+          }
+        },
+        "example": {
+    	 "deviceId":"dv189297hfh830dj303",
+    	  "authenticationData":{
+    		"Site":"example.server.com",
+    		"Authentication ID":"8UG23"
+    	  }
         }
       },
       "ManagementResponse" : {

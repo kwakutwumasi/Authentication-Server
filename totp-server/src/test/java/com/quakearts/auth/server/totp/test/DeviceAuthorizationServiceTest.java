@@ -24,7 +24,7 @@ import junit.framework.AssertionFailedError;
 public class DeviceAuthorizationServiceTest {
 
 	@Inject
-	private DeviceAuthorizationServiceImpl deviceConnectionService;
+	private DeviceAuthorizationServiceImpl deviceAuthorizationService;
 	
 	@Inject
 	private JWTGeneratorImpl jwtGenerator;
@@ -32,11 +32,20 @@ public class DeviceAuthorizationServiceTest {
 	@Test
 	public void testSendMessage() throws Exception {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
-		deviceConnectionService.requestOTPCode("123456",otp->{			
+		deviceAuthorizationService.requestOTPCode("123456", null, otp->{			
+			assertThat(otp, is("7890"));
+		}, error->{});
+		HashMap<String, String> authenticationData = new HashMap<>();
+		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{			
+			assertThat(otp, is("7890"));
+		}, error->{});
+		authenticationData.put("key", "value");
+		AlternativeConnectionManager.run(this::expectedMessageAndResponseWithExtraData);
+		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{			
 			assertThat(otp, is("7890"));
 		}, error->{});
 		AlternativeConnectionManager.run(this::errorMessage);
-		deviceConnectionService.requestOTPCode("123456", otp->{
+		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{
 			throw new AssertionFailedError("Error callback was not called");
 		}, error->{
 			assertThat(error, is("Message"));
@@ -48,6 +57,20 @@ public class DeviceAuthorizationServiceTest {
 			JWTClaims jwtClaims = jwtGenerator.verifyJWT(message);
 			assertThat(jwtClaims.getPrivateClaim("requestType"), is("otp"));
 			assertThat(jwtClaims.getPrivateClaim("deviceId"), is("123456"));
+			Map<String, String> responseMap = new HashMap<>();
+			responseMap.put("otp", "7890");
+			return jwtGenerator.generateJWT(responseMap).getBytes();			
+		} catch (Exception e) {
+			throw new AssertionError(e);
+		}
+	}
+	
+	private byte[] expectedMessageAndResponseWithExtraData(byte[] message){
+		try {
+			JWTClaims jwtClaims = jwtGenerator.verifyJWT(message);
+			assertThat(jwtClaims.getPrivateClaim("requestType"), is("otp"));
+			assertThat(jwtClaims.getPrivateClaim("deviceId"), is("123456"));
+			assertThat(jwtClaims.getPrivateClaim("key"), is("value"));
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("otp", "7890");
 			return jwtGenerator.generateJWT(responseMap).getBytes();			

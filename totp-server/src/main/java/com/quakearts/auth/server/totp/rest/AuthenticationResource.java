@@ -7,10 +7,8 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -28,6 +26,7 @@ import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
+import com.quakearts.auth.server.totp.rest.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 
 @Path("authenticate")
@@ -53,16 +52,15 @@ public class AuthenticationResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void authenticate(AuthenticationRequest request) throws AuthenticationException {
 		if(request.getDeviceId()==null){
-			throw new AuthenticationException("AuthenticationRequest is required");
+			throw new AuthenticationException("deviceId is required");
 		}
 
 		String deviceId = request.getDeviceId();
-		String otp = request.getOtp();
 		
 		Optional<Device> optionalDevice = deviceManagementService.findDevice(deviceId);
 		if(optionalDevice.isPresent() && optionalDevice.get().getStatus() == Status.ACTIVE){
 			Device device = optionalDevice.get();
-			authenticate(device, otp);
+			authenticate(device, request.getOtp());
 		} else {
 			throw new AuthenticationException("Device with ID "+deviceId+" not found");
 		}
@@ -80,15 +78,22 @@ public class AuthenticationResource {
 		}
 	}
 	
-	@GET
-	@Path("device/{deviceId}")
-	public void authenticateDirect(@PathParam("deviceId") String deviceId, @Suspended AsyncResponse asyncResponse) {
+	@POST
+	@Path("direct")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void authenticateDirect(DirectAuthenticationRequest request, @Suspended AsyncResponse asyncResponse) 
+			throws AuthenticationException {
+		if(request.getDeviceId()==null){
+			throw new AuthenticationException("deviceId is required");
+		}
+		
+		String deviceId = request.getDeviceId();
 		Optional<Device> optionalDevice = deviceManagementService.findDevice(deviceId);
 		if(optionalDevice.isPresent() && optionalDevice.get().getStatus() == Status.ACTIVE){
 			CompletableFuture.runAsync(()->{
 				Device device = optionalDevice.get();
 				try {
-					deviceAuthorizationService.requestOTPCode(device.getId(), otp->{
+					deviceAuthorizationService.requestOTPCode(device.getId(), request.getAuthenticationData(), otp->{
 						try {
 							authenticate(device, otp);
 							asyncResponse.resume(Response.noContent().build());

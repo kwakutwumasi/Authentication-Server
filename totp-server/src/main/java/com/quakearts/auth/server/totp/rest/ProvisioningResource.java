@@ -31,7 +31,7 @@ import com.quakearts.webapp.orm.DataStore;
 import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 
-@Path("provisioning/{deviceid}")
+@Path("provisioning/{deviceId}")
 @Singleton
 public class ProvisioningResource {
 	@Inject
@@ -51,11 +51,11 @@ public class ProvisioningResource {
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public ProvisioningResponse provision(@PathParam("deviceid") String deviceid) {
+	public ProvisioningResponse provision(@PathParam("deviceId") String deviceId) {
 		DataStore dataStore = factory.getDataStore(totpOptions.getDataStoreName());
-		Device device = dataStore.get(Device.class, deviceid);
+		Device device = dataStore.get(Device.class, deviceId);
 		if(device == null) {
-			device = createDevice(deviceid, dataStore);			
+			device = createDevice(deviceId, dataStore);			
 			return new ProvisioningResponse()
 					.withSeedAs(CryptoResource.byteAsHex(device.getSeed().getValue()))
 					.withInitialCounterAs(device.getInitialCounter());
@@ -66,10 +66,10 @@ public class ProvisioningResource {
 		}
 	}
 
-	private Device createDevice(String deviceid, DataStore dataStore) {
+	private Device createDevice(String deviceId, DataStore dataStore) {
 		Device device;
 		device = new Device();
-		device.setId(deviceid);
+		device.setId(deviceId);
 		device.setInitialCounter(System.currentTimeMillis());
 		keyGenerator.generateAndStoreIn(device);
 		device.setStatus(Status.INITIATED);
@@ -79,15 +79,15 @@ public class ProvisioningResource {
 	
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void activate(@PathParam("deviceid") String deviceid, ActivationRequest request) 
+	public void activate(@PathParam("deviceId") String deviceId, ActivationRequest request) 
 			throws MissingNameException, InvalidDeviceStatusException, 
 				InvalidAliasException, DuplicateAliasException {
 		DataStore dataStore = factory.getDataStore(totpOptions.getDataStoreName());
 		checkAlias(request, dataStore);
 		
-		Device device = dataStore.get(Device.class, deviceid);
+		Device device = dataStore.get(Device.class, deviceId);
 		if(device != null && device.getStatus() == Status.INITIATED) {
-			doActivation(deviceid, request, dataStore, device);
+			doActivation(deviceId, request, dataStore, device);
 		} else {
 			throw new WebApplicationException(Response.status(404)
 					.type(MediaType.APPLICATION_JSON)
@@ -103,14 +103,14 @@ public class ProvisioningResource {
 		}
 	}
 
-	private void doActivation(String deviceid, ActivationRequest request, DataStore dataStore, Device device)
+	private void doActivation(String deviceId, ActivationRequest request, DataStore dataStore, Device device)
 			throws MissingNameException, InvalidDeviceStatusException, DuplicateAliasException, InvalidAliasException {
 		if(authenticationService.authenticate(device, request.getToken())){
 			device.setStatus(Status.ACTIVE);
 			dataStore.update(device);
 			
-			if(totpOptions.getInstalledAdministrators().containsKey(deviceid)){
-				String name = totpOptions.getInstalledAdministrators().get(deviceid);
+			if(totpOptions.getInstalledAdministrators().containsKey(deviceId)){
+				String name = totpOptions.getInstalledAdministrators().get(deviceId);
 				deviceManagementService.addAsAdmin(name, device);
 			}
 			

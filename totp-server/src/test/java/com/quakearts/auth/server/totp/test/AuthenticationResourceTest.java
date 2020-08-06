@@ -35,6 +35,7 @@ import com.quakearts.auth.server.totp.exception.AuthenticationException;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.rest.AuthenticationResource;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
+import com.quakearts.auth.server.totp.rest.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.tools.test.mocking.VoidMockedImplementation;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
@@ -88,7 +89,7 @@ public class AuthenticationResourceTest {
 	@Test
 	public void testLoginNoDeviceId() throws Exception {
 		expectedException.expect(AuthenticationException.class);
-		expectedException.expectMessage("AuthenticationRequest is required");		
+		expectedException.expectMessage("deviceId is required");		
 		authenticationResource.authenticate(createRequest(null, null));
 	}
 	
@@ -247,7 +248,11 @@ public class AuthenticationResourceTest {
 		
 		ResponseHolder response = new ResponseHolder();
 		
-		authenticationResource.authenticateDirect("testDirect1", 
+		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+		authenticationRequest.setDeviceId("testDirect1");
+		authenticationRequest.setAuthenticationData(new HashMap<>());
+		
+		authenticationResource.authenticateDirect(authenticationRequest, 
 				mockAsyncResponse(arguments->{
 					response.value = arguments.get(0);
 				}));
@@ -297,7 +302,11 @@ public class AuthenticationResourceTest {
 			
 			ResponseHolder response = new ResponseHolder();
 			
-			authenticationResource.authenticateDirect("testDirectFailed1", 
+			DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+			authenticationRequest.setDeviceId("testDirectFailed1");
+			authenticationRequest.setAuthenticationData(new HashMap<>());
+
+			authenticationResource.authenticateDirect(authenticationRequest, 
 					mockAsyncResponse(arguments->{
 						response.value = arguments.get(0);
 					}));
@@ -320,7 +329,11 @@ public class AuthenticationResourceTest {
 			assertThat(id, is("testDirect2"));
 			return Optional.empty();
 		});
-		authenticationResource.authenticateDirect("testDirect2", mockAsyncResponse(arguments->{}));
+		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+		authenticationRequest.setDeviceId("testDirect2");
+		authenticationRequest.setAuthenticationData(new HashMap<>());
+
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
 	}
 	
 	@Test
@@ -333,7 +346,11 @@ public class AuthenticationResourceTest {
 			assertThat(id, is("testDirect2"));
 			return Optional.of(device);
 		});
-		authenticationResource.authenticateDirect("testDirect2", mockAsyncResponse(arguments->{}));
+		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+		authenticationRequest.setDeviceId("testDirect2");
+		authenticationRequest.setAuthenticationData(new HashMap<>());
+
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
 	}
 	
 	private Matcher<?> responseMessageIs(String string) {

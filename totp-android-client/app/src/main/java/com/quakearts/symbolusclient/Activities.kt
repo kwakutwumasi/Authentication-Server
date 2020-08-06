@@ -268,9 +268,15 @@ class TOTPActivity : AppCompatActivity() {
             }
         }, TOTPApplication.getInitialCounter()!!)
 
-        TOTPApplication.registerListeners(otpAuthorizationRequestListener = { onOk, onCancel, _->
+        TOTPApplication.registerListeners(otpAuthorizationRequestListener = { onOk, onCancel, message->
+            val signingDetails = message.filter { (it.key != "deviceId")
+                    && (it.key  != "iat") && (it.key != "requestType") }.map { "\t"+it.key+":"+it.value }
+            val prefix = if(signingDetails.isEmpty()) "" else getString(R.string.otp_dialog_details)
+            val signingMessage = MessageFormat.format(getString(R.string.otp_dialog),
+                prefix,
+                signingDetails.joinToString("\n"))
             runOnUiThread{
-                AlertDialog.Builder(this).setMessage(R.string.otp_dialog)
+                AlertDialog.Builder(this).setMessage(signingMessage)
                     .setPositiveButton(R.string.otp_dialog_authorize) { dialog, _ ->
                         onOk()
                         dialog.dismiss()

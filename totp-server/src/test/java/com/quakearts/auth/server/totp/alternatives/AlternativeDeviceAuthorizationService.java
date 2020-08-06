@@ -1,5 +1,6 @@
 package com.quakearts.auth.server.totp.alternatives;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.annotation.Priority;
@@ -36,7 +37,7 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 	}
 	
 	@Override
-	public void requestOTPCode(String deviceId, Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
+	public void requestOTPCode(String deviceId, Map<String, String> authenticationData, Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
 		if(throwException != null) {
 			TOTPException toreturn = throwException;
 			throwException = null;
@@ -54,7 +55,7 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 			return;
 		}
 		
-		wrapped.requestOTPCode(deviceId, callback, errorCallback);
+		wrapped.requestOTPCode(deviceId, authenticationData, callback, errorCallback);
 	}
 
 }

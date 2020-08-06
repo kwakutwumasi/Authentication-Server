@@ -40,6 +40,7 @@ import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceRequest;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
+import com.quakearts.auth.server.totp.rest.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
 import com.quakearts.auth.server.totp.rest.model.ManagementResponse;
 import com.quakearts.auth.server.totp.rest.model.ProvisioningResponse;
@@ -54,6 +55,7 @@ import com.quakearts.security.cryptography.exception.IllegalCryptoActionExceptio
 import com.quakearts.security.cryptography.jpa.EncryptedValue;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 import com.quakearts.webapp.orm.exception.DataStoreException;
+import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webapp.security.rest.exception.RestSecurityException;
 
@@ -97,17 +99,24 @@ public class RESTServiceTest {
 		client.authenticate(authenticateRequest);
 		AlternativeDeviceAuthorizationService.throwException(null);
 		AlternativeConnectionManager.run(bite->{
-			Map<String, String> responseMap = new HashMap<>();
-			String[] direct = totpGenerator.generateFor(device1, System.currentTimeMillis());
-			responseMap.put("otp", direct[0]);
 			try {
+				JWTClaims claims = jwtGenerator.verifyJWT(bite);
+				assertThat(claims.getPrivateClaim("key"), is("value"));
+				Map<String, String> responseMap = new HashMap<>();
+				String[] direct = totpGenerator.generateFor(device1, System.currentTimeMillis());
+				responseMap.put("otp", direct[0]);
 				return jwtGenerator.generateJWT(responseMap).getBytes();
 			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
 				throw new AssertionError(e);
 			}
 		});
 		
-		client.authenticateDirect(device1.getId());
+		DirectAuthenticationRequest request = new DirectAuthenticationRequest();
+		request.setDeviceId(device1.getId());
+		request.setAuthenticationData(new HashMap<>());
+		request.getAuthenticationData().put("key", "value");
+		
+		client.authenticateDirect(request);
 		
 		AlternativeConnectionManager.run(bite->{
 			Map<String, String> responseMap = new HashMap<>();
@@ -657,8 +666,9 @@ public class RESTServiceTest {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 500; {\"message\":\"Message generation failed. IllegalArgumentException\"}"));
 		AlternativeDeviceAuthorizationService.throwException(new MessageGenerationException(new IllegalArgumentException("IllegalArgumentException")));
-				
-		client.authenticateDirect("testdevice1");
+		DirectAuthenticationRequest request = new DirectAuthenticationRequest();
+		request.setDeviceId("testdevice1");
+		client.authenticateDirect(request);
 	}
 		
 	@Test
@@ -666,7 +676,9 @@ public class RESTServiceTest {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Connection timed out\"}"));
 		AlternativeDeviceAuthorizationService.doNothing(true);
-		client.authenticateDirect("testdevice1");
+		DirectAuthenticationRequest request = new DirectAuthenticationRequest();
+		request.setDeviceId("testdevice1");
+		client.authenticateDirect(request);
 	}
 	
 	@Test
@@ -674,7 +686,9 @@ public class RESTServiceTest {
 		expectedException.expect(HttpClientException.class);
 		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Error message\"}"));
 		AlternativeDeviceAuthorizationService.callErrorCallback(true);
-		client.authenticateDirect("testdevice1");
+		DirectAuthenticationRequest request = new DirectAuthenticationRequest();
+		request.setDeviceId("testdevice1");
+		client.authenticateDirect(request);
 	}
 	
 	@Test

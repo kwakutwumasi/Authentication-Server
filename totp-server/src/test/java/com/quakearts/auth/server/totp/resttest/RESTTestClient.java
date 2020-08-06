@@ -16,6 +16,7 @@ import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.CountResponse;
 import com.quakearts.auth.server.totp.rest.model.DeviceResponse;
+import com.quakearts.auth.server.totp.rest.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ManagementRequest;
 import com.quakearts.auth.server.totp.rest.model.ManagementResponse;
 import com.quakearts.auth.server.totp.rest.model.ProvisioningResponse;
@@ -105,20 +106,20 @@ public class RESTTestClient extends HttpClient {
 
 	}
 
-	public ProvisioningResponse provision(String deviceid) throws IOException, HttpClientException {
-		return execute("/totp/provisioning/{0}", "", APPLICATION_JSON, HttpVerb.POST, ProvisioningResponse.class, encode(deviceid));
+	public ProvisioningResponse provision(String deviceId) throws IOException, HttpClientException {
+		return execute("/totp/provisioning/{0}", "", APPLICATION_JSON, HttpVerb.POST, ProvisioningResponse.class, encode(deviceId));
 	}
 
-	public void activate(String deviceid, ActivationRequest activationRequest) throws IOException, HttpClientException {
-		executeWithNoResponse("/totp/provisioning/{0}", activationRequest, APPLICATION_JSON, HttpVerb.PUT, deviceid);
+	public void activate(String deviceId, ActivationRequest activationRequest) throws IOException, HttpClientException {
+		executeWithNoResponse("/totp/provisioning/{0}", activationRequest, APPLICATION_JSON, HttpVerb.PUT, deviceId);
 	}
 
 	public void authenticate(AuthenticationRequest authenticateRequest) throws IOException, HttpClientException {
 		executeWithNoResponse("/totp/authenticate", authenticateRequest, APPLICATION_JSON, HttpVerb.POST);
 	}
 
-	public void authenticateDirect(String deviceId) throws IOException, HttpClientException {
-		executeWithNoResponse("/totp/authenticate/device/{0}", null, null, HttpVerb.GET, deviceId);
+	public void authenticateDirect(DirectAuthenticationRequest request) throws IOException, HttpClientException {
+		executeWithNoResponse("/totp/authenticate/direct", request, APPLICATION_JSON, HttpVerb.POST);
 	}
 	
 	public TokenResponse signRequest(String deviceId, Map<String, String> requestMap)
