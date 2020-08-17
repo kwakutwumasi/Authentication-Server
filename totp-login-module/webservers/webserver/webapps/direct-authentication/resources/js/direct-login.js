@@ -68,13 +68,8 @@ $("#btn_log_in").click(function() {
 	        		alert("The log-in has timed out. The page will reload for you to log in again");
 	        		window.location.reload();
 	        	} else {
-		        	$("#btn_log_in").prop("disabled", false);
-		    		$("#error_text").html("The login failed. Please try again");
-		    		directLogin.animatePanel("#login_panel", function() {
-						if(directLogin.socket){
-				    		directLogin.socket.close();
-						}
-					});
+	        		alert("The view has expired. The page will reload to log you in");
+	        		window.location.reload();
 	        	}
 	        }
 	    });
