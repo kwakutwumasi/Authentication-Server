@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 *.iml
 .gradle
 /local.properties
@@ -7,4 +8,15 @@
 /captures
 .externalNativeBuild
 /projectFilesBackup/
+=======
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+/projectFilesBackup/
+>>>>>>> Stashed changes
 *.log
