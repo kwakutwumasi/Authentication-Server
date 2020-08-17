@@ -8,16 +8,18 @@ public class AuthenticationRequest {
 		return deviceId;
 	}
 
-	public void setDeviceId(String deviceId) {
+	public AuthenticationRequest setDeviceIdAs(String deviceId) {
 		this.deviceId = deviceId;
+		return this;
 	}
 
 	public String getOtp() {
 		return otp;
 	}
 
-	public void setOtp(String otp) {
+	public AuthenticationRequest setOtpAs(String otp) {
 		this.otp = otp;
+		return this;
 	}
 
 }

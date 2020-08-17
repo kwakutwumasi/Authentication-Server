@@ -1,6 +1,7 @@
 package com.quakearts.auth.server.totp.login;
 
 import java.security.Principal;
+import java.util.Objects;
 
 public class TOTPDevicePrincipal implements Principal {
 
@@ -17,26 +18,22 @@ public class TOTPDevicePrincipal implements Principal {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(name);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TOTPDevicePrincipal other = (TOTPDevicePrincipal) obj;
-		if (name == null) {
-			return other.name == null;
-		} else {
-			return name.equals(other.name);
 		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		TOTPDevicePrincipal other = (TOTPDevicePrincipal) obj;
+		return Objects.equals(name, other.name);
 	}
 
 }

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:b="http://quakearts.com/2.0/boot">
+<ui:composition template="template.xhtml">
+	<ui:define name="title">Log In</ui:define>
+	<ui:define name="body">
+		<b:column offsetlg="5" lg="2" offsetsm="4" sm="4" xs="12">
+				<b:panel id="login_panel" styleClass="active_panel animatablepanel">
+					<f:facet name="header">Log In</f:facet>
+					<p style="display: inline-block; width: 100%; text-align: center; color: red" id="error_text"></p>
+					<form>
+						<b:formGroup>
+							<label>User Name</label>
+							<div class="input-group">
+								<span class="input-group-addon"><b:glyph value="user" /></span>
+								<input class="form-control" id="j_username" placeholder="user@server" />
+							</div>
+						</b:formGroup>
+						<b:formGroup>
+							<label>Password</label>
+							<div class="input-group">
+								<span class="input-group-addon"><b:glyph value="lock" /></span>
+								<input class="form-control" type="password" id="j_password" placeholder="password" />
+							</div>
+						</b:formGroup>
+						<b:formGroup>
+							<button type="button" id="btn_log_in" class="btn btn-success btn-sm">
+								<b:glyph value="log-in" /> Log in
+							</button>
+						</b:formGroup>
+					</form>
+				</b:panel>
+				<b:panel id="processing_panel" styleClass="collapse animatablepanel">
+					<f:facet name="header">Logging In...</f:facet>
+					<p style="display: inline-block; width: 100%; text-align: center;">
+						Your log-in is processing. Please check for a log-in prompt on your TOTP app.
+						The Application Name should be <span style="font-weight: bold;">Application</span> and the Authentication ID should be
+						<span id="authentication_id" style="font-weight: bold;"></span>.
+					</p>
+					<img src="#{facesContext.externalContext.requestContextPath}/resources/images/loading.gif" 
+						style="display:block; margin-left: auto; margin-right: auto" />
+				</b:panel>
+				<b:panel id="token_panel" styleClass="collapse animatablepanel">
+					<f:facet name="header">Enter your token</f:facet>
+					<p style="display: inline-block; width: 100%; text-align: center;">
+						We were unable to connect to your device. Please generate and enter an OTP token to log in.
+					</p>
+					<b:formGroup>
+						<label>Token</label>
+						<div class="input-group">
+							<span class="input-group-addon"><b:glyph value="lock" /></span>
+							<input class="form-control" type="password" id="token_code" placeholder="password" />
+						</div>
+					</b:formGroup>
+					<b:formGroup>
+						<button type="button" id="btn_token_login" class="btn btn-success btn-sm">
+							<b:glyph value="log-in" /> Log in
+						</button>
+					</b:formGroup>
+				</b:panel>
+			</b:column>
+			<b:resource library="js" name="direct-login.js" type="script" />
+			<b:resource library="css" name="animate.min.css" type="css" />
+	</ui:define>
+</ui:composition>
+</html>

@@ -57,8 +57,8 @@ object Options{
     const val macAlgorithm = "HmacSHA256"
     const val otpLength = 6
     const val timeStep = 30000L
-    const val totpUrl = "http://10.0.2.2:8082/totp-provisioning"
-    const val totpWsUrl = "ws://10.0.2.2:8082/device-connection"
+    const val totpUrl = "http://192.168.8.100:8082/totp-provisioning"
+    const val totpWsUrl = "ws://192.168.8.100:8082/device-connection"
     const val aliasProperty = "ALIAS"
     const val pbeIterations = 23
     const val resetThreshold = 3
@@ -479,9 +479,6 @@ object TOTPApplication {
             val deviceId = (java.lang.Long.toHexString(Date().time) +
                     Integer.toHexString(Random().nextInt())).toUpperCase(Locale.ENGLISH)
             digest.update(deviceId.toByteArray())
-            if (permission == PackageManager.PERMISSION_GRANTED) {
-                digest.update(manager.deviceId.toByteArray())
-            }
             initialDeviceId = HexTool.byteAsHex(digest.digest())
         }
     }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quakearts.auth.server.totp.login.client.model.AuthenticationRequest;
+import com.quakearts.auth.server.totp.login.client.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.login.client.model.ErrorResponse;
 import com.quakearts.auth.server.totp.login.exception.ConnectorException;
 import com.quakearts.rest.client.HttpObjectClient;
@@ -20,14 +21,14 @@ public class TOTPHttpClient extends HttpObjectClient {
 	private ObjectMapper objectMapper = new ObjectMapper();
 	protected String file;
 	
-	public void authentication(AuthenticationRequest request) 
+	public void authenticate(AuthenticationRequest request) 
 			throws IOException, HttpClientException {
 		execute(HttpVerb.POST, file+"/authenticate", request, APPLICATION_JSON, null);
 	}
 
-	public void authenticationDirect(String deviceId) 
+	public void authenticateDirectly(DirectAuthenticationRequest request) 
 			throws IOException, HttpClientException {
-		executeGet(file+"/authenticate/device/{0}", null, deviceId);
+		execute(HttpVerb.POST, file+"/authenticate/direct", request, APPLICATION_JSON, null);
 	}
 
 	@Override

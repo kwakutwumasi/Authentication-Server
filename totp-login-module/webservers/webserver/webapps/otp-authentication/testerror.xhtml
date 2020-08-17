@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:b="http://quakearts.com/2.0/boot"
+	xmlns:c="http://quakearts.com/2.0/common">
+<ui:composition template="template.xhtml">
+	<ui:define name="title">Error</ui:define>
+	<ui:define name="body">
+			<b:column offsetlg="3" lg="6" offsetsm="2" sm="8" xs="12">
+				<b:panel style="height:30em">
+					<h3 style="display: inline-block; width: 100%; text-align: center;">Your log in failed</h3>
+					<p style="display: inline-block; width: 100%; text-align: center;">If you are seeing this page, then the login failed</p>
+					<p style="display: inline-block; width: 100%; text-align: center;"><h:outputLink value="#{facesContext.externalContext.requestContextPath}">Try Again</h:outputLink></p>
+				</b:panel>
+			</b:column>
+	</ui:define>
+</ui:composition>
+</html>

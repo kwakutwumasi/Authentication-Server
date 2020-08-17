@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:b="http://quakearts.com/2.0/boot">
+<ui:composition template="template.xhtml">
+	<ui:define name="title">Log In</ui:define>
+	<ui:define name="body">
+			<b:column offsetlg="5" lg="2" offsetsm="4" sm="4" xs="12">
+				<b:panel style="height:30em">
+					<f:facet name="header">Log In</f:facet>
+					<form action="j_security_check" method="post" >
+						<b:formGroup>
+							<label>User Name</label>
+							<div class="input-group">
+								<span class="input-group-addon"><b:glyph value="user"/></span>
+								<input class="form-control" name="j_username" placeholder="user@server" />
+							</div>
+						</b:formGroup>
+						<b:formGroup>
+							<label>Password+OTP</label>
+							<div class="input-group">
+								<span class="input-group-addon"><b:glyph value="lock"/></span>
+								<input class="form-control" type="password" name="j_password" placeholder="password000000" />
+							</div>
+						</b:formGroup>
+						<b:formGroup>
+							<button type="submit" class="btn btn-success btn-sm">
+								<b:glyph value="log-in" /> Log in
+							</button>
+						</b:formGroup>
+					</form>
+				</b:panel>
+			</b:column>
+	</ui:define>
+</ui:composition>
+</html>

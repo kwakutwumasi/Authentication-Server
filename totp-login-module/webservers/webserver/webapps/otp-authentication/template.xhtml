@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:b="http://quakearts.com/2.0/boot"
+	xmlns:c="http://quakearts.com/2.0/common">
+<h:head>
+	<meta charset="ISO-8859-1" />
+	<title><ui:insert name="title" /></title>
+</h:head>
+<h:body>
+	<b:container fluid="true">
+		<b:navbar position="fixed-top" responsive="true" fluid="true" type="default">
+			<f:facet name="header">
+				<img src="#{facesContext.externalContext.requestContextPath}/resources/images/logo.svg" height="50" style="float:left; margin-top: 12px;" /><span class="navbar-brand">Application</span> 
+			</f:facet>
+			<c:secure roles="LoggedIn">
+				<h:form>
+					<b:nav>
+						<b:menu value="Actions">
+							<h:commandLink>
+								<b:glyph value="log-out" /> 
+								<c:logout redirect="#{facesContext.externalContext.requestContextPath}" />
+								Logout
+							</h:commandLink>
+						</b:menu>
+					</b:nav>
+				</h:form>
+			</c:secure>
+		</b:navbar>
+		<b:row style="margin-top: 170px">
+			<ui:insert name="body" />
+		</b:row>
+	</b:container>
+</h:body>
+</html>

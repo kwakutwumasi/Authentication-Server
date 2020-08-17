@@ -2,8 +2,6 @@ package com.quakearts.auth.server.totp.login;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -12,7 +10,8 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
-import javax.security.auth.spi.LoginModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.totp.login.client.TOTPHttpClient;
 import com.quakearts.auth.server.totp.login.client.TOTPHttpClientBuilder;
@@ -21,26 +20,21 @@ import com.quakearts.auth.server.totp.login.exception.ConnectorException;
 import com.quakearts.auth.server.totp.login.exception.LoginOperationException;
 import com.quakearts.rest.client.exception.HttpClientException;
 
-public class TOTPLoginModule implements LoginModule {
-	private static final Logger log = Logger.getLogger(TOTPLoginModule.class.getName());
+public class TOTPLoginModule extends TOTPLoginCommon {
+	private static final Logger log = LoggerFactory.getLogger(TOTPLoginModule.class.getName());
 	
-	private Subject subject;
 	private CallbackHandler callbackHandler;
 	private Map<String, ?> sharedState;
-	private boolean loginOk;
 	private String username;
 	private String password;
-	private String serverUrl;
-	
+	private char[] sharedPasswordChars = new char[0];
+	@SuppressWarnings("unchecked")
 	public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState,
 			Map<String, ?> options) {
 		this.subject = subject;
 		this.callbackHandler = callbackHandler;
 		this.sharedState = sharedState;
-		
-		@SuppressWarnings("unchecked")
-		Map<String, String> optionsCast = (Map<String, String>) options;
-		serverUrl = optionsCast.computeIfAbsent("totp.url", test->"http://localhost:8080/totp");
+		this.options = (Map<String, String>) options;
 	}
 
 	public boolean login() throws LoginException {
@@ -50,8 +44,10 @@ public class TOTPLoginModule implements LoginModule {
 			processAuthentication();
 			performFinalActions();
 		} catch (LoginOperationException e) {
-			log.log(Level.SEVERE, "Login processing failed due to an internal error", e);
-			return false;
+			log.error("Login processing failed due to an internal error", e);
+			if(Boolean.parseBoolean(options.getOrDefault("fail.on.error", "true"))){
+				throw new LoginException(e.getMessage());
+			}
 		} finally {
 			password = null;
 		}
@@ -59,7 +55,7 @@ public class TOTPLoginModule implements LoginModule {
 	}
 
 	private void processCallbacks() throws LoginOperationException {
-		NameCallback name = new NameCallback("Enter your username","annonymous");
+		NameCallback name = new NameCallback("Enter your username","anonymous");
 		PasswordCallback pass = new PasswordCallback("Enter your password:", false);
 		Callback[] callbacks = new Callback[2];
 		callbacks[0] = name;
@@ -72,8 +68,19 @@ public class TOTPLoginModule implements LoginModule {
 		}
 	
 		username = (name.getName() == null ? name.getDefaultName(): name.getName()).trim();
-		if(pass.getPassword() != null)
-			password = new String(pass.getPassword());
+		if(pass.getPassword() != null){
+			char[] passwordChars = pass.getPassword();
+			int otpLength = getOtpLength();
+			if(passwordChars.length > otpLength){
+				password = new String(passwordChars, passwordChars.length-otpLength, otpLength);
+				sharedPasswordChars = new char[passwordChars.length-otpLength];
+				System.arraycopy(passwordChars, 0, sharedPasswordChars, 0, passwordChars.length-otpLength);
+			}
+		}
+	}
+
+	private int getOtpLength() {
+		return Integer.parseInt(options.getOrDefault("totp.token.length", "6"));
 	}
 
 	private void runPreAuthenticationChecks() throws LoginException {
@@ -84,16 +91,9 @@ public class TOTPLoginModule implements LoginModule {
 	private void processAuthentication() 
 				throws LoginException, LoginOperationException {
 		TOTPHttpClient client = TOTPHttpClientBuilder
-				.createTOTPServerHttpClient(serverUrl);
+				.createTOTPServerHttpClient(options.getOrDefault("totp.server.url", "http://localhost:8080/totp"));
 		try {
-			if(username.equals(password)) {
-				client.authenticationDirect(username);
-			} else {
-				AuthenticationRequest request = new AuthenticationRequest();
-				request.setDeviceId(username);
-				request.setOtp(password);
-				client.authentication(request);
-			}
+			client.authenticate(new AuthenticationRequest().setDeviceIdAs(username).setOtpAs(password));
 		} catch (ConnectorException e) {
 			if(e.getHttpCode() == 403) {
 				throw new LoginException(e.getResponse().getMessage());
@@ -106,21 +106,14 @@ public class TOTPLoginModule implements LoginModule {
 	}
 
 	private void performFinalActions() {
-		loginOk = true;
 		if (sharedState != null) {
 			TOTPDevicePrincipal shareduser = new TOTPDevicePrincipal(username);
 			@SuppressWarnings("unchecked")
 			Map<String, Object> sharedStateObj = ((Map<String, Object>)sharedState);
 			sharedStateObj.put("javax.security.auth.login.name", shareduser);
-			sharedStateObj.put("javax.security.auth.login.password", password.toCharArray());
-			sharedStateObj.put("com.quakearts.LoginOk", loginOk);					
+			sharedStateObj.put("javax.security.auth.login.password", sharedPasswordChars);
 		}
-	}
-
-	public boolean commit() throws LoginException {
-		if(loginOk)
-			subject.getPrincipals().add(new TOTPDevicePrincipal(username));
-		return loginOk;
+		loginOk = true;
 	}
 
 	public boolean abort() throws LoginException {
@@ -128,7 +121,11 @@ public class TOTPLoginModule implements LoginModule {
 	}
 
 	public boolean logout() throws LoginException {
+		username = null;
+		password = null;
+		sharedPasswordChars = new char[0];
 		loginOk = false;
+		subject = null;
 		return true;
 	}
 
