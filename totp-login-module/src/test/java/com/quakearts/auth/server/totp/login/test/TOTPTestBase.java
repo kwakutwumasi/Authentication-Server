@@ -119,7 +119,7 @@ public class TOTPTestBase {
 										@SuppressWarnings("unchecked")
 										Map<String, String> authenticationData = (Map<String, String>) jsonRequest.get("authenticationData");
 										if(!"TestApplication".equals(authenticationData.get("Application Name"))
-												&& !"Transaction Processor".equals(authenticationData.get("Application Name"))) {
+												&& !"Application".equals(authenticationData.get("Application Name"))) {
 											return HttpMessageBuilder
 													.createNewHttpResponse().setResponseCodeAs(500)
 													.thenBuild();
