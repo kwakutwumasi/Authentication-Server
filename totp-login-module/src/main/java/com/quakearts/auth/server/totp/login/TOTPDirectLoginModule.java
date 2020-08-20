@@ -62,7 +62,7 @@ public class TOTPDirectLoginModule extends TOTPLoginCommon {
 		try {
 			client.authenticateDirectly(new DirectAuthenticationRequest()
 					.setDeviceIdAs(username)
-					.addAuthenticationData("Application Name", options.getOrDefault("application.name", "Transaction Processor"))
+					.addAuthenticationData("Application Name", options.getOrDefault("application.name", "Application"))
 					.addAuthenticationData("Authentication ID", service.generateID(username)));
 		} catch (ConnectorException e) {
 			if(e.getHttpCode()==404 && Boolean.parseBoolean(options.getOrDefault("allow.fallback", "false"))){
