@@ -33,7 +33,7 @@ directLogin.schid = window.setInterval(function() {
 $("#btn_log_in").click(function() {
 	$("#btn_log_in").prop("disabled", true);
 	directLogin.animatePanel("#processing_panel", function() {
-		directLogin.socket = new WebSocket("ws://localhost:8080/direct-authentication/fallbacktoken/"+$("#j_username").val());
+		directLogin.socket = new WebSocket("ws://localhost:8081/direct-authentication/fallbacktoken/"+$("#j_username").val());
 		directLogin.socket.onmessage = function(message) {
 			if("fallback-required" === message.data) {
 				directLogin.animatePanel("#token_panel");
