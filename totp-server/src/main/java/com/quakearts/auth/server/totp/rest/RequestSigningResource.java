@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
+import com.quakearts.auth.server.totp.exception.AuthenticationException;
 import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
@@ -67,8 +68,9 @@ public class RequestSigningResource {
 				try {
 					deviceRequestSigningService.signRequest(device, requestMap,
 						signedMessage->asyncResponse.resume(new TokenResponse().withTokenAs(signedMessage)), 
-						error->asyncResponse.resume(new WebApplicationException(Response.status(417)
-								.entity(new ErrorResponse().withMessageAs(error)).build())));
+						error->asyncResponse.resume("Request rejected".equals(error)?
+								new AuthenticationException(error):
+									new UnconnectedDeviceException(error)));
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}

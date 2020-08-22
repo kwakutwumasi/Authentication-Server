@@ -100,7 +100,9 @@ public class AuthenticationResource {
 						} catch (AuthenticationException e) {
 							asyncResponse.resume(e);
 						}
-					}, error->asyncResponse.resume(new UnconnectedDeviceException(error)));
+					}, error->asyncResponse.resume("Request rejected".equals(error)?
+							new AuthenticationException(error):
+								new UnconnectedDeviceException(error)));
 				} catch (TOTPException e) {
 					asyncResponse.resume(e);
 				}

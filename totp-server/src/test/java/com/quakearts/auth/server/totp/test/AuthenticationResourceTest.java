@@ -32,6 +32,7 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceManagementService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.exception.AuthenticationException;
+import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.rest.AuthenticationResource;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
@@ -310,11 +311,105 @@ public class AuthenticationResourceTest {
 					mockAsyncResponse(arguments->{
 						response.value = arguments.get(0);
 					}));
-			await().atMost(Duration.ONE_SECOND)
+			await().atMost(Duration.FIVE_SECONDS)
 			.until(()->{
 				return response.value instanceof AuthenticationException
 						&& ((AuthenticationException)response.value)
 						.getMessage().equals("OTP did not match");
+			});			
+		} catch (Exception e) {
+			fail("Error thrown: "+e.getLocalizedMessage());
+		}
+	}
+	
+	@Test
+	public void testAuthenticateDirectLoginRejected(){
+		try {
+			Device device = new Device();
+			device.setStatus(Status.ACTIVE);
+			device.setId("testDirectRejected");
+			AlternativeDeviceManagementService.returnDevice(id-> {
+				return Optional.of(device);
+			});
+						
+			AlternativeConnectionManager.run(bite->{
+				Map<String, String> responseMap = new HashMap<>();
+				responseMap.put("error", "Request rejected");
+				try {
+					return jwtGenerator.generateJWT(responseMap).getBytes();
+				} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+					throw new AssertionError(e);
+				}
+			});
+			
+			AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
+			
+			class ResponseHolder {
+				Object value;
+			}
+			
+			ResponseHolder response = new ResponseHolder();
+			
+			DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+			authenticationRequest.setDeviceId("testDirectRejected");
+			authenticationRequest.setAuthenticationData(new HashMap<>());
+
+			authenticationResource.authenticateDirect(authenticationRequest, 
+					mockAsyncResponse(arguments->{
+						response.value = arguments.get(0);
+					}));
+			await().atMost(Duration.ONE_SECOND)
+			.until(()->{
+				return response.value instanceof AuthenticationException
+						&& ((AuthenticationException)response.value)
+						.getMessage().equals("Request rejected");
+			});			
+		} catch (Exception e) {
+			fail("Error thrown: "+e.getLocalizedMessage());
+		}
+	}
+	
+	@Test
+	public void testAuthenticateDirectLoginNotConnected(){
+		try {
+			Device device = new Device();
+			device.setStatus(Status.ACTIVE);
+			device.setId("testDirectRejected");
+			AlternativeDeviceManagementService.returnDevice(id-> {
+				return Optional.of(device);
+			});
+						
+			AlternativeConnectionManager.run(bite->{
+				Map<String, String> responseMap = new HashMap<>();
+				responseMap.put("error", "Not connected");
+				try {
+					return jwtGenerator.generateJWT(responseMap).getBytes();
+				} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
+					throw new AssertionError(e);
+				}
+			});
+			
+			AlternativeTOTPOptions.returnDeviceAuthenticationTimeout(2000l);
+			
+			class ResponseHolder {
+				Object value;
+			}
+			
+			ResponseHolder response = new ResponseHolder();
+			
+			DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
+			authenticationRequest.setDeviceId("testDirectRejected");
+			authenticationRequest.setAuthenticationData(new HashMap<>());
+
+			authenticationResource.authenticateDirect(authenticationRequest, 
+					mockAsyncResponse(arguments->{
+						response.value = arguments.get(0);
+					}));
+			await().atMost(Duration.ONE_SECOND)
+			.until(()->{
+				return response.value instanceof UnconnectedDeviceException
+						&& ((UnconnectedDeviceException)response.value)
+						.getMessage().equals("The specified device is not connected. Not connected");
 			});			
 		} catch (Exception e) {
 			fail("Error thrown: "+e.getLocalizedMessage());
@@ -348,6 +443,16 @@ public class AuthenticationResourceTest {
 		});
 		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
 		authenticationRequest.setDeviceId("testDirect2");
+		authenticationRequest.setAuthenticationData(new HashMap<>());
+
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
+	}
+	
+	@Test
+	public void testAuthenticateDirectDeviceWithNoDeviceId() throws Exception {
+		expectedException.expect(AuthenticationException.class);
+		expectedException.expectMessage("deviceId is required");
+		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
 		authenticationRequest.setAuthenticationData(new HashMap<>());
 
 		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));

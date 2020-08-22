@@ -741,8 +741,7 @@ public class RESTServiceTest {
 	@Test
 	public void testSignRequestWithError() throws Exception {
 		expectedException.expect(HttpClientException.class);
-		expectedException.expectMessage(is("Unable to process request: 417; {\"message\":\"Error message\"}"));
-
+		expectedException.expectMessage(is("Unable to process request: 404; {\"message\":\"The specified device is not connected. Error message\"}"));
 		Device device = provisionTestProvisionDevice1();
 		AlternativeConnectionManager.run(bite->{
 			Map<String, String> responseMap = new HashMap<>();
