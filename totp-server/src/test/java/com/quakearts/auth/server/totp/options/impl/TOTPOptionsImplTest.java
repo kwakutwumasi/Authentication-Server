@@ -18,7 +18,6 @@ import com.quakearts.appbase.Main;
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.appbase.internal.properties.ConfigurationPropertyMap;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPConfigurationProvider;
-import com.quakearts.auth.server.totp.options.impl.TOTPOptionsImpl;
 
 @Alternative
 public class TOTPOptionsImplTest extends TOTPOptionsImpl {
