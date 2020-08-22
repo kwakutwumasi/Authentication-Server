@@ -1217,17 +1217,7 @@
             }
           },
           "403" : {
-            "description" : "Request map is required",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-        },
-        "417" : {
-            "description" : "There was an error processing the request",
+            "description" : "Request map is required/Signing request was rejected",
             "content" : {
               "application/json" : {
                 "schema" : {
