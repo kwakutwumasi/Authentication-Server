@@ -29,6 +29,7 @@ public class RegistrationOptionValidator implements ConstraintValidator<ValidReg
 		validOptions.add(JWTLoginModule.AUDIENCEPARAMETER);
 		validOptions.add(JWTLoginModule.ALGORITHMPARAMETER);
 		validOptions.add(HSSigner.SECRETPARAMETER);
+		validOptions.add(HSSigner.SECRETPARAMETERHEX);
 		validOptions.add(KeyStoreSignerBase.ALIASPARAMETER);
 		validOptions.add(KeyStoreSignerBase.FILEPARAMETER);
 		validOptions.add(KeyStoreSignerBase.STORECREDENTIALSPARAMETER);
