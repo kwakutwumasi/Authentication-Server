@@ -88,7 +88,7 @@ public class DeviceConnection {
 			response.setId(payload.getId());
 			response.setTimestamp(payload.getTimestamp());
 			if("otp".equals(requestType)){
-				displayOTPRequest(response);
+				displayOTPRequest(payload, response);
 			} else if("otp-signing".equals(requestType)){
 				displayOTPSigningRequest(payload, response);
 			} else {
@@ -100,12 +100,18 @@ public class DeviceConnection {
 		send(response);
 	}
 
-	private void displayOTPRequest(Payload response) {
+	private void displayOTPRequest(Payload request, Payload response) {
 		Display.getDefault().syncExec(()->{
 			MessageBox approveSignIn = new MessageBox(shell, 
 					SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
 			approveSignIn.setText("Sign In Request");
-			approveSignIn.setMessage("A login request has been received. Do you want to approve it?");
+			String message = request.getMessage().entrySet()
+					.stream().filter(e->!e.getKey().equals("iat") 
+							&& !e.getKey().equals("deviceId")
+							&& !e.getKey().equals("requestType"))
+					.map(e->e.getKey()+":"+e.getValue()).collect(Collectors.joining("\n"));
+			approveSignIn.setMessage("A login request has been received. Do you want to approve it?\nThe details:\n"
+					+message);
 			if(approveSignIn.open() == SWT.OK){
 				generateOTPAndStoreIn(response);
 			} else {
