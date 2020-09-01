@@ -31,6 +31,46 @@
     }
   ],
   "paths" : {
+    "/alias/check/{aliasOrDeviceId}" : {
+      "get" : {
+      	"tags": [
+          "Report Operations"
+        ],
+        "operationId" : "checkAlias",
+        "summary": "Verify a device is connected and active.",
+        "description":"Verify a device is connected and active. This allows login services verify the MFA status of a user",
+        "parameters" : [ {
+          "name" : "aliasOrDeviceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The status of the device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AliasCheckResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "General internal server error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/authenticate" : {
       "post" : {
         "tags": [
@@ -1252,6 +1292,17 @@
   },
   "components" : {
     "schemas" : {
+      "AliasCheckResponse" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "connected" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "TokenResponse" : {
         "type" : "object",
         "properties" : {

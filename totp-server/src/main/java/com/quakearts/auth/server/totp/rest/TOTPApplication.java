@@ -19,7 +19,8 @@ import com.quakearts.auth.server.totp.options.TOTPOptions;
 @ApplicationPath("totp")
 public class TOTPApplication extends Application {
 	private Set<Class<?>> classes = new HashSet<>(
-			Arrays.asList(AuthenticationResource.class,
+			Arrays.asList(AliasResource.class,
+					AuthenticationResource.class,
 					ManagementLoginResource.class,
 					ManagementResource.class,
 					ProvisioningResource.class,
