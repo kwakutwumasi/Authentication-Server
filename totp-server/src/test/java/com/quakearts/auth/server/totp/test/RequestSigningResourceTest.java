@@ -31,7 +31,7 @@ import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.RequestSigningResource;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
-import com.quakearts.tools.test.mocking.VoidMockedImplementation;
+import com.quakearts.tools.test.mocking.MockedImplementation;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.webtools.test.AllServicesRunner;
@@ -79,6 +79,7 @@ public class RequestSigningResourceTest {
 		requestSigningResource.signRequest("testDeviceRejected", 
 			mockAsyncResponse(arguments->{
 				response.value = arguments.get(0);
+				return true;
 			}), requestMap);
 		
 		await().atMost(Duration.ONE_SECOND).until(()->{
@@ -119,6 +120,7 @@ public class RequestSigningResourceTest {
 		requestSigningResource.signRequest("testNotConnected", 
 			mockAsyncResponse(arguments->{
 				response.value = arguments.get(0);
+				return true;
 			}), requestMap);
 		
 		await().atMost(Duration.ONE_SECOND).until(()->{
@@ -139,7 +141,7 @@ public class RequestSigningResourceTest {
 		
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("test", "request");
-		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->{}), requestMap);
+		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->true), requestMap);
 	}
 
 	@Test
@@ -156,7 +158,7 @@ public class RequestSigningResourceTest {
 		
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("test", "request");
-		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->{}), requestMap);
+		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->true), requestMap);
 	}
 	
 	@Test
@@ -172,7 +174,7 @@ public class RequestSigningResourceTest {
 		
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("test", "request");
-		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->{}), requestMap);
+		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->true), requestMap);
 	}
 	
 	@Test
@@ -180,7 +182,7 @@ public class RequestSigningResourceTest {
 		expectedException.expect(WebApplicationException.class);
 		expectedException.expect(responseMessageIs("Request map is required"));
 		
-		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->{}), null);
+		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->true), null);
 	}
 	
 	@Test
@@ -188,7 +190,7 @@ public class RequestSigningResourceTest {
 		expectedException.expect(WebApplicationException.class);
 		expectedException.expect(responseMessageIs("Request map is required"));
 		
-		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->{}), new HashMap<>());
+		requestSigningResource.signRequest("testDirect2", mockAsyncResponse(arguments->true), new HashMap<>());
 	}
 		
 	private Matcher<?> responseMessageIs(String string) {
@@ -207,10 +209,10 @@ public class RequestSigningResourceTest {
 		};
 	}
 
-	public AsyncResponse mockAsyncResponse(VoidMockedImplementation implementation) {
+	public AsyncResponse mockAsyncResponse(MockedImplementation implementation) {
 		return MockingProxyBuilder
 				.createMockingInvocationHandlerFor(AsyncResponse.class)
-				.mock("resume").withVoidMethod(implementation)
+				.mock("resume").with(implementation)
 				.mock("setTimeout")
 				.with(arguments->{
 					return true;

@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
 
 import java.io.IOException;
-import java.security.acl.Group;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.quakearts.auth.server.totp.login.RolesGroup;
 import com.quakearts.auth.server.totp.login.TOTPDevicePrincipal;
 import com.quakearts.auth.server.totp.login.TOTPLoginModule;
 import com.quakearts.auth.server.totp.login.client.TOTPHttpClient;
@@ -59,9 +57,6 @@ public class TOTPLoginModuleTest extends TOTPTestBase {
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).size(), is(1));
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).iterator().next(), 
 					is(new TOTPDevicePrincipal("TOTP-Authenticated")));
-		assertThat(subject.getPrincipals(RolesGroup.class).size(), is(1));
-		assertThat(subject.getPrincipals(RolesGroup.class).iterator().next()
-				.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
 
 		TOTPDevicePrincipal devicePrincipal = new TOTPDevicePrincipal("testdevice-ok");
 		assertThat(devicePrincipal.equals(null), is(false));
@@ -78,17 +73,6 @@ public class TOTPLoginModuleTest extends TOTPTestBase {
 		assertThat(new TOTPDevicePrincipal(null).hashCode(), is(31));
 		assertThat(sharedstate.get("javax.security.auth.login.name"), is(devicePrincipal));
 		assertThat(sharedstate.get("javax.security.auth.login.password"), is("password".toCharArray()));
-
-		subject = new Subject();
-		RolesGroup rolesGroup = new RolesGroup("Roles");
-		Group otherGroup = getOtherGroup();
-		subject.getPrincipals().add(otherGroup);
-		subject.getPrincipals().add(()->"Anonymous");
-		subject.getPrincipals().add(rolesGroup);
-		loginModule.initialize(subject, callbackHandler, sharedstate, options);
-		assertThat(loginModule.login(),is(true));
-		assertThat(loginModule.commit(),is(true));
-		assertThat(rolesGroup.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
 	}
 
 	@Rule
@@ -320,17 +304,6 @@ public class TOTPLoginModuleTest extends TOTPTestBase {
 				.createTOTPServerHttpClient("http://localhost:8080/totp");
 		
 		client.authenticate(new AuthenticationRequestBomb());
-	}
-	
-	@Test
-	public void testRolesGroup() throws Exception {
-		RolesGroup rolesGroup = new RolesGroup("Test");
-		assertThat(rolesGroup.getName(), is("Test"));
-		assertThat(rolesGroup.addMember(new TOTPDevicePrincipal("TestPrincipal")), is(true));
-		assertThat(rolesGroup.isMember(new TOTPDevicePrincipal("TestPrincipal")), is(true));
-		assertThat(rolesGroup.members().nextElement(), is(new TOTPDevicePrincipal("TestPrincipal")));
-		assertThat(rolesGroup.removeMember(new TOTPDevicePrincipal("TestPrincipal")), is(true));
-		assertThat(rolesGroup.isMember(new TOTPDevicePrincipal("TestPrincipal")), is(false));
 	}
 	
 	class AuthenticationRequestBomb 

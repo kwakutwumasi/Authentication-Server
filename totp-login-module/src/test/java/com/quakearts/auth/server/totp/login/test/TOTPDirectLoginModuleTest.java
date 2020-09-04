@@ -5,7 +5,6 @@ import static org.hamcrest.core.Is.*;
 import static org.awaitility.Awaitility.*;
 
 import java.io.IOException;
-import java.security.acl.Group;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +21,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.quakearts.auth.server.totp.login.RolesGroup;
 import com.quakearts.auth.server.totp.login.TOTPDevicePrincipal;
 import com.quakearts.auth.server.totp.login.TOTPDirectLoginModule;
 import com.quakearts.auth.server.totp.login.client.TOTPHttpClient;
@@ -65,20 +63,6 @@ public class TOTPDirectLoginModuleTest extends TOTPTestBase {
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).size(), is(1));
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).iterator().next(), 
 					is(new TOTPDevicePrincipal("TOTP-Authenticated")));
-		assertThat(subject.getPrincipals(RolesGroup.class).size(), is(1));
-		assertThat(subject.getPrincipals(RolesGroup.class).iterator().next()
-				.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
-
-		subject = new Subject();
-		RolesGroup rolesGroup = new RolesGroup("Roles");
-		Group otherGroup = getOtherGroup();
-		subject.getPrincipals().add(otherGroup);
-		subject.getPrincipals().add(()->"Anonymous");
-		subject.getPrincipals().add(rolesGroup);
-		loginModule.initialize(subject, callbackHandler, new HashMap<>(), options);
-		assertThat(loginModule.login(),is(true));
-		assertThat(loginModule.commit(),is(true));
-		assertThat(rolesGroup.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
 	}
 
 	@Test
@@ -112,9 +96,6 @@ public class TOTPDirectLoginModuleTest extends TOTPTestBase {
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).size(), is(1));
 		assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).iterator().next(), 
 					is(new TOTPDevicePrincipal("TOTP-Authenticated")));
-		assertThat(subject.getPrincipals(RolesGroup.class).size(), is(1));
-		assertThat(subject.getPrincipals(RolesGroup.class).iterator().next()
-				.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
 		
 		await().atLeast(Duration.ONE_SECOND).untilAsserted(()->{
 			assertThat(DirectAuthenticationService.getInstance()
@@ -154,9 +135,6 @@ public class TOTPDirectLoginModuleTest extends TOTPTestBase {
 			assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).size(), is(1));
 			assertThat(subject.getPrincipals(TOTPDevicePrincipal.class).iterator().next(), 
 						is(new TOTPDevicePrincipal("TOTP-Authenticated")));
-			assertThat(subject.getPrincipals(RolesGroup.class).size(), is(1));
-			assertThat(subject.getPrincipals(RolesGroup.class).iterator().next()
-					.members().nextElement(), is(new TOTPDevicePrincipal("TOTP-Authenticated")));
 		} finally {
 			DirectAuthenticationService.getInstance()
 				.setFallbackListener("testdevice-ok-fallback-2", null);

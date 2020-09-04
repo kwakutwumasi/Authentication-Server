@@ -140,14 +140,12 @@ public class RegistrationResourceTest {
 				.thenAdd()
 				.addOption("secret", "{secret.key}")
 				.addOption("audience", "{secret.value}")
-				.addOption("rolesgroupname", "{secret.value")
 				.addOption("password", "secret.value}");
 		
 		registrationResource.register(anotherRegistration, asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
 		
 		assertThat(anotherRegistration.getOptions().get("secret"), is("SecretValue"));
-		assertThat(anotherRegistration.getOptions().get("rolesgroupname"), is("{secret.value"));
 		assertThat(anotherRegistration.getOptions().get("password"), is("secret.value}"));
 		assertThat(anotherRegistration.getOptions().get("audience"), is("{secret.value}"));
 		assertThat(anotherRegistration.getOptions().get("algorithm"), is("HS256"));
@@ -203,12 +201,10 @@ public class RegistrationResourceTest {
 		updateRegistration
 			.addOption("password", "{secret.key}")
 			.addOption("audience", "{secret.value}")
-			.addOption("rolesgroupname", "{secret.value")
 			.addOption("secret", "secret.value}");
 		registrationResource.updateRegistration("test-register-1", updateRegistration, asyncResponse);
 		assertThat(responses.take().getStatus(), is(204));
 		assertThat(updateRegistration.getOptions().get("password"), is("SecretValue"));
-		assertThat(updateRegistration.getOptions().get("rolesgroupname"), is("{secret.value"));
 		assertThat(updateRegistration.getOptions().get("secret"), is("secret.value}"));
 		assertThat(updateRegistration.getOptions().get("audience"), is("{secret.value}"));
 

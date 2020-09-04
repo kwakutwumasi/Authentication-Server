@@ -1,10 +1,6 @@
 package com.quakearts.auth.server.totp.login.test;
 
 import java.io.IOException;
-import java.security.Principal;
-import java.security.acl.Group;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Map;
 
 import org.junit.BeforeClass;
@@ -164,34 +160,5 @@ public class TOTPTestBase {
 			mockServer.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(mockServer::stop));
 		}
-	}
-
-	protected Group getOtherGroup() {
-		Group otherGroup = new Group() {
-			@Override
-			public String getName() {return "Other";}
-			
-			@Override
-			public boolean removeMember(Principal user) {
-				return false;
-			}
-			
-			@Override
-			public Enumeration<? extends Principal> members() {
-				return Collections.enumeration(Collections.emptyList());
-			}
-			
-			@Override
-			public boolean isMember(Principal member) {
-				return false;
-			}
-			
-			@Override
-			public boolean addMember(Principal user) {
-				return false;
-			}
-		};
-		return otherGroup;
-	}
-		
+	}	
 }

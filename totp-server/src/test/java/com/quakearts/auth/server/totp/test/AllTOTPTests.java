@@ -7,7 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.quakearts.auth.server.totp.options.impl.TOTPOptionsImplTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AuthenticationResourceTest.class, 
+@SuiteClasses({ AliasResourceTest.class, AuthenticationResourceTest.class, 
 		AuthenticationServiceImplTest.class, ConnectionManagerImplTest.class, 
 		DeviceAuthorizationServiceTest.class,
 		DeviceConnectionChannelImplTest.class,

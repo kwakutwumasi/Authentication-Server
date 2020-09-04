@@ -24,7 +24,6 @@ public class RegistrationOptionValidator implements ConstraintValidator<ValidReg
 		validOptions.add(JWTLoginModule.GRACEPERIODPARAMETER);
 		validOptions.add(JWTLoginModule.VALIDITY_PERIODPARAMETER);
 		validOptions.add(JWTLoginModule.VALIDITYPARAMETER);
-		validOptions.add(JWTLoginModule.ROLESGROUPNAMEPARAMETER);
 		validOptions.add(JWTLoginModule.ISSUERPARAMETER);
 		validOptions.add(JWTLoginModule.AUDIENCEPARAMETER);
 		validOptions.add(JWTLoginModule.ALGORITHMPARAMETER);

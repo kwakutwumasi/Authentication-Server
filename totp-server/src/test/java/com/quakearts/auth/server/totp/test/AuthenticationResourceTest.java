@@ -38,7 +38,7 @@ import com.quakearts.auth.server.totp.rest.AuthenticationResource;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.DirectAuthenticationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
-import com.quakearts.tools.test.mocking.VoidMockedImplementation;
+import com.quakearts.tools.test.mocking.MockedImplementation;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 import com.quakearts.auth.server.totp.model.Device;
@@ -256,6 +256,7 @@ public class AuthenticationResourceTest {
 		authenticationResource.authenticateDirect(authenticationRequest, 
 				mockAsyncResponse(arguments->{
 					response.value = arguments.get(0);
+					return true;
 				}));
 		await().atMost(Duration.ONE_SECOND).until(()->{
 				return response.value != null
@@ -310,6 +311,7 @@ public class AuthenticationResourceTest {
 			authenticationResource.authenticateDirect(authenticationRequest, 
 					mockAsyncResponse(arguments->{
 						response.value = arguments.get(0);
+						return true;
 					}));
 			await().atMost(Duration.FIVE_SECONDS)
 			.until(()->{
@@ -357,6 +359,7 @@ public class AuthenticationResourceTest {
 			authenticationResource.authenticateDirect(authenticationRequest, 
 					mockAsyncResponse(arguments->{
 						response.value = arguments.get(0);
+						return true;
 					}));
 			await().atMost(Duration.ONE_SECOND)
 			.until(()->{
@@ -404,6 +407,7 @@ public class AuthenticationResourceTest {
 			authenticationResource.authenticateDirect(authenticationRequest, 
 					mockAsyncResponse(arguments->{
 						response.value = arguments.get(0);
+						return true;
 					}));
 			await().atMost(Duration.ONE_SECOND)
 			.until(()->{
@@ -428,7 +432,7 @@ public class AuthenticationResourceTest {
 		authenticationRequest.setDeviceId("testDirect2");
 		authenticationRequest.setAuthenticationData(new HashMap<>());
 
-		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->true));
 	}
 	
 	@Test
@@ -445,7 +449,7 @@ public class AuthenticationResourceTest {
 		authenticationRequest.setDeviceId("testDirect2");
 		authenticationRequest.setAuthenticationData(new HashMap<>());
 
-		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->true));
 	}
 	
 	@Test
@@ -455,7 +459,7 @@ public class AuthenticationResourceTest {
 		DirectAuthenticationRequest authenticationRequest = new DirectAuthenticationRequest();
 		authenticationRequest.setAuthenticationData(new HashMap<>());
 
-		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->{}));
+		authenticationResource.authenticateDirect(authenticationRequest, mockAsyncResponse(arguments->true));
 	}
 	
 	private Matcher<?> responseMessageIs(String string) {
@@ -478,10 +482,10 @@ public class AuthenticationResourceTest {
 	private long time;
 	private TimeUnit timeUnit;
 	
-	public AsyncResponse mockAsyncResponse(VoidMockedImplementation implementation) {
+	public AsyncResponse mockAsyncResponse(MockedImplementation implementation) {
 		return MockingProxyBuilder
 				.createMockingInvocationHandlerFor(AsyncResponse.class)
-				.mock("resume").withVoidMethod(implementation)
+				.mock("resume").with(implementation)
 				.mock("setTimeout")
 				.with(arguments->{
 					time = arguments.get(0);

@@ -29,7 +29,7 @@ import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.ManagementResource;
 import com.quakearts.auth.server.totp.rest.model.ConnectedResponse;
-import com.quakearts.tools.test.mocking.VoidMockedImplementation;
+import com.quakearts.tools.test.mocking.MockedImplementation;
 import com.quakearts.tools.test.mocking.proxy.MockingProxyBuilder;
 import com.quakearts.webapp.security.auth.OtherPrincipal;
 import com.quakearts.webapp.security.jwt.JWTClaims;
@@ -89,7 +89,9 @@ public class ManagementResourceTest {
 			ResponseHolder response = new ResponseHolder();
 		
 			managementResource.checkConnection("testConnectedDevice1", mockAsyncResponse(arguments->{
-						response.value = arguments.get(0); }));
+				response.value = arguments.get(0); 
+				return true;
+			}));
 			
 			await().atMost(Duration.ONE_SECOND).until(()->{
 				return response.value != null
@@ -108,10 +110,10 @@ public class ManagementResourceTest {
 	private long time;
 	private TimeUnit timeUnit;
 	
-	public AsyncResponse mockAsyncResponse(VoidMockedImplementation implementation) {
+	public AsyncResponse mockAsyncResponse(MockedImplementation implementation) {
 		return MockingProxyBuilder
 				.createMockingInvocationHandlerFor(AsyncResponse.class)
-				.mock("resume").withVoidMethod(implementation)
+				.mock("resume").with(implementation)
 				.mock("setTimeout")
 				.with(arguments->{
 					time = arguments.get(0);

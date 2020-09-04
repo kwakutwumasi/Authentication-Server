@@ -1,7 +1,6 @@
 package com.quakearts.auth.tests.authentication.loginmodule;
 
 import java.io.IOException;
-import java.security.acl.Group;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -14,7 +13,6 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import com.quakearts.webapp.security.auth.DirectoryRoles;
 import com.quakearts.webapp.security.auth.OtherPrincipal;
 import com.quakearts.webapp.security.auth.UserPrincipal;
 import com.quakearts.webapp.security.auth.callback.TokenCallback;
@@ -56,10 +54,8 @@ public class TestLoginModule implements LoginModule {
 	@Override
 	public boolean commit() throws LoginException {
 		if(loginOk) {
-			Group group = new DirectoryRoles("Roles");
-			group.addMember(new UserPrincipal(username));
-			group.addMember(new OtherPrincipal("value", "test"));
-			subject.getPrincipals().add(group);
+			subject.getPrincipals().add(new UserPrincipal(username));
+			subject.getPrincipals().add(new OtherPrincipal("value", "test"));
 		}
 		return loginOk;
 	}
