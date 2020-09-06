@@ -41,8 +41,8 @@ public class AliasResource {
 			@Suspended AsyncResponse asyncResponse) {
 		asyncResponse.setTimeout(totpOptions.getDeviceConnectionRequestTimeout(), TimeUnit.MILLISECONDS);
 		asyncResponse.setTimeoutHandler(this::handleTimeout);
+		Optional<Device> optionalDevice = deviceManagementService.findDevice(aliasOrDeviceId);
 		CompletableFuture.runAsync(()->{
-			Optional<Device> optionalDevice = deviceManagementService.findDevice(aliasOrDeviceId);
 			if(optionalDevice.isPresent()){
 				try {
 					deviceManagementService.isConnected(optionalDevice.get(), connected->
