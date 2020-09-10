@@ -1,0 +1,217 @@
+Registrations:
+	Size: 3
+Aliases:
+	Size: 2
+Secrets:
+	Size: 2
+Size: 3
+Size: 2
+Size: 2
+Registrations:
+	{
+  "YB293SJ" : {
+    "id" : "YB293SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+	{
+  "YB283SJ" : {
+    "id" : "YB283SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+	{
+  "YB593SJ" : {
+    "id" : "YB593SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+Aliases:
+	{
+  "Test1" : "4cf5dbf"
+}
+	{
+  "Test2" : "4cf5dc0"
+}
+Secrets:
+	{
+  "Secrets1" : "3c3cd4ee"
+}
+	{
+  "Secrets2" : "3c3cd4ef"
+}
+Registrations:
+	"YB593SJ"
+	"YB283SJ"
+	"YB293SJ"
+Aliases:
+	"Test1"
+	"Test2"
+Secrets:
+	"Secrets1"
+	"Secrets2"
+Registrations:
+	{
+  "id" : "YB293SJ",
+  "alias" : "Test1",
+  "configurations" : [ {
+    "name" : "Test-Config1",
+    "entries" : [ {
+      "moduleClassname" : "TestClass",
+      "moduleFlag" : "REQUIRED",
+      "options" : {
+        "option1" : "value1"
+      }
+    } ]
+  } ],
+  "options" : { }
+}
+	{
+  "id" : "YB283SJ",
+  "alias" : "Test1",
+  "configurations" : [ {
+    "name" : "Test-Config1",
+    "entries" : [ {
+      "moduleClassname" : "TestClass",
+      "moduleFlag" : "REQUIRED",
+      "options" : {
+        "option1" : "value1"
+      }
+    } ]
+  } ],
+  "options" : { }
+}
+	{
+  "id" : "YB593SJ",
+  "alias" : "Test1",
+  "configurations" : [ {
+    "name" : "Test-Config1",
+    "entries" : [ {
+      "moduleClassname" : "TestClass",
+      "moduleFlag" : "REQUIRED",
+      "options" : {
+        "option1" : "value1"
+      }
+    } ]
+  } ],
+  "options" : { }
+}
+Aliases:
+	"4cf5dbf"
+	"4cf5dc0"
+Secrets:
+	"3c3cd4ee"
+	"3c3cd4ef"
+{
+  "YB293SJ" : {
+    "id" : "YB293SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+{
+  "YB283SJ" : {
+    "id" : "YB283SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+{
+  "YB593SJ" : {
+    "id" : "YB593SJ",
+    "alias" : "Test1",
+    "configurations" : [ {
+      "name" : "Test-Config1",
+      "entries" : [ {
+        "moduleClassname" : "TestClass",
+        "moduleFlag" : "REQUIRED",
+        "options" : {
+          "option1" : "value1"
+        }
+      } ]
+    } ],
+    "options" : { }
+  }
+}
+{
+  "Test1" : "4cf5dbf"
+}
+{
+  "Test2" : "4cf5dc0"
+}
+{
+  "Secrets1" : "3c3cd4ee"
+}
+{
+  "Secrets2" : "3c3cd4ef"
+}
+{
+  "id" : "YB293SJ",
+  "alias" : "Test1",
+  "configurations" : [ {
+    "name" : "Test-Config1",
+    "entries" : [ {
+      "moduleClassname" : "TestClass",
+      "moduleFlag" : "REQUIRED",
+      "options" : {
+        "option1" : "value1"
+      }
+    } ]
+  } ],
+  "options" : { }
+}
+"4cf5dbf"
+"3c3cd4ee"

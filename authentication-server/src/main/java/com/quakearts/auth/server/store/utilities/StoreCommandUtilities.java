@@ -4,6 +4,9 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import org.infinispan.Cache;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.quakearts.auth.server.store.impl.RegistryStoreManagerImpl;
 import com.quakearts.utilities.annotation.CommandMetadata;
 import com.quakearts.utilities.annotation.CommandParameterMetadata;
@@ -28,6 +31,7 @@ public class StoreCommandUtilities extends CommandBase {
 	private boolean indent = false;
 	private RegistryStoreManagerImpl impl = new RegistryStoreManagerImpl();
 	private StringBuilder output = new StringBuilder();
+	private ObjectWriter objectWriter = new ObjectMapper().writerWithDefaultPrettyPrinter();
 	
 	@Override
 	public void execute() throws CommandParameterException {
@@ -73,14 +77,27 @@ public class StoreCommandUtilities extends CommandBase {
 				throw new CommandParameterException("Invalid value: "+getCommandParametersMap().get(LIST), LIST);
 			}
 		} else if(getCommandParametersMap().containsKey(KEY)) {
-			output.append(cache.get(getCommandParametersMap().get(KEY).getValue())).append("\n");
+			try {
+				output.append(objectWriter.writeValueAsString(cache.get(getCommandParametersMap().get(KEY).getValue()))).append("\n");
+			} catch (JsonProcessingException e) {
+				throw new UnsupportedOperationException(e);
+			}
 		} else {
 			output.append((indent?"\t":"")).append(MessageFormat.format("Size: {0}", cache.size())).append("\n");
 		}
 	}
 	
 	private void listAllIn(Collection<?> set) {
-		set.stream().map(o->(indent?"\t":"")+o.toString()).forEach(this::appendWithNewLine);
+		set.stream().map(this::writeObject).forEach(this::appendWithNewLine);
+	}
+	
+	private String writeObject(Object o) {
+		try {
+			return (indent?"\t":"")
+					+objectWriter.writeValueAsString(o);
+		} catch (JsonProcessingException e) {
+			throw new UnsupportedOperationException(e);
+		}
 	}
 	
 	private void appendWithNewLine(Object object) {

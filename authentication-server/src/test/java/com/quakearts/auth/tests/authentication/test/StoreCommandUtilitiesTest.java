@@ -3,6 +3,8 @@ package com.quakearts.auth.tests.authentication.test;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 
 import org.junit.AfterClass;
@@ -66,58 +68,17 @@ public class StoreCommandUtilitiesTest {
 		impl.getRegistryCache().put(registration3.getId(), registration3);
 	}
 	
-	private String expectedOut = "Registrations:\n" + 
-			"	Size: 3\n" + 
-			"Aliases:\n" + 
-			"	Size: 2\n" + 
-			"Secrets:\n" + 
-			"	Size: 2\n" + 
-			"Size: 3\n" + 
-			"Size: 2\n" + 
-			"Size: 2\n" + 
-			"Registrations:\n" + 
-			"	ImmortalCacheEntry{key=YB293SJ, value=Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"	ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"	ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"Aliases:\n" + 
-			"	ImmortalCacheEntry{key=Test1, value=4cf5dbf}\n" + 
-			"	ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
-			"Secrets:\n" + 
-			"	ImmortalCacheEntry{key=Secrets1, value=3c3cd4ee}\n" + 
-			"	ImmortalCacheEntry{key=Secrets2, value=3c3cd4ef}\n" + 
-			"Registrations:\n" + 
-			"	YB593SJ\n" + 
-			"	YB283SJ\n" + 
-			"	YB293SJ\n" + 
-			"Aliases:\n" + 
-			"	Test1\n" + 
-			"	Test2\n" + 
-			"Secrets:\n" + 
-			"	Secrets1\n" + 
-			"	Secrets2\n" + 
-			"Registrations:\n" + 
-			"	Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
-			"	Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
-			"	Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
-			"Aliases:\n" + 
-			"	4cf5dbf\n" + 
-			"	4cf5dc0\n" + 
-			"Secrets:\n" + 
-			"	3c3cd4ee\n" + 
-			"	3c3cd4ef\n" + 
-			"ImmortalCacheEntry{key=YB293SJ, value=Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"ImmortalCacheEntry{key=YB283SJ, value=Registration [id=YB283SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"ImmortalCacheEntry{key=YB593SJ, value=Registration [id=YB593SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]}\n" + 
-			"ImmortalCacheEntry{key=Test1, value=4cf5dbf}\n" + 
-			"ImmortalCacheEntry{key=Test2, value=4cf5dc0}\n" + 
-			"ImmortalCacheEntry{key=Secrets1, value=3c3cd4ee}\n" + 
-			"ImmortalCacheEntry{key=Secrets2, value=3c3cd4ef}\n" + 
-			"Registration [id=YB293SJ, alias=Test1, configurations=[LoginConfiguration [name=Test-Config1, entries=[LoginConfigurationEntry [moduleClassname=TestClass, moduleFlag=REQUIRED, options={option1=value1}]]]], options={}]\n" + 
-			"4cf5dbf\n" + 
-			"3c3cd4ee\n";
-	
 	@Test
-	public void test() {
+	public void test() throws Exception {
+		String expectedOut;
+		try(InputStream in = new FileInputStream("expected.txt")) {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			int read;
+			while((read = in.read())!=-1) {
+				stream.write(read);
+			}
+			expectedOut = new String(stream.toByteArray());
+		}
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		PrintStream printWriter = new PrintStream(stream);
 		PrintStream oldOut = System.out;
