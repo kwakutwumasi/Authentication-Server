@@ -60,7 +60,8 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 
 		context = SSLContext.getInstance(totpEdgeOptions.getSslInstance());
 		context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-		new Thread(this::runClient).start();
+		new Thread(this::runClient,"IO-"+totpEdgeOptions.getTotpServerIp()+":"
+				+totpEdgeOptions.getTotpServerPort()).start();
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 		log.debug("Set up complete");
 	}
@@ -73,6 +74,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 			try {
 				socket = context.getSocketFactory().createSocket(totpEdgeOptions.getTotpServerIp(), 
 						totpEdgeOptions.getTotpServerPort());
+				socket.setSoTimeout(totpEdgeOptions.getTotpServerReadTimeout());
 				log.debug("Connected to server {} on port {}", socket.getInetAddress(), socket.getPort());
 				listen();
 			} catch (IOException e) {
@@ -129,6 +131,7 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 		OutputStream out = socket.getOutputStream();
 		out.write(lengthHeader);
 		out.write(messageByte);
+		out.flush();
 	}
 
 	private int getLength(byte[] lengthHeader) {

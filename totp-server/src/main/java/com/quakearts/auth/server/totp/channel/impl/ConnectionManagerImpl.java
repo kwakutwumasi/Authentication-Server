@@ -204,6 +204,11 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		if(bites.length>2039) {
 			throw new InvalidInputException();
 		}
+		
+		if(deviceConnections.isEmpty()) {
+			return;
+		}
+		
 		long ticket = counter.getAndIncrement();
 		log.debug("Sending message for ticket {}", ticket);
 		byte[] tosend = new byte[bites.length+8];
@@ -215,6 +220,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 				try {
 					deviceConnection.send(tosend);
 				} catch (SocketShutdownException e) {
+					log.debug("Socket {} shutdown.", deviceConnection.getInfo());
 					deviceConnections.remove(deviceConnection);
 				}
 			});
