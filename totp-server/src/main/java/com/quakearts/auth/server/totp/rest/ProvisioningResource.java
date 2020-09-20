@@ -1,5 +1,7 @@
 package com.quakearts.auth.server.totp.rest;
 
+import java.time.LocalDateTime;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -73,6 +75,7 @@ public class ProvisioningResource {
 		device.setInitialCounter(System.currentTimeMillis());
 		keyGenerator.generateAndStoreIn(device);
 		device.setStatus(Status.INITIATED);
+		device.setCreatedOn(LocalDateTime.now());
 		dataStore.save(device);
 		return device;
 	}

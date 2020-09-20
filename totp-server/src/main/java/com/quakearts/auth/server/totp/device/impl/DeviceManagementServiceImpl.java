@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +16,10 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.security.auth.Subject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
@@ -36,6 +41,8 @@ import com.quakearts.webapp.orm.DataStoreFactory;
 import com.quakearts.webapp.orm.cdi.annotation.DataStoreFactoryHandle;
 import com.quakearts.webapp.orm.exception.DataStoreException;
 import com.quakearts.webapp.orm.query.QueryOrder;
+import com.quakearts.webapp.security.auth.OtherPrincipal;
+import com.quakearts.webapp.security.rest.SecurityContext;
 
 @Singleton
 public class DeviceManagementServiceImpl implements DeviceManagementService {
@@ -43,6 +50,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	private static final String DEVICE_ITEM_COUNT = "device.itemCount";
 
 	private static final String ITEM_COUNT = "itemCount";
+	
+	private static final Logger log = LoggerFactory.getLogger(DeviceManagementServiceImpl.class);
 
 	@Inject @DataStoreFactoryHandle
 	private DataStoreFactory factory;
@@ -87,6 +96,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 			alias.setDevice(device);
 			alias.getCheckValue().setDataStoreName(totpOptions.getDataStoreName());
 			dataStore.save(alias);
+			log.info("Assign Alias|Admin: {}|Alias: {}|Device #{}|", getUsername(), name , device.getItemCount());
 		} else {
 			throw new DuplicateAliasException();
 		}
@@ -98,6 +108,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		Alias alias = dataStore.get(Alias.class, name);
 		if(alias!=null){
 			dataStore.delete(alias);
+			log.info("Unassign Alias|Admin: {}|Alias: {}|Device #{}|", getUsername(), name , alias.getDevice().getItemCount());
 			return true;
 		} else {
 			return false;
@@ -110,6 +121,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		if(device.getStatus()==Status.ACTIVE){
 			device.setStatus(Status.LOCKED);
 			getTOTPDataStore().update(device);
+			log.info("Lock Device|Admin: {}|Device #{}|", getUsername(), device.getItemCount());
 			return true;
 		}
 		return false;
@@ -120,6 +132,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		if(device.getStatus()==Status.LOCKED){
 			device.setStatus(Status.ACTIVE);
 			getTOTPDataStore().update(device);
+			log.info("Un-lock Device|Admin: {}|Device #{}|", getUsername(), device.getItemCount());
 			return true;
 		}
 		return false;
@@ -140,6 +153,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		administrator.setCommonName(commonName);
 		administrator.getCheckValue().setDataStoreName(totpOptions.getDataStoreName());
 		getTOTPDataStore().save(administrator);
+		log.info("Add Administrator|Admin: {}| New Admin Name: {}|Device #{}|", getUsername(), commonName, device.getItemCount());
 	}
 	
 	@Override
@@ -153,6 +167,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 				.thenGetFirst();
 		if(optionalAdministrator.isPresent()){
 			dataStore.delete(optionalAdministrator.get());
+			log.info("Remove Administrator|Admin: {}| Removed Admin Name: {}|Device #{}|", getUsername(), optionalAdministrator.get().getCommonName(), 
+					device.getItemCount());
 		}
 		
 		return optionalAdministrator.isPresent();
@@ -205,7 +221,9 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		}
 		if(device.getStatus()==Status.ACTIVE){
 			device.setStatus(Status.INACTIVE);
+			device.setDeactivatedOn(LocalDateTime.now());
 			getTOTPDataStore().update(device);
+			log.info("De-activate Device|Admin: {}|Device #{}|", getUsername(), device.getItemCount());
 			return true;
 		}
 		return false;
@@ -285,5 +303,14 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		deviceConnectionChannel.sendMessage(requestMap, response->
 			callback.accept(Boolean.parseBoolean(response.get("connected")))
 		);
+	}
+	
+	private String getUsername() {
+		try {
+			Subject subject = SecurityContext.getCurrentSecurityContext().getSubject();
+			return subject.getPrincipals(OtherPrincipal.class).iterator().next().getName();
+		} catch (Exception e) {
+			return "Uknown User";
+		}
 	}
 }

@@ -13,6 +13,7 @@ import javax.security.auth.login.LoginException;
 
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
+import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
@@ -76,8 +77,8 @@ public class AlternativeJWTGenerator implements JWTGenerator {
 	}
 
 	@Override
-	public String login(String username) throws NoSuchAlgorithmException, URISyntaxException, LoginException {
-		return wrapped.login(username);
+	public String login(Administrator administrator) throws NoSuchAlgorithmException, URISyntaxException, LoginException {
+		return wrapped.login(administrator);
 	}
 
 }

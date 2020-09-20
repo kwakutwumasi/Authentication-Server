@@ -57,6 +57,6 @@ public class ManagementLoginResource {
 			throw new WebApplicationException(Response.status(403)
 					.entity(new ErrorResponse().withMessageAs("Authentication failed")).build());			
 		}
-		return new TokenResponse().withTokenAs(jwtGenerator.login(request.getDeviceId()));
+		return new TokenResponse().withTokenAs(jwtGenerator.login(optionalAdministrator.get()));
 	}
 }

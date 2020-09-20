@@ -2,7 +2,7 @@ package com.quakearts.auth.server.totp.generator.impl;
 
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +12,7 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginException;
 
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
+import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.options.TOTPLoginConfiguration;
 import com.quakearts.webapp.security.auth.JWTLoginModule;
 import com.quakearts.webapp.security.auth.UserPrincipal;
@@ -29,9 +30,9 @@ public class JWTGeneratorImpl implements JWTGenerator {
 	private TOTPLoginConfiguration totpLoginConfiguration;
 	
 	@Override
-	public String login(String username)
+	public String login(Administrator administrator)
 			throws NoSuchAlgorithmException, URISyntaxException, LoginException {
-		UserPrincipal principal = new UserPrincipal(username);
+		UserPrincipal principal = new UserPrincipal(administrator.getDevice().getId());
 		Map<String, Object> sharedState = new HashMap<>();
 		sharedState.put("com.quakearts.LoginOk", Boolean.TRUE);
 		sharedState.put("javax.security.auth.login.name", principal);
@@ -39,8 +40,9 @@ public class JWTGeneratorImpl implements JWTGenerator {
 		JWTLoginModule jwtLoginModule = new JWTLoginModule();
 		jwtLoginModule.initialize(null, DEFUALTCALLBACKHANDLER, sharedState, totpLoginConfiguration.getConfigurationOptions());
 		jwtLoginModule.login();
-		
-		return jwtLoginModule.generateJWTToken(Collections.emptyList());
+		ArrayList<String[]> roles = new ArrayList<>();
+		roles.add(new String[]{"name", administrator.getCommonName()});
+		return jwtLoginModule.generateJWTToken(roles);
 	}
 	
 	@Override

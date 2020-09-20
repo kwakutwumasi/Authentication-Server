@@ -3,6 +3,7 @@ package com.quakearts.auth.server.totp.setup;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -62,7 +63,7 @@ public class CreatorService {
 		executeStatement("DROP TABLE DEVICE", sqlConnection);
 		executeStatement("CREATE TABLE ADMINISTRATOR (ID BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), CHECKVALUE VARCHAR(255) NOT NULL, DEVICE_ID VARCHAR(250) NOT NULL, COMMONNAME VARCHAR(250) NOT NULL)", sqlConnection);
 		executeStatement("CREATE TABLE ALIAS (NAME VARCHAR(250) NOT NULL, CHECKVALUE VARCHAR(250) NOT NULL, DEVICE_ID VARCHAR(250) NOT NULL)", sqlConnection);
-		executeStatement("CREATE TABLE DEVICE (ID VARCHAR(250) NOT NULL, INITIALCOUNTER BIGINT NOT NULL, SEED LONG VARCHAR FOR BIT DATA NOT NULL, CHECKVALUE VARCHAR(250) NOT NULL, STATUS INTEGER NOT NULL, ITEMCOUNT BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1))", sqlConnection);
+		executeStatement("CREATE TABLE DEVICE (ID VARCHAR(250) NOT NULL, INITIALCOUNTER BIGINT NOT NULL, SEED LONG VARCHAR FOR BIT DATA NOT NULL, CHECKVALUE VARCHAR(250) NOT NULL, STATUS INTEGER NOT NULL, CREATEDON TIMESTAMP NOT NULL, DEACTIVATEDON TIMESTAMP, ITEMCOUNT BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1))", sqlConnection);
 		executeStatement("CREATE UNIQUE INDEX IDXADMINISTRATORID ON ADMINISTRATOR (ID ASC)", sqlConnection);
 		executeStatement("CREATE INDEX IDXADMINISTRATORIDDEVICEID ON ADMINISTRATOR (DEVICE_ID ASC)", sqlConnection);
 		executeStatement("CREATE UNIQUE INDEX IDXALIASNAME ON ALIAS (NAME ASC)", sqlConnection);
@@ -92,6 +93,7 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.ACTIVE);
+			device.setCreatedOn(LocalDateTime.now());
 			DataStore dataStore = factory.getDataStore(totpOptions.getDataStoreName());
 			dataStore.save(device);
 			dataStore.flushBuffers();
@@ -114,6 +116,8 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.INACTIVE);
+			device.setCreatedOn(LocalDateTime.now());
+			device.setDeactivatedOn(LocalDateTime.now());
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
@@ -128,6 +132,7 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.LOCKED);
+			device.setCreatedOn(LocalDateTime.now());
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
@@ -136,6 +141,7 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.ACTIVE);
+			device.setCreatedOn(LocalDateTime.now());
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
@@ -144,6 +150,7 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.ACTIVE);
+			device.setCreatedOn(LocalDateTime.now());
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
@@ -152,6 +159,7 @@ public class CreatorService {
 			keyGenerator.generateAndStoreIn(device);
 			device.setInitialCounter(System.currentTimeMillis());
 			device.setStatus(Status.INITIATED);
+			device.setCreatedOn(LocalDateTime.now());
 			dataStore.save(device);
 			dataStore.flushBuffers();
 			
@@ -165,6 +173,7 @@ public class CreatorService {
 			device.setId("testdeactivatedevice1");
 			keyGenerator.generateAndStoreIn(device);
 			device.setStatus(Status.ACTIVE);
+			device.setCreatedOn(LocalDateTime.now());
 			device.setInitialCounter(System.currentTimeMillis());
 			dataStore.save(device);
 			dataStore.flushBuffers();

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,6 +47,11 @@ public class ModelTests {
 				is(new HashPassword("123456","SHA-256",3,CryptoResource
 						.byteAsHex("value".getBytes())).toString()));
 		assertThat(device1.notTamperedWith(), is(true));
+		LocalDateTime time = LocalDateTime.now();
+		device1.setCreatedOn(time);
+		assertThat(device1.getCreatedOn(), is(time));
+		device1.setDeactivatedOn(time);
+		assertThat(device1.getDeactivatedOn(), is(time));
 		
 		device1.setId("78901");
 		assertThat(device1.notTamperedWith(), is(false));		

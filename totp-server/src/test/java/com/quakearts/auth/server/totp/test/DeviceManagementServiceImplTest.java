@@ -294,6 +294,7 @@ public class DeviceManagementServiceImplTest {
 		assertThat(optionalDevice.isPresent(), is(true));
 		Device lockedDevice = optionalDevice.get();
 		assertThat(lockedDevice.getStatus(), is(Status.INACTIVE));
+		assertThat(lockedDevice.getDeactivatedOn(), is(notNullValue()));
 		
 		optionalDevice = deviceService.findDevice("testinactivedevice1");
 		assertThat(optionalDevice.isPresent(), is(true));

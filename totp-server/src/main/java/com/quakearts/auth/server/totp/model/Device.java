@@ -1,6 +1,7 @@
 package com.quakearts.auth.server.totp.model;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +39,10 @@ public class Device implements Serializable {
 	private Status status;
 	@Column(nullable = false, unique=true, insertable=false, updatable=false)
 	private long itemCount;
+	@Column(nullable = false)
+	private LocalDateTime createdOn;
+	@Column
+	private LocalDateTime deactivatedOn;
 	@OneToMany(mappedBy="device", fetch=FetchType.LAZY)
 	private Set<Alias> aliases = new HashSet<>();
 
@@ -113,6 +118,22 @@ public class Device implements Serializable {
 		encryptedValue.setStringValue(new HashPassword(id, "SHA-256", 3, 
 				CryptoResource.byteAsHex(seed.getValue())).toString());
 		return encryptedValue;
+	}
+
+	public LocalDateTime getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(LocalDateTime createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public LocalDateTime getDeactivatedOn() {
+		return deactivatedOn;
+	}
+
+	public void setDeactivatedOn(LocalDateTime deactivatedOn) {
+		this.deactivatedOn = deactivatedOn;
 	}
 
 	public Set<Alias> getAliases() {
