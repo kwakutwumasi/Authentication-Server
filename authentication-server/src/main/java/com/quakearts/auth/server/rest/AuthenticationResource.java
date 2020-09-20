@@ -67,7 +67,7 @@ public class AuthenticationResource {
 	@Inject
 	private ErrorService errorService;
 	
-	@Operation(summary="Generate a JWT token for authenticating to a server", 
+	@Operation(tags = OpenApiDefinition.AUTHENTICATION_ENDPOINTS, summary="Generate a JWT token for authenticating to a server", 
 			description="Clients that need an authorization token for API services call this method with "
 					+ "credentials. If authenticated, an authorization token is generated and returned. "
 					+ "The token will contain the necessary information required by the API services to "
@@ -121,7 +121,7 @@ public class AuthenticationResource {
 		});
 	}
 
-	@Operation(summary="Generate a JWT token for authenticating to a server. This can be used to avoid revealing "
+	@Operation(tags = OpenApiDefinition.AUTHENTICATION_ENDPOINTS, summary="Generate a JWT token for authenticating to a server. This can be used to avoid revealing "
 			+ "sensitive data over URLS that may be logged by the HTTP server or by a third party controlled HTTP "
 			+ "reverse proxy", 
 			description="Clients that need an authorization token for API services call this method with "

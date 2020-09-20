@@ -34,7 +34,7 @@ public class SecretsResource {
 	@Inject @SecretsStore
 	private Cache<String, String> secretStore;
 	
-	@Operation(summary="Store a secret key and value",
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Store a secret key and value",
 				requestBody=@RequestBody(content=
 								@Content(schema=
 									@Schema(description="The secret key and value", 
@@ -53,7 +53,7 @@ public class SecretsResource {
 		});
 	}
 	
-	@Operation(summary="Remove a secret key and value")
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Remove a secret key and value")
 	@ApiResponse(responseCode="204", 
 		description="Request was successful")
 	@DELETE

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @OpenAPIDefinition(info=@Info(title="QuakeArts Authentication Server", 
 	description="The Authentication Server provides centralized authentication and authorization for API servers and micro-services. It is a simplified JWT token generator.\r\n" + 
@@ -21,4 +22,12 @@ import io.swagger.v3.oas.annotations.info.License;
 	license=@License(name="MIT",url="https://opensource.org/licenses/MIT"),
 	contact=@Contact(email="info@quakearts.com", name="System Administration"),
 	version="0.0.1"))
-public class OpenApiDefinition {}
+@Tag(name = OpenApiDefinition.AUTHENTICATION_ENDPOINTS, description = "These endpoints perform authentication.")
+@Tag(name = OpenApiDefinition.REGISTRATION_ENDPOINTS, description = "These endpoints register authentication applications.")
+@Tag(name = OpenApiDefinition.REPORT_OPERATIONS, description = "These endpoints provide information to applications on authentication and registration.")
+public class OpenApiDefinition {
+	private OpenApiDefinition() {}
+	public static final String AUTHENTICATION_ENDPOINTS = "Authentication End-points";
+	public static final String REGISTRATION_ENDPOINTS = "Registration End-points";
+	public static final String REPORT_OPERATIONS = "Report Operations";
+}

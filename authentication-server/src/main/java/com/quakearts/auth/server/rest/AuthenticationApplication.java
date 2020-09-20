@@ -17,7 +17,6 @@ public class AuthenticationApplication extends Application {
 	private Set<Class<?>> classes = 
 			new HashSet<>(Arrays.asList(RegistrationResource.class, 
 										AuthenticationResource.class,
-										OpenApiResource.class,
 										SecretsResource.class,
 										DataSourcesResource.class,
 										AcceptContainerResponse.class,
@@ -27,5 +26,12 @@ public class AuthenticationApplication extends Application {
 	@Override
 	public Set<Class<?>> getClasses() {
 		return classes;
+	}
+	
+	@Override
+	public Set<Object> getSingletons() {
+		OpenApiResource apiResource = new OpenApiResource();
+		apiResource.setResourcePackages(new HashSet<>(Arrays.asList("com.quakearts.auth.server.rest")));
+		return new HashSet<>(Arrays.asList(apiResource));
 	}
 }

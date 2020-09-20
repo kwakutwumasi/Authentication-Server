@@ -38,7 +38,7 @@ public class Registration implements Serializable {
 	private List<@ValidLoginConfiguration LoginConfiguration> configurations = new ArrayList<>();
 	@Schema(description="A list of options for use during token generation.", 
 			type="object",
-			example="\"options\":{\n" + 
+			example="{\n" + 
 					"      \"audience\":\"https://demo.quakearts.com\",\n" + 
 					"      \"validity.period\":\"1 Day\",\n" + 
 					"      \"secret\":\"W@h8237HksIhfmsd2Nl94WNCA\",\n" + 

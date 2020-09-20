@@ -57,7 +57,7 @@ public class DataSourcesResource {
 	@Inject
 	private ErrorService errorService;
 	
-	@Operation(summary="Return a list of all currently configured datasources")
+	@Operation(tags = OpenApiDefinition.REPORT_OPERATIONS, summary="Return a list of all currently configured datasources")
 	@ApiResponse(responseCode="200",
 		description="Retrieval succeeded",
 		content=@Content(array=@ArraySchema(schema=@Schema(implementation=String.class))))
@@ -66,7 +66,7 @@ public class DataSourcesResource {
 		return dataSourceService.getAllDataSources();
 	}
 	
-	@Operation(summary="Create a data source using the options provided",
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Create a data source using the options provided",
 			description="An SQL Ddata source connection is required for database authentication. "
 					+ "This resource makes it possible to dynamically create SQL data sources for use with "
 					+ "authentication modules. This services makes use of the secrets service to replace "
@@ -177,7 +177,7 @@ public class DataSourcesResource {
 		return false;
 	}
 
-	@Operation(summary="Remove a data source identified by the key")
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Remove a data source identified by the key")
 	@ApiResponse(responseCode="204",
 		description="Data source removal succeeded")
 	@ApiResponse(responseCode="404",

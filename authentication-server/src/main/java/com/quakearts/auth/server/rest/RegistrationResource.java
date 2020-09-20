@@ -57,7 +57,7 @@ public class RegistrationResource {
 	@Inject
 	private AuthenticationResource authenticationResource;
 	
-	@Operation(summary="List all aliases registered on the server")
+	@Operation(tags = OpenApiDefinition.REPORT_OPERATIONS, summary="List all aliases registered on the server")
 	@ApiResponse(responseCode="200",
 	 description="The aliases were successfully listed",
 	 content=@Content(array=@ArraySchema(schema=@Schema(implementation=String.class))))
@@ -74,7 +74,7 @@ public class RegistrationResource {
 						"A registration with the provided ID could not be found")).build()));
 	}
 	
-	@Operation(summary="Register an application for authentication",
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Register an application for authentication",
 				description="API services that outsource authentication to this server need to configure the "
 						+ "login modules to be used in authenticating and authorizing subjects. This interface "
 						+ "provides applications and application administrators the ability to configure "
@@ -155,7 +155,7 @@ public class RegistrationResource {
 		}
 	}
 	
-	@Operation(summary="Update the registeration",
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Update the registeration",
 			requestBody=@RequestBody(content=@Content(schema=@Schema(implementation=Registration.class,
 																	 description="The registration details",
 																	 example="{\n" + 
@@ -236,7 +236,7 @@ public class RegistrationResource {
 				.equals(registration.getAlias());
 	}
 	
-	@Operation(summary="Remove the registeration")
+	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Remove the registeration")
 	@ApiResponse(responseCode="204",
 				description="Registration removal succeeded")
 	@ApiResponse(responseCode="404",
