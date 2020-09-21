@@ -17,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.infinispan.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.rest.models.Secret;
 import com.quakearts.auth.server.store.annotation.SecretsStore;
@@ -34,6 +36,8 @@ public class SecretsResource {
 	@Inject @SecretsStore
 	private Cache<String, String> secretStore;
 	
+	private static final Logger log = LoggerFactory.getLogger(SecretsResource.class);
+	
 	@Operation(tags = OpenApiDefinition.REGISTRATION_ENDPOINTS, summary="Store a secret key and value",
 				requestBody=@RequestBody(content=
 								@Content(schema=
@@ -48,8 +52,10 @@ public class SecretsResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void addSecret(@NotNull @Valid final Secret secret, @Suspended final AsyncResponse asyncResponse) {
 		CompletableFuture.runAsync(()->{
+			log.trace("Loading secret key {}", secret.getKey());
 			secretStore.put(secret.getKey(), secret.getValue());
 			asyncResponse.resume(Response.noContent().build());
+			log.trace("Loaded secret key {}", secret.getKey());
 		});
 	}
 	
@@ -60,8 +66,10 @@ public class SecretsResource {
 	@Path("{key}")
 	public void removeKey(@PathParam("key") final String key, @Suspended final AsyncResponse asyncResponse) {
 		CompletableFuture.runAsync(()->{
+			log.trace("Removing secret key {}", key);
 			secretStore.remove(key);
 			asyncResponse.resume(Response.noContent().build());	
+			log.trace("Removed secret key {}", key);
 		});
 	}
 }

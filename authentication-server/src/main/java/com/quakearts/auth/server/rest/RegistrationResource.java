@@ -21,6 +21,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.infinispan.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.rest.models.Registration;
 import com.quakearts.auth.server.rest.services.ErrorService;
@@ -56,6 +58,8 @@ public class RegistrationResource {
 	
 	@Inject
 	private AuthenticationResource authenticationResource;
+	
+	private static final Logger log = LoggerFactory.getLogger(RegistrationResource.class);
 	
 	@Operation(tags = OpenApiDefinition.REPORT_OPERATIONS, summary="List all aliases registered on the server")
 	@ApiResponse(responseCode="200",
@@ -130,8 +134,10 @@ public class RegistrationResource {
 					|| aliases.containsKey(registration.getAlias())) {
 				respondBadRequest(asyncResponse);
 			} else {
+				log.trace("Registering authentication {}", registration.getId());
 				storeRegistration(registration, null);
 				asyncResponse.resume(Response.noContent().build());
+				log.trace("Registered authentication {}", registration.getId());
 			}
 		});
 	}
@@ -220,10 +226,12 @@ public class RegistrationResource {
 					&& !aliases.get(registration.getAlias()).equals(id)) {
 				respondBadRequest(asyncResponse);
 			} else {
+				log.trace("Updating authentication {}", id);
 				prepareParameters(id, registration, oldRegistration, switcher);
 				storeRegistration(registration, switcher);
 				authenticationResource.resetAuthenticationPack(id);
 				asyncResponse.resume(Response.noContent().build());
+				log.trace("Updated authentication {}", id);
 			}
 		});
 	}
@@ -258,8 +266,10 @@ public class RegistrationResource {
 			if(registration == null) {
 				respondNotFound(asyncResponse);
 			} else {
+				log.trace("Removing authentication {}", id);
 				aliases.remove(registration.getAlias());
 				asyncResponse.resume(Response.noContent().build());
+				log.trace("Removed authentication {}", id);
 			}
 		});
 	}

@@ -190,10 +190,13 @@ public class AuthenticationResource {
 		AuthenticationPack pack = getAuthenticationPack(registration);
 		Subject subject = new Subject();
 		try {
+			log.trace("Authenticating {} for {}/{}", clientId, registration.getAlias(), application);
 			authenticateCredentials(application, clientId, credential, pack, subject);
 			generateToken(clientId, pack, subject);
 			respondWithToken(asyncResponse, pack, subject);
+			log.trace("Authenticated {} for {}/{}", clientId, registration.getAlias(), application);
 		} catch (LoginException e) {
+			log.trace("Failed to authenticate {} for {}/{}", clientId, registration.getAlias(), application);
 			log.trace("Error authenticating credential", e);
 			respondWithError(asyncResponse);
 		}

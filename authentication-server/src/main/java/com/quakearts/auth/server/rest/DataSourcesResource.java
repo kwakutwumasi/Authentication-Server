@@ -26,6 +26,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.auth.server.Main;
 import com.quakearts.auth.server.rest.services.DataSourceService;
@@ -56,6 +59,8 @@ public class DataSourcesResource {
 	private OptionsService optionsService;
 	@Inject
 	private ErrorService errorService;
+	
+	private static final Logger log = LoggerFactory.getLogger(DataSourcesResource.class);
 	
 	@Operation(tags = OpenApiDefinition.REPORT_OPERATIONS, summary="Return a list of all currently configured datasources")
 	@ApiResponse(responseCode="200",
@@ -91,12 +96,16 @@ public class DataSourcesResource {
 	public void addDatasource(@ValidDataSourceKey @PathParam("datasourcekey") final String datasourcekey,
 			final Map<String, Object> configuration, @Suspended final AsyncResponse asyncResponse) {
 		CompletableFuture.runAsync(()->{
+			log.trace("Registering datasource {}", datasourcekey);
 			optionsService.resolveSecrets(configuration);
 			File dataSourceFile = createDataSourceFile(datasourcekey);
 			if(saveDataSourceFile(dataSourceFile, configuration, asyncResponse) 
 					&& createDataSource(asyncResponse, dataSourceFile)
-					&& testDataSource(configuration, asyncResponse, dataSourceFile))
+					&& testDataSource(configuration, asyncResponse, dataSourceFile)){
 				asyncResponse.resume(Response.noContent().build());
+				log.trace("Registered datasource {}", datasourcekey);
+			}
+			log.trace("Failed to register datasource {}", datasourcekey);
 		});
 	}
 
@@ -129,7 +138,6 @@ public class DataSourcesResource {
 
 	private boolean testDataSource(final Map<String, Object> configuration, final AsyncResponse asyncResponse,
 			File dataSourceFile) {
-		
 		String dataSourceName = "java:/jdbc/"+configuration.get("jndi.name");
 		DataSource dataSource = null;
 		try {
