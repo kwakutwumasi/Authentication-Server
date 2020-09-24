@@ -20,6 +20,7 @@
 		"threads":5,
 		"port":9001,
 		"keystore.password":"password",
+		"key.password":"keypassword",
 		"keystore.type":"PKCS12",
 		"keystore.provider":"SunJSSE",
 		"keystore":"totp.keystore",

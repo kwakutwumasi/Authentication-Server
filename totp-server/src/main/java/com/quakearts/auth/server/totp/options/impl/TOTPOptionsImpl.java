@@ -88,6 +88,8 @@ public class TOTPOptionsImpl implements TOTPOptions {
 			}
 			deviceConnectionPort = deviceConnectionMap.getInt("port");
 			deviceConnectionKeystorePassword = deviceConnectionMap.getString("keystore.password");
+			if(deviceConnectionMap.containsKey("key.password"))
+				deviceConnectionKeyPassword = deviceConnectionMap.getString("key.password");
 			deviceConnectionKeystoreType = deviceConnectionMap.getString("keystore.type");
 			deviceConnectionKeystoreProvider = deviceConnectionMap.getString("keystore.provider");
 			deviceConnectionKeystore = deviceConnectionMap.getString("keystore");
