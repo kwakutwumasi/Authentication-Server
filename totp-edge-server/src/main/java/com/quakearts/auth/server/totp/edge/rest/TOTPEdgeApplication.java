@@ -18,7 +18,6 @@ public class TOTPEdgeApplication extends Application {
 	public Set<Class<?>> getClasses() {
 		return new HashSet<>(Arrays.asList(
 				ProvisioningResource.class,
-				AuthenticationResource.class,
 				SynchronizeResource.class,
 				ConnectorExceptionMapper.class,
 				HttpClientExceptionMapper.class,
