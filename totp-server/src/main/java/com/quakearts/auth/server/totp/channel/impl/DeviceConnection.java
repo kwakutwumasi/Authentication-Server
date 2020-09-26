@@ -66,6 +66,8 @@ public class DeviceConnection {
 			} else {
 				log.debug("Received invalid message. Expected length {}. Received length {}", response.length, read);
 			}
+		} else if(read == -1) {
+			throw new IOException("Reached end of stream. InputStream has been closed");
 		} else {
 			log.debug("Received invalid header. Expected length 2. Received length {}", read);
 		}
