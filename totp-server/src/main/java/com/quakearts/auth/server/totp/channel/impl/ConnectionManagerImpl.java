@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -210,7 +211,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		}
 		
 		long ticket = counter.getAndIncrement();
-		log.debug("Sending message for ticket {}", ticket);
+		log.debug("Sending message with hashCode: {} with ticket {}", Arrays.hashCode(bites), ticket);
 		byte[] tosend = new byte[bites.length+8];
 		System.arraycopy(ByteBuffer.allocate(8).putLong(ticket).array(), 0, tosend, 0, 8);
 		System.arraycopy(bites, 0, tosend, 8, bites.length);

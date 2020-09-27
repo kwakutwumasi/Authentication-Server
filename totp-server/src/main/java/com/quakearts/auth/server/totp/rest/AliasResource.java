@@ -12,6 +12,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.TOTPException;
@@ -24,6 +28,8 @@ import com.quakearts.auth.server.totp.rest.model.AliasCheckResponse;
 @Path("alias")
 public class AliasResource {
 	
+	private static final Logger log = LoggerFactory.getLogger(AliasResource.class);
+	
 	@Inject
 	private DeviceManagementService deviceManagementService;
 	
@@ -32,7 +38,6 @@ public class AliasResource {
 	
 	@Inject
 	private TOTPOptions totpOptions;
-
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -44,6 +49,8 @@ public class AliasResource {
 		Optional<Device> optionalDevice = deviceManagementService.findDevice(aliasOrDeviceId);
 		CompletableFuture.runAsync(()->{
 			if(optionalDevice.isPresent()){
+				if(log.isDebugEnabled())
+					log.debug("Checking status of device with itemCount: {}", optionalDevice.get().getItemCount());
 				try {
 					deviceManagementService.isConnected(optionalDevice.get(), connected->
 						asyncResponse.resume(new AliasCheckResponse()

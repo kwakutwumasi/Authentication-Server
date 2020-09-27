@@ -6,6 +6,9 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.authentication.AuthenticationService;
 import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.exception.InvalidSignatureException;
@@ -26,6 +29,8 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 
 	private static final String HS256 = "HS256";
 
+	private static final Logger log = LoggerFactory.getLogger(DeviceRequestSigningService.class);
+	
 	@Inject
 	private DeviceConnectionChannel deviceConnectionChannel;
 	
@@ -40,6 +45,10 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 			Consumer<String> errorCallback) throws TOTPException {
 		requestMap.put("requestType", "otp-signing");
 		requestMap.put("deviceId", device.getId());
+		
+		log.debug("Sending signing request message with hashCode: {} for device with itemCount: {}", 
+				requestMap.hashCode(), device.getItemCount());
+
 		deviceConnectionChannel.sendMessage(requestMap, response->{
 			String otp = response.get("otp");
 			String timestamp = response.get(TIMESTAMP);

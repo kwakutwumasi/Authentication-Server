@@ -11,6 +11,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -111,11 +112,16 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 					System.arraycopy(message, 0, ticket, 0, 8);
 					System.arraycopy(message, 8, value, 0, value.length);
 					Message request = new Message(ByteBuffer.wrap(ticket).getLong(), value);
-					log.debug("Received/Processing request for ticket {}", request.getTicket());
+					log.debug("Processing message with hashCode: {} for ticket {} with data with hashCode: {}", 
+							request.hashCode(),
+							request.getTicket(),
+							Arrays.hashCode(request.getValue()));
 					try {
 						totpServerMessageHandler
 								.handle(request, this::sendResponse);
 					} catch (JWTException | UnconnectedDeviceException e) {
+						log.error("Error processing message: {}.{}", e.getMessage(), 
+								e.getCause()!=null?" Caused by "+ e.getCause().getMessage():"");
 						sendResponse(new Message(request.getTicket(), NORESPONSE));
 					}
 				}
@@ -125,7 +131,8 @@ public class TOTPServerConnectionImpl implements TOTPServerConnection {
 
 	private synchronized void sendResponse(Message response) 
 			throws IOException {
-		log.debug("Sending response for ticket {}", response.getTicket());
+		log.debug("Sending response for ticket {} with data with hashCode: {}", response.getTicket(),
+				Arrays.hashCode(response.getValue()));
 		byte[] messageByte = response.toMessageBytes();
 		byte[] lengthHeader = getLengthHeader(messageByte);
 		OutputStream out = socket.getOutputStream();

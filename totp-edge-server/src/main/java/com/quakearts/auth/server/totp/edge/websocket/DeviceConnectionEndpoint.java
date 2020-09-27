@@ -54,7 +54,8 @@ public class DeviceConnectionEndpoint {
 			try {
 				session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "OTP Authentication failure. "+e.getMessage()));
 			} catch (IOException e1) {
-				log.error("Unable to send close response to "+deviceId, e1);
+				log.error("Unable to send close response to deviceId with hashCode: {}. {}", deviceId.hashCode(), 
+						e1);
 			}
 			return;
 		}

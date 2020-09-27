@@ -86,6 +86,7 @@ public class TOTPServerConnectionImplTest {
 				lengthHeader[1] = (byte) (bites.length % 8);
 				out.write(lengthHeader);
 				out.write(bites);
+				out.flush();
 				assertThat(in.read(lengthHeader), is(2));
 				int length = (lengthHeader[0]*8 + lengthHeader[1])&0x07ff;
 				bites = new byte[length];

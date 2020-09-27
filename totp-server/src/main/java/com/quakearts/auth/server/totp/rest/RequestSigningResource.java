@@ -19,6 +19,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.AuthenticationException;
@@ -36,6 +39,8 @@ import com.quakearts.auth.server.totp.signing.DeviceRequestSigningService;
 @Singleton
 public class RequestSigningResource {
 
+	private static final Logger log = LoggerFactory.getLogger(RequestSigningResource.class);
+	
 	@Inject
 	private DeviceManagementService deviceManagementService;
 
@@ -66,6 +71,8 @@ public class RequestSigningResource {
 			CompletableFuture.runAsync(()->{
 				Device device = optionalDevice.get();
 				try {
+					log.debug("Sending signing request {} for device with itemCount: {}", requestMap, device.getItemCount());
+
 					deviceRequestSigningService.signRequest(device, requestMap,
 						signedMessage->asyncResponse.resume(new TokenResponse().withTokenAs(signedMessage)), 
 						error->asyncResponse.resume("Request rejected".equals(error)?

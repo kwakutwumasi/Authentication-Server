@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
+import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceAuthorizationServiceImpl;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webtools.test.AllServicesRunner;
@@ -32,20 +33,24 @@ public class DeviceAuthorizationServiceTest {
 	@Test
 	public void testSendMessage() throws Exception {
 		AlternativeConnectionManager.run(this::expectedMessageAndResponse);
-		deviceAuthorizationService.requestOTPCode("123456", null, otp->{			
+		Device device = new Device();
+		device.setId("123456");
+		device.setItemCount(1);
+		
+		deviceAuthorizationService.requestOTPCode(device, null, otp->{			
 			assertThat(otp, is("7890"));
 		}, error->{});
 		HashMap<String, String> authenticationData = new HashMap<>();
-		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{			
+		deviceAuthorizationService.requestOTPCode(device, authenticationData, otp->{			
 			assertThat(otp, is("7890"));
 		}, error->{});
 		authenticationData.put("key", "value");
 		AlternativeConnectionManager.run(this::expectedMessageAndResponseWithExtraData);
-		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{			
+		deviceAuthorizationService.requestOTPCode(device, authenticationData, otp->{			
 			assertThat(otp, is("7890"));
 		}, error->{});
 		AlternativeConnectionManager.run(this::errorMessage);
-		deviceAuthorizationService.requestOTPCode("123456", authenticationData, otp->{
+		deviceAuthorizationService.requestOTPCode(device, authenticationData, otp->{
 			throw new AssertionFailedError("Error callback was not called");
 		}, error->{
 			assertThat(error, is("Message"));

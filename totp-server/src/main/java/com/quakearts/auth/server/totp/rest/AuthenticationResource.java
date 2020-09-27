@@ -15,6 +15,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.authentication.AuthenticationService;
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
@@ -32,6 +35,8 @@ import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 @Path("authenticate")
 @Singleton
 public class AuthenticationResource {
+	
+	private static final Logger log = LoggerFactory.getLogger(AuthenticationResource.class);
 	
 	@Inject
 	private AuthenticationService authenticationService;
@@ -90,23 +95,8 @@ public class AuthenticationResource {
 		String deviceId = request.getDeviceId();
 		Optional<Device> optionalDevice = deviceManagementService.findDevice(deviceId);
 		if(optionalDevice.isPresent() && optionalDevice.get().getStatus() == Status.ACTIVE){
-			CompletableFuture.runAsync(()->{
-				Device device = optionalDevice.get();
-				try {
-					deviceAuthorizationService.requestOTPCode(device.getId(), request.getAuthenticationData(), otp->{
-						try {
-							authenticate(device, otp);
-							asyncResponse.resume(Response.noContent().build());
-						} catch (AuthenticationException e) {
-							asyncResponse.resume(e);
-						}
-					}, error->asyncResponse.resume("Request rejected".equals(error)?
-							new AuthenticationException(error):
-								new UnconnectedDeviceException(error)));
-				} catch (TOTPException e) {
-					asyncResponse.resume(e);
-				}
-			}, deviceConnectionExecutorService.getExecutorService());
+			CompletableFuture.runAsync(processRequest(request, asyncResponse, optionalDevice), 
+					deviceConnectionExecutorService.getExecutorService());
 			asyncResponse.setTimeout(totpOptions.getDeviceConnectionRequestTimeout(), TimeUnit.MILLISECONDS);
 			asyncResponse.setTimeoutHandler(this::handleTimeout);
 		} else {
@@ -115,6 +105,30 @@ public class AuthenticationResource {
 					.type(MediaType.APPLICATION_JSON_TYPE)
 					.build());
 		}
+	}
+
+	private Runnable processRequest(DirectAuthenticationRequest request, AsyncResponse asyncResponse,
+			Optional<Device> optionalDevice) {
+		return ()->{
+			Device device = optionalDevice.get();
+			if(log.isDebugEnabled())
+				log.debug("Sending Authentication Request for device with itemCount: {}", 
+						device.getItemCount());
+			try {
+				deviceAuthorizationService.requestOTPCode(device, request.getAuthenticationData(), otp->{
+					try {
+						authenticate(device, otp);
+						asyncResponse.resume(Response.noContent().build());
+					} catch (AuthenticationException e) {
+						asyncResponse.resume(e);
+					}
+				}, error->asyncResponse.resume("Request rejected".equals(error)?
+						new AuthenticationException(error):
+							new UnconnectedDeviceException(error)));
+			} catch (TOTPException e) {
+				asyncResponse.resume(e);
+			}
+		};
 	}
 	
 	private void handleTimeout(AsyncResponse asyncResponse) {

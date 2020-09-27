@@ -64,6 +64,9 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	
 	@Override
 	public Optional<Device> findDevice(String id) {
+		if(log.isDebugEnabled())
+			log.debug("Finding device using object instance with hashCode: {}", 
+					id!=null? id.hashCode():"");
 		DataStore dataStore = getTOTPDataStore();
 		Device device = dataStore.get(Device.class, id);
 		if(device == null){
@@ -176,6 +179,10 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	
 	@Override
 	public Optional<Administrator> findAdministrator(String id) {
+		if(log.isDebugEnabled())
+			log.debug("Finding administrator using object instance with hashCode: {}", 
+					id!=null? id.hashCode():"");
+		
 		Optional<Device> optionalDevice = findDevice(id);
 		
 		if(!optionalDevice.isPresent())
@@ -297,12 +304,15 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 	
 	@Override
 	public void isConnected(Device device, Consumer<Boolean> callback) throws TOTPException {
+		log.debug("Checking connection state of device with itemCount: {}", device.getItemCount());
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("ping", "ping");
 		requestMap.put("deviceId", device.getId());
+		log.debug("Sending connection check message with hashCode: {} for device with itemCount: {}", requestMap.hashCode(), device.getItemCount());
 		deviceConnectionChannel.sendMessage(requestMap, response->
 			callback.accept(Boolean.parseBoolean(response.get("connected")))
 		);
+		log.debug("Sent connection check message with hashCode: {} for device with itemCount: {}", requestMap.hashCode(), device.getItemCount());
 	}
 	
 	private String getUsername() {

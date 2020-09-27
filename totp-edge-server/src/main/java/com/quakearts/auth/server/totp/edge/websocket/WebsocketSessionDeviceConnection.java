@@ -37,6 +37,8 @@ public class WebsocketSessionDeviceConnection implements DeviceConnection {
 	@Override
 	public void send(Payload payload, Consumer<Payload> callback) {
 		payload.setId(counter.incrementAndGet());
+		log.debug("Sending payload with hashCode: {} with counter {}", payload.hashCode(), 
+				payload.getId());
 		session.getAsyncRemote().sendObject(payload);
 		session.getUserProperties().put(MESSAGE_ID_BASE+payload.getId(), callback);
 	}
@@ -44,11 +46,15 @@ public class WebsocketSessionDeviceConnection implements DeviceConnection {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void respond(Payload payload) {
+		log.debug("Received payload with hashCode: {} and counter {}", payload.hashCode(), 
+				payload.getId());
 		Consumer<Payload> callback = (Consumer<Payload>) session
 				.getUserProperties().remove(MESSAGE_ID_BASE+payload.getId());
 		if(payload.getTimestamp()-System.currentTimeMillis()<=
 			retrievalTimeout && callback != null) {
 			callback.accept(payload);
+			log.debug("Processed response payload with hashCode: {} and counter {}", payload.hashCode(), 
+					payload.getId());
 		} else {
 			log.error("Payload with ID {} timed out", payload.getId());
 		}

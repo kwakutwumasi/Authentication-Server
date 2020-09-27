@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 import javax.interceptor.Interceptor;
 
 import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
 import com.quakearts.auth.server.totp.rest.authorization.impl.DeviceAuthorizationServiceImpl;
 
@@ -37,7 +38,7 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 	}
 	
 	@Override
-	public void requestOTPCode(String deviceId, Map<String, String> authenticationData, Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
+	public void requestOTPCode(Device device, Map<String, String> authenticationData, Consumer<String> callback, Consumer<String> errorCallback) throws TOTPException {
 		if(throwException != null) {
 			TOTPException toreturn = throwException;
 			throwException = null;
@@ -55,7 +56,7 @@ public class AlternativeDeviceAuthorizationService implements DeviceAuthorizatio
 			return;
 		}
 		
-		wrapped.requestOTPCode(deviceId, authenticationData, callback, errorCallback);
+		wrapped.requestOTPCode(device, authenticationData, callback, errorCallback);
 	}
 
 }

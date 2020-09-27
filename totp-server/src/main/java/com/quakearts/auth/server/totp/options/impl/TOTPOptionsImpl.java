@@ -6,6 +6,9 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.appbase.internal.properties.ConfigurationPropertyMap;
 import com.quakearts.auth.server.totp.options.TOTPConfigurationProvider;
@@ -13,6 +16,9 @@ import com.quakearts.auth.server.totp.options.TOTPOptions;
 
 @Singleton
 public class TOTPOptionsImpl implements TOTPOptions {
+	
+	private static final Logger log = LoggerFactory.getLogger(TOTPOptions.class);
+	
 	private String dataStoreName;
 	private String macAlgorithm;
 	private String macProvider;
@@ -124,151 +130,181 @@ public class TOTPOptionsImpl implements TOTPOptions {
 
 	@Override
 	public String getDataStoreName() {
+		log.debug("dataStoreName: {}", dataStoreName);
 		return dataStoreName;
 	}
 	
 	@Override
 	public String getMacAlgorithm() {
+		log.debug("macAlgorithm: {}", macAlgorithm);
 		return macAlgorithm;
 	}
 
 	@Override
 	public String getMacProvider() {
+		log.debug("macProvider: {}", macProvider);
 		return macProvider;
 	}
 
 	@Override
 	public int getOtpLength() {
+		log.debug("otpLength: {}", otpLength);
 		return otpLength;
 	}
 	
 	@Override
 	public int getSeedLength() {
+		log.debug("seedLength: {}", seedLength);
 		return seedLength;
 	}
 	
 	@Override
 	public String getSecureRandomInstance() {
+		log.debug("secureRandomInstance: {}", secureRandomInstance);
 		return secureRandomInstance;
 	}
 	
 	@Override
 	public String getSecureRandomProvider() {
+		log.debug("secureRandomProvider: {}", secureRandomProvider);
 		return secureRandomProvider;
 	}
 	
 	@Override
 	public long getTimeStep() {
+		log.debug("timeStep: {}", timeStep);
 		return timeStep;
 	}
 	
 	@Override
 	public long getGracePeriod() {
+		log.debug("gracePeriod: {}", gracePeriod);
 		return gracePeriod;
 	}
 	
 	@Override
 	public int getMaxAttempts() {
+		log.debug("maxAttempts: {}", maxAttempts);
 		return maxAttempts;
 	}
 	
 	@Override
 	public int getLockoutTime() {
+		log.debug("lockoutTime: {}", lockoutTime);
 		return lockoutTime;
 	}
 	
 	@Override
 	public Map<String, String> getInstalledAdministrators() {
+		log.debug("installedAdministrators: {}", installedAdministrators!=null? installedAdministrators.size(): "0");
 		return installedAdministrators;
 	}
 	
 	@Override
 	public String getCountQuery() {
+		log.debug("countQuery: {}", countQuery);
 		return countQuery;
 	}
 
 	@Override
 	public int getDeviceConnectionPort() {
+		log.debug("deviceConnectionPort: {}", deviceConnectionPort);
 		return deviceConnectionPort;
 	}
 
 	@Override
 	public int getDeviceConnectionThreads() {
+		log.debug("deviceConnectionThreads: {}", deviceConnectionThreads);
 		return deviceConnectionThreads;
 	}
 
 	@Override
 	public int getDeviceConnectionReceiveBufferSize() {
+		log.debug("deviceConnectionReceiveBufferSize: {}", deviceConnectionReceiveBufferSize);
 		return deviceConnectionReceiveBufferSize;
 	}
 
 	@Override
 	public PerformancePreferences getDeviceConnectionPerformancePreferences() {
+		log.debug("deviceConnectionPerformancePreferences: {}", deviceConnectionPerformancePreferences);
 		return deviceConnectionPerformancePreferences;
 	}
 
 	@Override
 	public Boolean getDeviceConnectionReuseAddress() {
+		log.debug("deviceConnectionReuseAddress: {}", deviceConnectionReuseAddress);
 		return deviceConnectionReuseAddress;
 	}
 
 	@Override
 	public int getDeviceConnectionSocketTimeout() {
+		log.debug("deviceConnectionSocketTimeout: {}", deviceConnectionSocketTimeout);
 		return deviceConnectionSocketTimeout;
 	}
 
 	@Override
 	public String getDeviceConnectionSSLInstance() {
+		log.debug("deviceConnectionSSLInstance: {}", deviceConnectionSSLInstance);
 		return deviceConnectionSSLInstance;
 	}
 
 	@Override
 	public String getDeviceConnectionKeystoreType() {
+		log.debug("deviceConnectionKeystoreType: {}", deviceConnectionKeystoreType);
 		return deviceConnectionKeystoreType;
 	}
 
 	@Override
 	public String getDeviceConnectionKeystoreProvider() {
+		log.debug("deviceConnectionKeystoreProvider: {}", deviceConnectionKeystoreProvider);
 		return deviceConnectionKeystoreProvider;
 	}
 
 	@Override
 	public String getDeviceConnectionKeystore() {
+		log.debug("deviceConnectionKeystore: {}", deviceConnectionKeystore);
 		return deviceConnectionKeystore;
 	}
 
 	@Override
 	public String getDeviceConnectionKeystorePassword() {
+		log.debug("deviceConnectionKeystorePassword: {}", deviceConnectionKeyPassword!=null? "**********":"");
 		return deviceConnectionKeystorePassword;
 	}
 
 	@Override
 	public String getDeviceConnectionKeyPassword() {
+		log.debug("deviceConnectionKeyPassword: {}", deviceConnectionKeyPassword!=null? "**********":"");
 		return deviceConnectionKeyPassword;
 	}
 	
 	@Override
 	public long getDeviceConnectionEchoInterval() {
+		log.debug("deviceConnectionEchoInterval: {}", deviceConnectionEchoInterval);
 		return deviceConnectionEchoInterval;
 	}
 	
 	@Override
 	public int getExecutorServiceThreads() {
+		log.debug("executorServiceThreads: {}", executorServiceThreads);
 		return executorServiceThreads;
 	}
 	
 	@Override
 	public long getDeviceConnectionRequestTimeout() {
+		log.debug("deviceConnectionRequestTimeout: {}", deviceConnectionRequestTimeout);
 		return deviceConnectionRequestTimeout;
 	}
 	
 	@Override
 	public String getServerJwtConfigName() {
+		log.debug("serverJwtConfigName: {}", serverJwtConfigName);
 		return serverJwtConfigName;
 	}
 	
 	@Override
 	public String getAllowedOrigins() {
+		log.debug("allowedOrigins: {}", allowedOrigins);
 		return allowedOrigins;
 	}
 }

@@ -21,6 +21,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.quakearts.auth.server.totp.device.DeviceConnectionExecutorService;
 import com.quakearts.auth.server.totp.device.DeviceManagementService;
 import com.quakearts.auth.server.totp.exception.DuplicateAliasException;
@@ -51,6 +54,8 @@ import com.quakearts.webapp.security.rest.cdi.RequireAuthorization;
 @Singleton
 @RequireAuthorization(allow="Administrator")
 public class ManagementResource {
+	
+	private static final Logger log = LoggerFactory.getLogger(ManagementResource.class);
 	
 	private static final String THE_ALIAS = "The alias ";
 
@@ -275,6 +280,9 @@ public class ManagementResource {
 		asyncResponse.setTimeoutHandler(this::handleTimeout);
 		CompletableFuture.runAsync(()->{
 			try {
+				if(log.isDebugEnabled())
+					log.debug("Checking status of device with itemCount: {}", optionalDevice.get().getItemCount());
+
 				deviceManagementService.isConnected(optionalDevice.get(), connected->
 					asyncResponse.resume(new ConnectedResponse().withConnectedAs(connected)));
 			} catch (TOTPException e) {

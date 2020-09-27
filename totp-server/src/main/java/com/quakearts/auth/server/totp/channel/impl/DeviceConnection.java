@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,12 +76,14 @@ public class DeviceConnection {
 	
 	public synchronized void send(byte[] bites)
 			throws SocketShutdownException {
+		log.debug("Sending data with hashCode: {}", Arrays.hashCode(bites));
 		try {
 			OutputStream out = socket.getOutputStream();
 			byte[] lengthHeader = getLengthHeader(bites);
 			out.write(lengthHeader, 0, lengthHeader.length);
 			out.write(bites, 0, bites.length);
-			out.flush();			
+			out.flush();
+			log.debug("Sent data with hashCode: {}", Arrays.hashCode(bites));
 		} catch (Exception e) {
 			running = false;
 			try {
