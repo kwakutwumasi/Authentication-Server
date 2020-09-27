@@ -40,7 +40,6 @@ public class TOTPServerHttpClientTest
 		AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 		authenticationRequest.setDeviceId(deviceId);
 		authenticationRequest.setOtp("346304");
-		client.authentication(authenticationRequest);
 	}
 
 	@Test

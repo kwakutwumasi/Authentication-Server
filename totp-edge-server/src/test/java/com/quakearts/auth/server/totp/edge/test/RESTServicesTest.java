@@ -19,11 +19,9 @@ import org.junit.runner.RunWith;
 import com.quakearts.auth.server.totp.edge.client.TOTPServerHttpClient;
 import com.quakearts.auth.server.totp.edge.client.TOTPServerHttpClientBuilder;
 import com.quakearts.auth.server.totp.edge.client.model.ActivationRequest;
-import com.quakearts.auth.server.totp.edge.client.model.AuthenticationRequest;
 import com.quakearts.auth.server.totp.edge.client.model.ProvisioningResponse;
 import com.quakearts.auth.server.totp.edge.client.model.SyncResponse;
 import com.quakearts.auth.server.totp.edge.exception.ConnectorException;
-import com.quakearts.auth.server.totp.edge.rest.AuthenticationResource;
 import com.quakearts.auth.server.totp.edge.rest.ProvisioningResource;
 import com.quakearts.auth.server.totp.edge.rest.SynchronizeResource;
 import com.quakearts.auth.server.totp.edge.test.runner.MainRunner;
@@ -98,7 +96,6 @@ public class RESTServicesTest extends TestServerTest {
 		
 		errorThrowingServer.start();
 		
-		CDI.current().select(AuthenticationResource.class).get();
 		CDI.current().select(ProvisioningResource.class).get();
 		CDI.current().select(SynchronizeResource.class).get();
 	}
@@ -122,10 +119,6 @@ public class RESTServicesTest extends TestServerTest {
 		activationRequest.setAlias("test-edge-device-1");
 		activationRequest.setToken("346304");
 		client.activate(deviceId, activationRequest);
-		AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-		authenticationRequest.setDeviceId(deviceId);
-		authenticationRequest.setOtp("346304");
-		client.authentication(authenticationRequest);
 		SyncResponse syncResponse = client.synchronize();
 		assertThat(syncResponse, is(notNullValue()));
 		assertThat(syncResponse.getTime(), is(1566253087636l));
@@ -197,43 +190,7 @@ public class RESTServicesTest extends TestServerTest {
 			client.activate(deviceId, activationRequest);
 		});
 	}
-
-	@Test
-	public void testAuthenticateWithIOException() throws Exception {
-		expectedException.expect(ConnectorException.class);
-		expectedException.expect(messageIs("Connection refused: connect"));
-		runWithNewPort(8084, ()->{
-			AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-			authenticationRequest.setDeviceId(deviceId);
-			authenticationRequest.setOtp("346304");
-			client.authentication(authenticationRequest);
-		});
-	}
 	
-	@Test
-	public void testAuthenticateWithConnectorException() throws Exception {
-		expectedException.expect(ConnectorException.class);
-		expectedException.expect(messageIs("Throwing authenticate error"));
-		runWithNewPort(8083, ()->{
-			AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-			authenticationRequest.setDeviceId(deviceId);
-			authenticationRequest.setOtp("346304");
-			client.authentication(authenticationRequest);
-		});
-	}
-	
-	@Test
-	public void testAuthenticateWithHttpClientException() throws Exception {
-		expectedException.expect(ConnectorException.class);
-		expectedException.expect(messageIs("Property host has not been set"));
-		runWithNewHost(null, ()->{
-			AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-			authenticationRequest.setDeviceId(deviceId);
-			authenticationRequest.setOtp("346304");
-			client.authentication(authenticationRequest);
-		});
-	}
-
 	@Test
 	public void testSynchronizeWithIOException() throws Exception {
 		expectedException.expect(ConnectorException.class);
