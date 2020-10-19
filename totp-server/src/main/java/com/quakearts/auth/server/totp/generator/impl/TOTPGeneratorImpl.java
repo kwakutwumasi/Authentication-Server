@@ -13,6 +13,7 @@ import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.security.cryptography.CryptoResource;
 
 @Singleton
 public class TOTPGeneratorImpl implements TOTPGenerator {
@@ -73,5 +74,19 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 			format = "%0"+totpOptions.getOtpLength()+"d";
 		
 		return format;
+	}
+	
+	@Override
+	public String signRequest(Device device, String request) {
+		try {
+			Mac mac = Mac.getInstance(totpOptions.getMacAlgorithm(), totpOptions.getMacProvider());
+			byte[] idBytes = device.getId().getBytes(StandardCharsets.UTF_8);
+			SecretKey key = new SecretKeySpec(device.getSeed().getValue(), totpOptions.getMacAlgorithm());
+			mac.init(key);
+			mac.update(idBytes);
+			return CryptoResource.byteAsHex(mac.doFinal(request.getBytes(StandardCharsets.UTF_8)));
+		} catch (GeneralSecurityException e) {
+			throw new ConfigurationException("Unable to generate TOTP", e);
+		}
 	}
 }

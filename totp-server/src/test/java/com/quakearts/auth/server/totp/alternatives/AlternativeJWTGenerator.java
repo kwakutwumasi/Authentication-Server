@@ -35,7 +35,18 @@ public class AlternativeJWTGenerator implements JWTGenerator {
 	public static void throwVerifyError(Exception newThrowVerifyError) {
 		throwVerifyError = newThrowVerifyError;
 	}
-
+	
+	private static Exception throwSignatureError;
+	
+	public static void throwSignatureError(Exception newThrowSignatureError) {
+		throwSignatureError = newThrowSignatureError;
+	}
+	
+	private static Exception throwSignatureVerifyError;
+	
+	public static void throwSignatureVerifyError(Exception newThrowSignatureVerifyError) {
+		throwSignatureVerifyError = newThrowSignatureVerifyError;
+	}
 	
 	@Override
 	public String generateJWT(Map<String, String> customKeyValues)
@@ -49,7 +60,25 @@ public class AlternativeJWTGenerator implements JWTGenerator {
 		checkAndThrowVerifyErrorIfNecessary();
 		return wrapped.verifyJWT(jwt);
 	}
-
+	
+	@Override
+	public String signRequestJWT(Map<String, String> customKeyValues)
+			throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		checkAndThrowSignatureErrorIfNecessary();
+		return wrapped.signRequestJWT(customKeyValues);
+	}
+	
+	@Override
+	public JWTClaims verifyRequestJWT(byte[] jwt) throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		checkAndThrowSignatureVerifyErrorIfNecessary();
+		return wrapped.verifyJWT(jwt);
+	}
+	
+	@Override
+	public String login(Administrator administrator) throws NoSuchAlgorithmException, URISyntaxException, LoginException {
+		return wrapped.login(administrator);
+	}
+	
 	private void checkAndThrowGenerateErrorIfNecessary() throws NoSuchAlgorithmException, URISyntaxException, JWTException {
 		if(throwGenerateError != null) {
 			Exception toThrow = throwGenerateError;
@@ -66,6 +95,22 @@ public class AlternativeJWTGenerator implements JWTGenerator {
 		}
 	}
 
+	private void checkAndThrowSignatureErrorIfNecessary() throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		if(throwSignatureError != null) {
+			Exception toThrow = throwSignatureError;
+			throwSignatureError = null;
+			throwException(toThrow);
+		}
+	}
+	
+	private void checkAndThrowSignatureVerifyErrorIfNecessary() throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		if(throwSignatureVerifyError != null) {
+			Exception toThrow = throwSignatureVerifyError;
+			throwSignatureVerifyError = null;
+			throwException(toThrow);
+		}
+	}
+
 	private void throwException(Exception toThrow) throws NoSuchAlgorithmException, URISyntaxException, JWTException {
 		if(toThrow instanceof NoSuchAlgorithmException) {
 			throw (NoSuchAlgorithmException) toThrow;
@@ -74,11 +119,6 @@ public class AlternativeJWTGenerator implements JWTGenerator {
 		} else if(toThrow instanceof JWTException) {
 			throw (JWTException) toThrow;
 		}
-	}
-
-	@Override
-	public String login(Administrator administrator) throws NoSuchAlgorithmException, URISyntaxException, LoginException {
-		return wrapped.login(administrator);
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.quakearts.auth.server.totp.alternatives;
 
+import java.text.MessageFormat;
+
 import javax.annotation.Priority;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
@@ -21,6 +23,12 @@ public class AlternativeTOTPGenerator implements TOTPGenerator {
 		simulate = newSimulate;
 	}
 	
+	private static String expectedRequest;
+	
+	public static void expectedRequest(String newExpectedRequest){
+		expectedRequest = newExpectedRequest;
+	}
+	
 	@Inject
 	private TOTPGeneratorImpl wrapped;
 	
@@ -31,6 +39,19 @@ public class AlternativeTOTPGenerator implements TOTPGenerator {
 			return device.getId().equals("generateone")?new String[]{"123456", null}:new String[]{"123456","789101"};
 		} else {
 			return wrapped.generateFor(device, currentTimeInMillis);
+		}
+	}
+
+	@Override
+	public String signRequest(Device device, String request) {
+		if(simulate){
+			simulate = false;
+			if(!request.equals(expectedRequest))
+				throw new AssertionError(MessageFormat.format("Expected {0}. got {1}", expectedRequest, request));
+			
+			return "52ee0d38528929f5473109bf7998aeecd29ab6bddf6063888786e59d0228bb3c";
+		} else {
+			return wrapped.signRequest(device, request);
 		}
 	}
 

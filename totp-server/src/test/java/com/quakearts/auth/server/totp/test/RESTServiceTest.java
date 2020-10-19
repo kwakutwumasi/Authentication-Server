@@ -120,10 +120,8 @@ public class RESTServiceTest {
 		
 		AlternativeConnectionManager.run(bite->{
 			Map<String, String> responseMap = new HashMap<>();
-			long timestamp = System.currentTimeMillis();
-			String[] direct = totpGenerator.generateFor(device1, timestamp);
-			responseMap.put("otp", direct[0]);
-			responseMap.put("totp-timestamp", Long.toString(timestamp));
+			String signature = totpGenerator.signRequest(device1, "amount30requestvalue");
+			responseMap.put("signature", signature);
 			try {
 				return jwtGenerator.generateJWT(responseMap).getBytes();
 			} catch (NoSuchAlgorithmException | URISyntaxException | JWTException e) {
@@ -133,6 +131,7 @@ public class RESTServiceTest {
 		
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("request", "value");
+		requestMap.put("amount", "30");
 		TokenResponse tokenResponse = client.signRequest(device1.getId(), requestMap);
 		assertThat(tokenResponse, is(notNullValue()));
 		

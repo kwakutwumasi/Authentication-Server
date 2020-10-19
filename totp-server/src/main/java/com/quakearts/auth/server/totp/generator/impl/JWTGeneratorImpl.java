@@ -58,32 +58,49 @@ public class JWTGeneratorImpl implements JWTGenerator {
 	public String generateJWT(Map<String, String> customKeyValues)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
 		log.debug("Generating JWT for message with hashCode: {}", customKeyValues.hashCode());
-		String algorithm = (String) totpLoginConfiguration.getServerConfigurationOptions()
-				.get(JWTLoginModule.ALGORITHMPARAMETER);
-		
-		JWTSigner jwtSigner = JWTFactory.getInstance()
-				.getSigner(algorithm, totpLoginConfiguration.getServerConfigurationOptions());
-		
-		JWTHeader header = JWTFactory.getInstance().createEmptyClaimsHeader();
-		JWTClaims claims = JWTFactory.getInstance().createJWTClaimsFromMap(customKeyValues);
-		
-		log.debug("Generated JWT for message with hashCode: {}", customKeyValues.hashCode());
-		return jwtSigner.sign(header, claims);
+		return sign(customKeyValues, totpLoginConfiguration.getServerConfigurationOptions());
 	}
-	
+
 	@Override
 	public JWTClaims verifyJWT(byte[] jwt)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
 		log.debug("Verifying JWT for message with hashCode: {}", Arrays.hashCode(jwt));
-		String algorithm = (String) totpLoginConfiguration.getServerConfigurationOptions()
-				.get(JWTLoginModule.ALGORITHMPARAMETER);
+		return verify(jwt, totpLoginConfiguration.getServerConfigurationOptions());		
+	}
+
+	@Override
+	public String signRequestJWT(Map<String, String> customKeyValues)
+			throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		return sign(customKeyValues, totpLoginConfiguration.getSigningConfigurationOptions());
+	}
+	
+	@Override
+	public JWTClaims verifyRequestJWT(byte[] jwt) throws NoSuchAlgorithmException, URISyntaxException, JWTException {
+		return verify(jwt, totpLoginConfiguration.getSigningConfigurationOptions());		
+	}
+	
+	private String sign(Map<String, String> customKeyValues, Map<String, ?> options)
+			throws JWTException {
+		String algorithm = (String) options.get(JWTLoginModule.ALGORITHMPARAMETER);
+		
+		JWTSigner jwtSigner = JWTFactory.getInstance()
+				.getSigner(algorithm, options);
+		
+		JWTHeader header = JWTFactory.getInstance().createEmptyClaimsHeader();
+		JWTClaims claims = JWTFactory.getInstance().createJWTClaimsFromMap(customKeyValues);
+
+		return jwtSigner.sign(header, claims);
+	}
+	
+	private JWTClaims verify(byte[] jwt, Map<String, ?> options) throws JWTException {
+		String algorithm = (String) options.get(JWTLoginModule.ALGORITHMPARAMETER);
 		
 		JWTVerifier jwtVerifier = JWTFactory.getInstance()
-				.getVerifier(algorithm, totpLoginConfiguration.getServerConfigurationOptions());
+				.getVerifier(algorithm, options);
 		
 		jwtVerifier.verify(jwt);
-		
-		log.debug("Verified JWT for message with hashCode: {}", Arrays.hashCode(jwt));
 		return jwtVerifier.getClaims();
 	}
+	
+
 }

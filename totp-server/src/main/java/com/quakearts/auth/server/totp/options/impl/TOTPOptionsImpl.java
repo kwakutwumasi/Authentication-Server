@@ -47,6 +47,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private int executorServiceThreads = 3;
 	private String serverJwtConfigName;
 	private String allowedOrigins = "http://localhost:3000";
+	private String requestSigningJwtConfigName;
 	
 	@Inject
 	private TOTPConfigurationProvider totpConfigurationProvider;
@@ -77,12 +78,20 @@ public class TOTPOptionsImpl implements TOTPOptions {
 		}
 		if(propertyMap.containsKey("allowed.origins")){			
 			allowedOrigins = propertyMap.getString("allowed.origins");
-		}		
+		}
+		
 		if(propertyMap.containsKey("server.jwt.config")){
 			serverJwtConfigName = propertyMap.getString("server.jwt.config");
 		} else {
 			serverJwtConfigName = "login.config";
 		}
+		
+		if(propertyMap.containsKey("request.signing.jwt.config")){
+			requestSigningJwtConfigName = propertyMap.getString("request.signing.jwt.config");
+		} else {
+			requestSigningJwtConfigName = "login.config";
+		}
+		
 		countQuery = propertyMap.getString("count.query");
 		
 		ConfigurationPropertyMap deviceConnectionMap;
@@ -306,5 +315,11 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	public String getAllowedOrigins() {
 		log.debug("allowedOrigins: {}", allowedOrigins);
 		return allowedOrigins;
+	}
+	
+	@Override
+	public String getRequestSigningJwtConfigName() {
+		log.debug("requestSigningJwtConfigName: {}", allowedOrigins);
+		return requestSigningJwtConfigName;
 	}
 }

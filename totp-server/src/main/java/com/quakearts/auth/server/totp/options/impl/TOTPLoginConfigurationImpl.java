@@ -22,6 +22,7 @@ public class TOTPLoginConfigurationImpl implements TOTPLoginConfiguration {
 	
 	private Map<String, ?> options;
 	private Map<String, ?> serverOptions;
+	private Map<String, ?> signingOptions;
 	
 	@Override
 	public Map<String, ?> getConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
@@ -32,6 +33,24 @@ public class TOTPLoginConfigurationImpl implements TOTPLoginConfiguration {
 		return options;
 	}
 
+	@Override
+	public Map<String, ?> getServerConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
+		if(serverOptions==null){
+			serverOptions = loadOptions(totpOptions.getServerJwtConfigName());
+		}
+		
+		return serverOptions;
+	}
+	
+	@Override
+	public Map<String, ?> getSigningConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
+		if(signingOptions==null){
+			signingOptions = loadOptions(totpOptions.getRequestSigningJwtConfigName());
+		}
+		
+		return signingOptions;
+	}
+	
 	protected Map<String, ?> loadOptions(String resourceName) throws URISyntaxException, NoSuchAlgorithmException {
 		URL resource = Thread.currentThread().getContextClassLoader().
 		        getResource(resourceName);
@@ -41,14 +60,4 @@ public class TOTPLoginConfigurationImpl implements TOTPLoginConfiguration {
 		AppConfigurationEntry entry = jaasConfig.getAppConfigurationEntry(TOTPAuthenticationFilter.LOGIN_MODULE)[0];
 		return entry.getOptions();
 	}
-
-	@Override
-	public Map<String, ?> getServerConfigurationOptions() throws NoSuchAlgorithmException, URISyntaxException {
-		if(serverOptions==null){
-			serverOptions = loadOptions(totpOptions.getServerJwtConfigName());
-		}
-		
-		return serverOptions;
-	}
-
 }

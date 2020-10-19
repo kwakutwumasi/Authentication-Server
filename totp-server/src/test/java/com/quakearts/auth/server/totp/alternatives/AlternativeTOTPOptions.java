@@ -312,4 +312,9 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	public String getAllowedOrigins() {
 		return wrapped.getAllowedOrigins();
 	}
+	
+	@Override
+	public String getRequestSigningJwtConfigName() {
+		return wrapped.getRequestSigningJwtConfigName();
+	}
 }

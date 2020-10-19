@@ -40,6 +40,7 @@ public class TOTPOptionsImplTest extends TOTPOptionsImpl {
 		assertThat(totpOptionsImpl.getDeviceConnectionReuseAddress(), is(Boolean.TRUE));
 		assertThat(totpOptionsImpl.getDeviceConnectionEchoInterval(), is(30000L));
 		assertThat(totpOptionsImpl.getServerJwtConfigName(), is("login2.config"));
+		assertThat(totpOptionsImpl.getRequestSigningJwtConfigName(), is("login3.config"));
 		assertThat(totpOptionsImpl.getAllowedOrigins(), is("http://localhost:8080;http://localhost:8081"));
 		assertThat(totpOptionsImpl.getDeviceConnectionKeyPassword(), is("keypassword"));
 	}

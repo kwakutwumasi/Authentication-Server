@@ -89,4 +89,6 @@ public interface TOTPOptions {
 	String getServerJwtConfigName();
 
 	String getAllowedOrigins();
+
+	String getRequestSigningJwtConfigName();
 }
