@@ -2,9 +2,11 @@ package com.quakearts.auth.server.totp.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,9 @@ import com.quakearts.auth.server.totp.client.http.model.Payload;
 
 @WebSocket
 public class DeviceConnection {
+	private static final String IAT = "iat";
+	private static final String DEVICE_ID = "deviceId";
+	private static final String REQUEST_TYPE = "requestType";
 	private static final String ERROR = "error";
 	private static Logger log = LoggerFactory.getLogger(DeviceConnection.class);
 	
@@ -48,6 +53,10 @@ public class DeviceConnection {
 		client.setStopAtShutdown(true);
 		client.getPolicy().setIdleTimeout(Options.getInstance().getIdleTimeout());
 		client.start();
+		connect();
+	}
+
+	private void connect() throws IOException, URISyntaxException, GeneralSecurityException {
 		client.connect(this, new URI(MessageFormat.format(Options.getInstance().getTotpWsUrl(), device.getId(), device.generateOTP())));
 	}
 	
@@ -71,7 +80,7 @@ public class DeviceConnection {
 					". Reason: "+ reason+".\n Do you want to reconnect?");
 			if(approveReconnection.open() == SWT.OK){
 				try {
-					init(device, shell);
+					connect();
 				} catch (Exception e) {
 					log.error("Error processing reconnection", e);
 				}
@@ -84,7 +93,7 @@ public class DeviceConnection {
 		response.setMessage(new HashMap<>());
 		try {
 			Payload payload = mapper.readValue(message, Payload.class);
-			String requestType = payload.getMessage().get("requestType");
+			String requestType = payload.getMessage().get(REQUEST_TYPE);
 			response.setId(payload.getId());
 			response.setTimestamp(payload.getTimestamp());
 			if("otp".equals(requestType)){
@@ -106,9 +115,9 @@ public class DeviceConnection {
 					SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
 			approveSignIn.setText("Sign In Request");
 			String message = request.getMessage().entrySet()
-					.stream().filter(e->!e.getKey().equals("iat") 
-							&& !e.getKey().equals("deviceId")
-							&& !e.getKey().equals("requestType"))
+					.stream().filter(e->!e.getKey().equals(IAT) 
+							&& !e.getKey().equals(DEVICE_ID)
+							&& !e.getKey().equals(REQUEST_TYPE))
 					.map(e->e.getKey()+":"+e.getValue()).collect(Collectors.joining("\n"));
 			approveSignIn.setMessage("A login request has been received. Do you want to approve it?\nThe details:\n"
 					+message);
@@ -135,25 +144,33 @@ public class DeviceConnection {
 					SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
 			approveRequestSigning.setText("Sign In Request");
 			String message = request.getMessage().entrySet()
-					.stream().filter(e->!e.getKey().equals("iat") 
-							&& !e.getKey().equals("deviceId")
-							&& !e.getKey().equals("requestType"))
+					.stream().filter(e->!e.getKey().equals(IAT) 
+							&& !e.getKey().equals(DEVICE_ID)
+							&& !e.getKey().equals(REQUEST_TYPE))
 					.map(e->e.getKey()+":"+e.getValue()).collect(Collectors.joining("\n"));
 			approveRequestSigning.setMessage("A request has been received for signing. Do you want to approve it?\nThe details:\n"
 					+message);
 			if(approveRequestSigning.open() == SWT.OK){
-				generateSigningTOTPandStoreIn(response);
+				TreeMap<String, String> requestSigningMap = 
+						new TreeMap<>();
+				request.getMessage().entrySet()
+				.stream().filter(e->!e.getKey().equals(IAT) 
+						&& !e.getKey().equals(DEVICE_ID)
+						&& !e.getKey().equals(REQUEST_TYPE)).forEach(entry->requestSigningMap.put(entry.getKey(), entry.getKey()));
+				
+				String requestSigningString = requestSigningMap.entrySet()
+						.stream().map((e->e.getKey()+e.getValue()))
+						.collect(Collectors.joining());
+				generateSigningTOTPandStoreIn(requestSigningString, response);
 			} else {
 				response.getMessage().put(ERROR, "Request rejected");
 			}
 		});
 	}
 
-	private void generateSigningTOTPandStoreIn(Payload response) {
-		long totpTimestamp = System.currentTimeMillis();
+	private void generateSigningTOTPandStoreIn(String request, Payload response) {
 		try {
-			response.getMessage().put("otp", device.generateOTPForTimestamp(totpTimestamp));
-			response.getMessage().put("totp-timestamp", Long.toString(totpTimestamp));
+			response.getMessage().put("signature", device.signTransaction(request));
 		} catch (GeneralSecurityException e) {
 			response.getMessage().put(ERROR, e.getMessage());
 		}

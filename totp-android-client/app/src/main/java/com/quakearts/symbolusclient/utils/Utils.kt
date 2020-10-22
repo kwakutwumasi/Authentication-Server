@@ -140,6 +140,13 @@ class Device(private val _id:String="",
         val timeCounter = deltaCounter / Options.timeStep
         return ByteBuffer.allocate(8).putLong(timeCounter).array()
     }
+
+    fun signTransaction(request:String):String {
+        val mac = Mac.getInstance(Options.macAlgorithm)
+        mac.init(_key)
+        mac.update(id.toByteArray(Charset.forName("UTF-8")))
+        return HexTool.byteAsHex(mac.doFinal(request.toByteArray(Charset.forName("UTF-8"))))
+    }
 }
 
 data class Payload(val id:Long, val message:HashMap<String, String>, val timestamp: Long)
@@ -219,9 +226,11 @@ class DeviceConnection(private val device: Device){
                         }
                     "otp-signing"-> synchronized(otpSigningRequestListener!!){
                         otpSigningRequestListener!!({
-                            val timestamp = System.currentTimeMillis()
-                            it.message["otp"]=device.generateOtpFromTimestamp(timestamp)
-                            it.message["totp-timestamp"]=timestamp.toString()
+                            val signingMessage = TreeMap<String, String>()
+                            it.message.entries.filter { entry -> !"deviceId,iat,requestType".contains(entry.key) }
+                                .forEach { entry -> signingMessage[entry.key] = entry.value }
+                            val signingString = signingMessage.entries.joinToString("") { entry -> entry.key + entry.value }
+                            it.message["signature"]=device.signTransaction(signingString)
                             totpWebsocketService.sendResponse(it)
                         },{
                             sendError("Request rejected", it, totpWebsocketService)

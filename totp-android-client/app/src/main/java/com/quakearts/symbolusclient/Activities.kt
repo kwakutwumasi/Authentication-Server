@@ -287,9 +287,8 @@ class TOTPActivity : AppCompatActivity() {
                     }.create().show()
             }
         }, otpSigningRequestListener = {onOk, onCancel, message ->
-            val signingDetails = message.filter { (it.key != "deviceId")
-                    && (it.key  != "iat") && (it.key != "requestType") }.map { "\t"+it.key+":"+it.value }
-            val signingMessage = MessageFormat.format(getString(R.string.otp_signing_dialog), signingDetails.joinToString("\n"))
+            val signingDetails = message.entries.filter { !"deviceId,iat,requestType".contains(it.key) }.joinToString("\n"){ "\t"+it.key+":"+it.value }
+            val signingMessage = MessageFormat.format(getString(R.string.otp_signing_dialog), signingDetails)
             runOnUiThread {
                 AlertDialog.Builder(this).setMessage(signingMessage)
                     .setPositiveButton(R.string.otp_dialog_authorize) { dialog, _ ->

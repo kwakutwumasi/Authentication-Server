@@ -65,4 +65,12 @@ public class Device {
 	public long getInitialCounter() {
 		return initialCounter;
 	}
+	
+	public String signTransaction(String request) throws GeneralSecurityException {
+		Mac mac = Mac.getInstance(options.getMacAlgorithm());
+		SecretKey key = new SecretKeySpec(seed, options.getMacAlgorithm());
+		mac.init(key);
+		mac.update(id.getBytes());
+		return HexTool.byteAsHex(mac.doFinal(request.getBytes()));
+	}
 }
