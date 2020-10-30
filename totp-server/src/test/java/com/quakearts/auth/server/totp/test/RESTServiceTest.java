@@ -1,6 +1,7 @@
 package com.quakearts.auth.server.totp.test;
 
 import static org.junit.Assert.*;
+import static org.awaitility.Awaitility.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -9,9 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.enterprise.event.ObservesAsync;
 import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 
+import org.awaitility.Duration;
 import org.jboss.weld.exceptions.IllegalArgumentException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -34,6 +37,7 @@ import com.quakearts.auth.server.totp.generator.impl.JWTGeneratorImpl;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.rest.authorization.AuthorizeManagedRequestInterceptor;
+import com.quakearts.auth.server.totp.rest.event.ProvisioningEvent;
 import com.quakearts.auth.server.totp.rest.model.ActivationRequest;
 import com.quakearts.auth.server.totp.rest.model.AdministratorResponse;
 import com.quakearts.auth.server.totp.rest.model.AuthenticationRequest;
@@ -81,6 +85,12 @@ public class RESTServiceTest {
 		
 	@Inject
 	private JWTGeneratorImpl jwtGenerator;
+	
+	private static ProvisioningEvent provisioningEvent;
+	
+	public void firedProvisionEvent(@ObservesAsync ProvisioningEvent provisioningEvent) {
+		RESTServiceTest.provisioningEvent = provisioningEvent;
+	}
 	
 	@Test
 	public void run200OkRequests() throws Exception {
@@ -351,6 +361,7 @@ public class RESTServiceTest {
 
 	private Device provisionTestProvisionDevice1() throws IOException, HttpClientException, IllegalCryptoActionException {
 		if(device1 == null){
+			provisioningEvent = null;
 			ProvisioningResponse provisioningResponse = client.provision("testprovisiondevice1");
 			assertThat(provisioningResponse.getSeed(), is(notNullValue()));
 			assertThat(provisioningResponse.getInitialCounter()>0, is(true));
@@ -367,8 +378,16 @@ public class RESTServiceTest {
 			ActivationRequest activationRequest = new ActivationRequest();
 			activationRequest.setToken(totp1[0]);
 			activationRequest.setAlias("testActivationAlias1");
+			activationRequest.addAttribute("other", "attribute");
 			
 			client.activate("testprovisiondevice1", activationRequest);
+			await().atMost(Duration.ONE_SECOND).untilAsserted(()->{
+				assertNotNull(provisioningEvent);
+				assertThat(provisioningEvent.getDevice(), is(notNullValue()));
+				assertThat(provisioningEvent.getDevice().getId(), is("testprovisiondevice1"));
+				assertThat(provisioningEvent.getActivationRequest(), is(notNullValue()));
+				assertThat(provisioningEvent.getActivationRequest().getOtherAttributes().get("other"), is("attribute"));
+			});
 		}
 		return device1;
 	}

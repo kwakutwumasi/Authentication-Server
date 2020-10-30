@@ -2,6 +2,7 @@ package com.quakearts.auth.server.totp.rest;
 
 import java.time.LocalDateTime;
 
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -25,6 +26,7 @@ import com.quakearts.auth.server.totp.model.Alias;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.auth.server.totp.rest.event.ProvisioningEvent;
 import com.quakearts.auth.server.totp.rest.model.ActivationRequest;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.auth.server.totp.rest.model.ProvisioningResponse;
@@ -50,6 +52,9 @@ public class ProvisioningResource {
 	
 	@Inject @DataStoreFactoryHandle
 	private DataStoreFactory factory;
+	
+	@Inject
+	private Event<ProvisioningEvent> eventTrigger;
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -120,6 +125,7 @@ public class ProvisioningResource {
 			if(request.getAlias()!=null) {
 				deviceManagementService.assign(request.getAlias(), device);
 			}
+			eventTrigger.fireAsync(new ProvisioningEvent(device, request));
 		} else {
 			throw new WebApplicationException(Response.status(403)
 					.type(MediaType.APPLICATION_JSON)
