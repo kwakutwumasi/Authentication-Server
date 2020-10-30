@@ -1,5 +1,7 @@
 package com.quakearts.auth.server.totp.edge.test;
 
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -22,6 +24,7 @@ import com.quakearts.tools.test.mockserver.model.impl.MockActionBuilder;
 import com.quakearts.tools.test.mockserver.store.HttpMessageStore;
 import com.quakearts.tools.test.mockserver.store.exception.HttpMessageStoreException;
 import com.quakearts.tools.test.mockserver.store.impl.MockServletHttpMessageStore;
+import static org.hamcrest.core.Is.is;
 
 public abstract class TestServerTest {
 
@@ -80,6 +83,31 @@ public abstract class TestServerTest {
 										.setResponseCodeAs(404)
 										.thenBuild())
 							.thenBuild())
+					.thenBuild())
+				.add(MockActionBuilder.createNewMockAction()
+						.setRequestAs(HttpMessageBuilder.createNewHttpRequest()
+								.setId("activate-with-extra-data")
+								.setMethodAs("PUT")
+								.setResourceAs("/totp/provisioning/FAAF-16C0-1ABD-11EB-ADC1-0242-AC12-0002")
+								.setResponseAs(HttpMessageBuilder.createNewHttpResponse()
+										.setResponseCodeAs(204)
+										.thenBuild())
+							.thenBuild())
+						.setMatcherAs((request, incoming)->{
+							boolean matches = request.getMethod().equals(incoming.getMethod())
+									&& request.getResource().equals(incoming.getResource())
+									&& incoming.getContentBytes()!=null;
+							if(matches) {
+								Map<String, String> incomingJsonMap;
+								try {
+									incomingJsonMap = objectMapper.readValue(incoming.getContentBytes(), typeReference);
+								} catch (IOException e) {
+									return false;
+								}
+								assertThat(incomingJsonMap.get("other"), is("attribute"));
+							}
+							return matches;
+						})
 					.thenBuild());
 			mockServer.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(()->mockServer.stop()));

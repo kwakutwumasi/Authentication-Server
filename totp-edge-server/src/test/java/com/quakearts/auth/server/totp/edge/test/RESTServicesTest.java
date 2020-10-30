@@ -122,6 +122,11 @@ public class RESTServicesTest extends TestServerTest {
 		SyncResponse syncResponse = client.synchronize();
 		assertThat(syncResponse, is(notNullValue()));
 		assertThat(syncResponse.getTime(), is(1566253087636l));
+		activationRequest = new ActivationRequest();
+		activationRequest.setAlias("test-edge-device-2");
+		activationRequest.setToken("346304");
+		activationRequest.addAttribute("other", "attribute");
+		client.activate("FAAF-16C0-1ABD-11EB-ADC1-0242-AC12-0002", activationRequest);
 	}
 
 	@Rule
