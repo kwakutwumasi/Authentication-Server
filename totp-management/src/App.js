@@ -33,7 +33,7 @@ import CardActions from "@material-ui/core/CardActions";
 import HomePage from "./components/HomePage.js"
 import DeviceForm from "./components/DeviceFormComponent.js";
 
-const apibase = "http://localhost:8080/totp";
+const apibase = window.totpapibaseurl;
 
 const styles = theme => ({
   centered: {
