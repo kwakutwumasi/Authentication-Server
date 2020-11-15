@@ -188,4 +188,13 @@ public class DeviceConnection {
 			log.error("Unable to send message to server", e);
 		}
 	}
+	
+	public void stop(){
+		if(client!=null)
+			try {
+				client.stop();
+			} catch (Exception e) {
+				log.error("Client stop error", e);
+			}
+	}
 }

@@ -128,6 +128,7 @@ public class TOTPApplication {
 			}
 		}
 		counter.stop();
+		DeviceConnection.getInstance().stop();
 		System.exit(0);
 	}
 
