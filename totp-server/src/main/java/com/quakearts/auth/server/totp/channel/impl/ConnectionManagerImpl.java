@@ -215,6 +215,8 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		byte[] tosend = new byte[bites.length+8];
 		System.arraycopy(ByteBuffer.allocate(8).putLong(ticket).array(), 0, tosend, 0, 8);
 		System.arraycopy(bites, 0, tosend, 8, bites.length);
+				
+		callbackStore.put(ticket, new CallbackItem(callback));
 		
 		for(DeviceConnection deviceConnection:deviceConnections) {
 			 executorService.execute(()->{
@@ -226,8 +228,6 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 				}
 			});
 		}
-		
-		callbackStore.put(ticket, new CallbackItem(callback));
 	}
 
 	@Override
