@@ -44,24 +44,32 @@ public class DeviceConnectionEndpoint {
 	@OnOpen
 	public void opened(Session session, @PathParam("deviceId") String deviceId, 
 			@PathParam("otp") String otp){
-		log.trace("Web Socket open request for deviceId {}", deviceId);
-		AuthenticationRequest request = new AuthenticationRequest();
-		request.setDeviceId(deviceId);
-		request.setOtp(otp);
-		try {
-			client.authentication(request);
-		} catch (IOException | HttpClientException e) {
+		if(Boolean.parseBoolean(System.getProperty("totp.edge.server.connection.active","true"))){
+			log.trace("Web Socket open request for deviceId {}", deviceId);
+			AuthenticationRequest request = new AuthenticationRequest();
+			request.setDeviceId(deviceId);
+			request.setOtp(otp);
 			try {
-				session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "OTP Authentication failure. "+e.getMessage()));
-			} catch (IOException e1) {
-				log.error("Unable to send close response to deviceId with hashCode: {}. {}", deviceId.hashCode(), 
-						e1);
+				client.authentication(request);
+			} catch (IOException | HttpClientException e) {
+				close(session, deviceId, "OTP Authentication failure. "+e.getMessage());
+				return;
 			}
-			return;
+			
+			connectionService.registerConnection(new WebsocketSessionDeviceConnection(session, deviceId, 
+					totpEdgeOptions.getPayloadQueueTimeout()));
+		} else {
+			close(session, deviceId, "Service not available");
 		}
-		
-		connectionService.registerConnection(new WebsocketSessionDeviceConnection(session, deviceId, 
-				totpEdgeOptions.getPayloadQueueTimeout()));
+	}
+
+	private void close(Session session, String deviceId, String reasonPhrase) {
+		try {
+			session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reasonPhrase));
+		} catch (IOException e1) {
+			log.error("Unable to send close response to deviceId with hashCode: {}. {}", deviceId.hashCode(), 
+					e1);
+		}
 	}
 	
 	@OnClose

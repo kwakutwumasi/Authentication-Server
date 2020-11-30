@@ -20,13 +20,15 @@ public class InitMain {
 	private ConnectionManager connectionManager;
 	
 	public void init() {
-		try {
-			Main.log.debug("Connection Manager starting...");
-			connectionManager.init();
-			Main.log.debug("Connection Manager started");
-		} catch (IOException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
-				| KeyStoreException | NoSuchProviderException | CertificateException e) {
-			throw new ConfigurationException(e);
+		if(Boolean.parseBoolean(System.getProperty("totp.edge.server.active","true"))){
+			try {
+				Main.log.debug("Connection Manager starting...");
+				connectionManager.init();
+				Main.log.debug("Connection Manager started");
+			} catch (IOException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
+					| KeyStoreException | NoSuchProviderException | CertificateException e) {
+				throw new ConfigurationException(e);
+			}
 		}
 	}
 }

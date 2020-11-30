@@ -40,17 +40,7 @@ public class TOTPEdgeMain {
 		initiateJNDI();
 		initiateCDI();
 		initiateServletContainer();
-		TOTPServerConnection connection = CDI.current()
-				.select(TOTPServerConnection.class).get();
-		try {
-			LOGGER.debug("Server Connection starting...");
-			connection.init();
-			LOGGER.debug("Server Connection started");
-		} catch (UnrecoverableKeyException | KeyManagementException 
-				| KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException e) {
-			throw new ConfigurationException(e);
-		}
+		initiateServerConnection();
 	}
 
 	private static void createServices() {
@@ -84,6 +74,22 @@ public class TOTPEdgeMain {
 			.getInstance()
 			.getEmbeddedWebServerSpi()
 			.initiateEmbeddedWebServer();
+	}
+
+	private static void initiateServerConnection() {
+		if(Boolean.parseBoolean(System.getProperty("totp.edge.server.connection.active","true"))){
+			TOTPServerConnection connection = CDI.current()
+					.select(TOTPServerConnection.class).get();
+			try {
+				LOGGER.debug("Server Connection starting...");
+				connection.init();
+				LOGGER.debug("Server Connection started");
+			} catch (UnrecoverableKeyException | KeyManagementException 
+					| KeyStoreException | NoSuchAlgorithmException
+					| CertificateException | IOException e) {
+				throw new ConfigurationException(e);
+			}
+		}
 	}
 
 	public static void stop(String[] args) {
