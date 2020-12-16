@@ -14,6 +14,7 @@ import com.quakearts.auth.server.totp.channel.DeviceConnectionChannel;
 import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.rest.authorization.DeviceAuthorizationService;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 
 @Singleton
 public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationService {
@@ -33,8 +34,9 @@ public class DeviceAuthorizationServiceImpl implements DeviceAuthorizationServic
 		requestMap.put("requestType", "otp");
 		requestMap.put("deviceId", device.getId());
 		
-		log.debug("Sending otp code request message with hashCode: {} for device with itemCount: {}", 
-				requestMap.hashCode(), device.getItemCount());
+		if(log.isDebugEnabled())
+			log.debug("Sending otp code request message: {} for device with itemCount: {}", 
+					MaskUtil.mask(requestMap), device.getItemCount());
 		
 		deviceConnectionChannel.sendMessage(requestMap, response->{
 			String otp = response.get("otp");

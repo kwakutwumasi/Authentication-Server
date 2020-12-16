@@ -35,6 +35,7 @@ import com.quakearts.auth.server.totp.model.Alias;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.model.Device.Status;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 import com.quakearts.webapp.orm.DataStore;
 import com.quakearts.webapp.orm.DataStore.ListBuilder;
 import com.quakearts.webapp.orm.DataStoreFactory;
@@ -51,7 +52,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
 	private static final String ITEM_COUNT = "itemCount";
 	
-	private static final Logger log = LoggerFactory.getLogger(DeviceManagementServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(DeviceManagementService.class);
 
 	@Inject @DataStoreFactoryHandle
 	private DataStoreFactory factory;
@@ -308,11 +309,11 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 		Map<String, String> requestMap = new HashMap<>();
 		requestMap.put("ping", "ping");
 		requestMap.put("deviceId", device.getId());
-		log.debug("Sending connection check message with hashCode: {} for device with itemCount: {}", requestMap.hashCode(), device.getItemCount());
 		deviceConnectionChannel.sendMessage(requestMap, response->
 			callback.accept(Boolean.parseBoolean(response.get("connected")))
 		);
-		log.debug("Sent connection check message with hashCode: {} for device with itemCount: {}", requestMap.hashCode(), device.getItemCount());
+		if(log.isDebugEnabled())
+			log.debug("Sent connection check message: {} for device with itemCount: {}", MaskUtil.mask(requestMap), device.getItemCount());
 	}
 	
 	private String getUsername() {

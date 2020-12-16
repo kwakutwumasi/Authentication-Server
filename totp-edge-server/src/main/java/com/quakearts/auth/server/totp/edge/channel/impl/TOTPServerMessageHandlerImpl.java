@@ -1,7 +1,6 @@
 package com.quakearts.auth.server.totp.edge.channel.impl;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +40,8 @@ public class TOTPServerMessageHandlerImpl implements TOTPServerMessageHandler {
 	public void handle(Message message, Callback<Message, IOException> callback) 
 			throws JWTException, IOException, UnconnectedDeviceException {
 		if(message.getValue().length != 1) {
-			log.debug("Handling message with ticket: {} with hashCode: {} and data with hashCode: {}",
-					message.getTicket(), message.hashCode(), Arrays.hashCode(message.getValue()));
+			log.debug("Handling message: {}",
+					message);
 
 			JWTFactory factory = JWTFactory.getInstance();
 			
@@ -68,12 +67,11 @@ public class TOTPServerMessageHandlerImpl implements TOTPServerMessageHandler {
 			
 			Payload payload = new Payload();
 			payload.setMessage(request);
-			log.debug("Sending payload with hashCode: {} for message with ticket: {} with hashCode: {}",
-					message.getTicket(), payload.hashCode(), message.hashCode());
+			log.debug("Sending payload: {} for message: {}",
+					message, payload);
 
 			deviceConnectionService.send(payload, responsePayload->{
-				log.debug("Sending response payload with hashCode: {} and counter {}", payload.hashCode(), 
-						payload.getId());
+				log.debug("Sending response for message: {}", message);
 				JWTClaims responseClaims = factory.createEmptyClaims();
 				
 				responsePayload.getMessage().entrySet().stream().filter(entry->!RegisteredNames.IAT.equals(entry.getKey()))
@@ -83,7 +81,7 @@ public class TOTPServerMessageHandlerImpl implements TOTPServerMessageHandler {
 				try {
 					callback.execute(new Message(message.getTicket(), responseMessage));
 				} catch (IOException e) {
-					log.error("Error processing processing response for message {}", message.getTicket());
+					log.error("Error processing processing response for message {}", message);
 				}
 			});
 		} else {

@@ -2,7 +2,6 @@ package com.quakearts.auth.server.totp.channel.impl;
 
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -19,6 +18,7 @@ import com.quakearts.auth.server.totp.exception.CallbackException;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.JWTClaims.Claim;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
@@ -36,7 +36,8 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 	@Override
 	public void sendMessage(Map<String, String> requestMap, Consumer<Map<String, String>> callback) 
 			throws TOTPException {
-		log.debug("Sending request with hashCode: {}", requestMap.hashCode());
+		if(log.isDebugEnabled())
+			log.debug("Sending request: {}", MaskUtil.mask(requestMap));
 		byte[] bites;
 		try {
 			bites = jwtGenerator.generateJWT(requestMap).getBytes();
@@ -44,9 +45,13 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 			throw new MessageGenerationException(e);
 		}
 		
-		log.debug("Processed message for request with hashCode: {} as data with hashCode: {}. Sending....", requestMap.hashCode(), Arrays.hashCode(bites));
+		if(log.isDebugEnabled())
+			log.debug("Processed message for request: {}. Sending....", MaskUtil.mask(requestMap));
+		
 		connectionManager.send(bites, response->{
-			log.debug("Processing response for request with hashCode: {}", requestMap.hashCode());
+			if(log.isDebugEnabled())
+				log.debug("Processing response for request: {}", MaskUtil.mask(requestMap));
+
 			Map<String, String> responseMap = new HashMap<>();
 			if(response.length > 1) {		
 				try {
@@ -61,9 +66,11 @@ public class DeviceConnectionChannelImpl implements DeviceConnectionChannel {
 				responseMap.put("error", "A connection has not been registered, or it may have been terminated by an error");
 			}
 			callback.accept(responseMap);
-			log.debug("Processed response for request with hashCode: {}", requestMap.hashCode());
+			if(log.isDebugEnabled())
+				log.debug("Processed response for request: {}", MaskUtil.mask(requestMap));
 		});
-		log.debug("Sent message for request with hashCode: {}", requestMap.hashCode());
+		if(log.isDebugEnabled())
+			log.debug("Sent message for request: {}", MaskUtil.mask(requestMap));
 	}
 
 }

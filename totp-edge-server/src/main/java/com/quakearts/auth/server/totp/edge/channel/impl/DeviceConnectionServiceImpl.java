@@ -39,16 +39,16 @@ public class DeviceConnectionServiceImpl implements DeviceConnectionService {
 			throw new UnconnectedDeviceException();
 		}
 		String deviceId = payload.getMessage().get(DEVICE_ID);
-		log.debug("Sending message with hashCode: {} to device with id hashCode: {}", payload.hashCode(),
+		log.debug("Sending message: {} to device with id hashCode: {}", payload,
 				deviceId.hashCode());
 		if(connections.containsKey(deviceId)) {
-			log.debug("Found a connection to device with id hashCode: {} for message {}",
-					deviceId.hashCode(), payload.hashCode());
+			log.debug("Found a connection to device with id: {} for message {}",
+					deviceId.hashCode(), payload);
 			DeviceConnection connection = connections.get(deviceId);
 			connection.send(payload, callback);
 		} else {
 			log.debug("Did not find device with id hashCode: {} for message {}",
-					deviceId.hashCode(), payload.hashCode());
+					deviceId.hashCode(), payload);
 			throw new UnconnectedDeviceException();
 		}
 	}

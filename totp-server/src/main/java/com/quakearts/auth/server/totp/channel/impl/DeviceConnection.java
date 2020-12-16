@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.quakearts.auth.server.totp.exception.SocketShutdownException;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 
 public class DeviceConnection {
 
@@ -76,14 +76,16 @@ public class DeviceConnection {
 	
 	public synchronized void send(byte[] bites)
 			throws SocketShutdownException {
-		log.debug("Sending data with hashCode: {}", Arrays.hashCode(bites));
+		if(log.isDebugEnabled())
+			log.debug("Sending data with hashCode: {}", MaskUtil.mask(bites));
 		try {
 			OutputStream out = socket.getOutputStream();
 			byte[] lengthHeader = getLengthHeader(bites);
 			out.write(lengthHeader, 0, lengthHeader.length);
 			out.write(bites, 0, bites.length);
 			out.flush();
-			log.debug("Sent data with hashCode: {}", Arrays.hashCode(bites));
+			if(log.isDebugEnabled())
+				log.debug("Sent data with hashCode: {}", MaskUtil.mask(bites));
 		} catch (Exception e) {
 			running = false;
 			try {
@@ -108,7 +110,7 @@ public class DeviceConnection {
 		return (lengthHeader[0]*8 + lengthHeader[1])&0x07ff;
 	}
 
-	public Object getInfo() {
+	public String getInfo() {
 		return socket!=null?"from "+socket.getRemoteSocketAddress()+" on port "+socket.getPort():"(not connected)";
 	}
 

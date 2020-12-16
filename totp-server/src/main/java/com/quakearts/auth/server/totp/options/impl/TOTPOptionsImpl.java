@@ -277,13 +277,13 @@ public class TOTPOptionsImpl implements TOTPOptions {
 
 	@Override
 	public String getDeviceConnectionKeystorePassword() {
-		log.debug("deviceConnectionKeystorePassword: {}", deviceConnectionKeyPassword!=null? "**********":"");
+		log.debug("deviceConnectionKeystorePassword: {}", deviceConnectionKeyPassword!=null? "**********":"[is null]");
 		return deviceConnectionKeystorePassword;
 	}
 
 	@Override
 	public String getDeviceConnectionKeyPassword() {
-		log.debug("deviceConnectionKeyPassword: {}", deviceConnectionKeyPassword!=null? "**********":"");
+		log.debug("deviceConnectionKeyPassword: {}", deviceConnectionKeyPassword!=null? "**********":"[is null]");
 		return deviceConnectionKeyPassword;
 	}
 	

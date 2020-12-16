@@ -20,6 +20,7 @@ import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
 import com.quakearts.auth.server.totp.model.Device;
 import com.quakearts.auth.server.totp.signing.DeviceRequestSigningService;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 import com.quakearts.webapp.security.jwt.JWTClaims;
 import com.quakearts.webapp.security.jwt.exception.JWTException;
 
@@ -45,8 +46,9 @@ public class DeviceRequestSigningServiceImpl implements DeviceRequestSigningServ
 		requestMap.put("requestType", "otp-signing");
 		requestMap.put("deviceId", device.getId());
 		
-		log.debug("Sending signing request message with hashCode: {} for device with itemCount: {}", 
-				requestMap.hashCode(), device.getItemCount());
+		if(log.isDebugEnabled())
+			log.debug("Sending signing request message with hashCode: {} for device with itemCount: {}", 
+					MaskUtil.mask(requestMap), device.getItemCount());
 
 		deviceConnectionChannel.sendMessage(requestMap, response->{
 			String signature = response.get(SIGNATURE);

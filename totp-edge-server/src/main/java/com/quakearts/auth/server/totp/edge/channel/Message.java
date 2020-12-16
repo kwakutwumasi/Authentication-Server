@@ -1,6 +1,9 @@
 package com.quakearts.auth.server.totp.edge.channel;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
+import com.quakearts.webapp.security.util.HashPassword;
 
 public class Message {
 	private long ticket;
@@ -28,4 +31,11 @@ public class Message {
 		
 		return messageBytes;
 	}
+
+	@Override
+	public String toString() {
+		return "\n[\n\tticket=" + ticket + ",\n\tvalue=" 
+				+ new HashPassword(new String(value, StandardCharsets.UTF_8),"SHA-1",0,"").toString().toUpperCase() + "\n]\n";
+	}
+	
 }

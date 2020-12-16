@@ -34,6 +34,7 @@ import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.rest.model.ErrorResponse;
 import com.quakearts.auth.server.totp.rest.model.TokenResponse;
 import com.quakearts.auth.server.totp.signing.DeviceRequestSigningService;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 
 @Path("request")
 @Singleton
@@ -71,7 +72,8 @@ public class RequestSigningResource {
 			CompletableFuture.runAsync(()->{
 				Device device = optionalDevice.get();
 				try {
-					log.debug("Sending signing request {} for device with itemCount: {}", requestMap, device.getItemCount());
+					if(log.isDebugEnabled())
+						log.debug("Sending signing request {} for device with itemCount: {}", MaskUtil.mask(requestMap), device.getItemCount());
 
 					deviceRequestSigningService.signRequest(device, requestMap,
 						signedMessage->asyncResponse.resume(new TokenResponse().withTokenAs(signedMessage)), 

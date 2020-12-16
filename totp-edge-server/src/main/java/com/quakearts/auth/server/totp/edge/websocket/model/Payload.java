@@ -2,6 +2,9 @@ package com.quakearts.auth.server.totp.edge.websocket.model;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import com.quakearts.webapp.security.util.HashPassword;
 
 public class Payload {
 	private Map<String, String> message;
@@ -53,5 +56,19 @@ public class Payload {
 		Payload other = (Payload) obj;
 		return id == other.id && Objects.equals(message, other.message) && timestamp == other.timestamp;
 	}
+
+	@Override
+	public String toString() {
+		return "\n[\n\tmessage=" + mask(message) + ",\n\ttimestamp=" + timestamp + ",\n\tid=" + id + "\n]\n";
+	}
 	
+	private String mask(Map<String, String> message){
+		return "{"+message.entrySet().stream().map(entry->"'"+entry.getKey()+"' = '" +mask(entry.getValue())+"'")
+				.collect(Collectors.joining(", "))+"}";
+	}
+	
+	private String mask(String value){
+		return new HashPassword(value, "SHA-1", 0, "")
+				.toString().toUpperCase();
+	}
 }

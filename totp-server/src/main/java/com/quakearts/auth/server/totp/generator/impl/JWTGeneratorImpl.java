@@ -3,7 +3,6 @@ package com.quakearts.auth.server.totp.generator.impl;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.quakearts.auth.server.totp.generator.JWTGenerator;
 import com.quakearts.auth.server.totp.model.Administrator;
 import com.quakearts.auth.server.totp.options.TOTPLoginConfiguration;
+import com.quakearts.auth.server.totp.utils.MaskUtil;
 import com.quakearts.webapp.security.auth.JWTLoginModule;
 import com.quakearts.webapp.security.auth.UserPrincipal;
 import com.quakearts.webapp.security.jwt.JWTClaims;
@@ -57,14 +57,18 @@ public class JWTGeneratorImpl implements JWTGenerator {
 	@Override
 	public String generateJWT(Map<String, String> customKeyValues)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
-		log.debug("Generating JWT for message with hashCode: {}", customKeyValues.hashCode());
+		if(log.isDebugEnabled())
+			log.debug("Generating JWT for message: {}", MaskUtil.mask(customKeyValues));
+		
 		return sign(customKeyValues, totpLoginConfiguration.getServerConfigurationOptions());
 	}
 
 	@Override
 	public JWTClaims verifyJWT(byte[] jwt)
 			throws JWTException, NoSuchAlgorithmException, URISyntaxException {
-		log.debug("Verifying JWT for message with hashCode: {}", Arrays.hashCode(jwt));
+		if(log.isDebugEnabled())
+			log.debug("Verifying JWT for message: {}", MaskUtil.mask(jwt));
+
 		return verify(jwt, totpLoginConfiguration.getServerConfigurationOptions());		
 	}
 
