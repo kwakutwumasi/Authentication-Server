@@ -3,7 +3,6 @@ package com.quakearts.symbolusclient.utils
 import android.Manifest
 import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
 import android.security.KeyPairGeneratorSpec
 import android.telephony.TelephonyManager
 import android.view.animation.Interpolator
@@ -476,7 +475,7 @@ object TOTPApplication {
         deviceConnection!!.connect(application)
     }
 
-    fun generateDeviceIdIfNecessary(application: Application):Unit {
+    fun generateDeviceIdIfNecessary(application: Application) {
         if(!DeviceStorage.hasDeviceFile(application)) {
             val manager =
                 application.applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
