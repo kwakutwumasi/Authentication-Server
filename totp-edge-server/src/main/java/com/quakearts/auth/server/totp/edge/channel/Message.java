@@ -35,7 +35,7 @@ public class Message {
 	@Override
 	public String toString() {
 		return "\n[\n\tticket=" + ticket + ",\n\tvalue=" 
-				+ new HashPassword(new String(value, StandardCharsets.UTF_8),"SHA-1",0,"").toString().toUpperCase() + "\n]\n";
+				+ new HashPassword(new String(toMessageBytes(), StandardCharsets.UTF_8),"SHA-1",0,"").toString().toUpperCase() + "\n]\n";
 	}
 	
 }
