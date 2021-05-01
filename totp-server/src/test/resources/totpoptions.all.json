@@ -17,6 +17,7 @@
 	"server.jwt.config":"login2.config",
 	"request.signing.jwt.config":"login3.config",
 	"allowed.origins":"http://localhost:8080;http://localhost:8081",
+	"in.enhanced.mode":false,
 	"device.connection":{
 		"threads":5,
 		"port":9001,

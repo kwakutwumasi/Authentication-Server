@@ -55,7 +55,9 @@ public class TOTPGeneratorImpl implements TOTPGenerator {
 		Mac mac = Mac.getInstance(totpOptions.getMacAlgorithm(), totpOptions.getMacProvider());
 		SecretKey key = new SecretKeySpec(seed, totpOptions.getMacAlgorithm());
 		mac.init(key);
-		mac.update(deviceIdBytes);
+		if(totpOptions.isInEnhancedMode())
+			mac.update(deviceIdBytes);
+		
 		return mac.doFinal(currentTime);
 	}
 	

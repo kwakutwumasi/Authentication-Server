@@ -48,6 +48,7 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	private String serverJwtConfigName;
 	private String allowedOrigins = "http://localhost:3000";
 	private String requestSigningJwtConfigName;
+	private boolean inEnhancedMode = true;
 	
 	@Inject
 	private TOTPConfigurationProvider totpConfigurationProvider;
@@ -94,6 +95,13 @@ public class TOTPOptionsImpl implements TOTPOptions {
 		
 		countQuery = propertyMap.getString("count.query");
 		
+		if(propertyMap.containsKey("in.enhanced.mode"))
+			inEnhancedMode = propertyMap.getBoolean("in.enhanced.mode");
+		
+		getDeviceConnectionParameters(propertyMap);
+	}
+
+	private void getDeviceConnectionParameters(ConfigurationPropertyMap propertyMap) {
 		ConfigurationPropertyMap deviceConnectionMap;
 		deviceConnectionMap = propertyMap.getSubConfigurationPropertyMap("device.connection");
 		
@@ -319,7 +327,13 @@ public class TOTPOptionsImpl implements TOTPOptions {
 	
 	@Override
 	public String getRequestSigningJwtConfigName() {
-		log.debug("requestSigningJwtConfigName: {}", allowedOrigins);
+		log.debug("requestSigningJwtConfigName: {}", requestSigningJwtConfigName);
 		return requestSigningJwtConfigName;
+	}
+	
+	@Override
+	public boolean isInEnhancedMode() {
+		log.debug("inEnhancedMode: {}", inEnhancedMode);
+		return inEnhancedMode;
 	}
 }

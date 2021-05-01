@@ -63,6 +63,12 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 		returnDeviceAuthenticationTimeout = newDeviceAuthenticationTimeout;
 	}
 	
+	private static Boolean returnInEnhancedMode;
+	
+	public static void returnInEnhancedMode(Boolean newInEnhancedMode) {
+		returnInEnhancedMode = newInEnhancedMode;
+	}
+	
 	@Inject
 	private TOTPOptionsImpl wrapped;
 	
@@ -316,5 +322,16 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	@Override
 	public String getRequestSigningJwtConfigName() {
 		return wrapped.getRequestSigningJwtConfigName();
+	}
+	
+	@Override
+	public boolean isInEnhancedMode() {
+		if(returnInEnhancedMode != null) {
+			Boolean toreturn = returnInEnhancedMode;
+			returnInEnhancedMode = null;
+			return toreturn;
+		}
+		
+		return wrapped.isInEnhancedMode();
 	}
 }

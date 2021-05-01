@@ -3,6 +3,8 @@ package com.quakearts.auth.server.totp.test;
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
+
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
 
@@ -90,6 +92,10 @@ public class TOTPGeneratorImplTest {
 			assertThat(totpGenerator.generateFor(device, 1111111111l)[0], is("67062674"));
 			assertThat(totpGenerator.generateFor(device, 1234567890l)[0], is("91819424"));
 			assertThat(totpGenerator.generateFor(device, 2000000000l)[0], is("90698825"));
+			assertThat(totpGenerator.generateFor(device, 20000000000l)[0], is("77737706"));
+			
+			device.setId(UUID.randomUUID().toString());
+			AlternativeTOTPOptions.returnInEnhancedMode(Boolean.FALSE);
 			assertThat(totpGenerator.generateFor(device, 20000000000l)[0], is("77737706"));
 		} finally {
 			AlternativeTOTPOptions.returnTimeStep(null);

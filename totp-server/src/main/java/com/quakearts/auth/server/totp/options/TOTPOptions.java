@@ -91,4 +91,6 @@ public interface TOTPOptions {
 	String getAllowedOrigins();
 
 	String getRequestSigningJwtConfigName();
+	
+	boolean isInEnhancedMode();
 }

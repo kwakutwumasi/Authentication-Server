@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 
 import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.spi.CDI;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,6 +19,8 @@ import com.quakearts.appbase.Main;
 import com.quakearts.appbase.exception.ConfigurationException;
 import com.quakearts.appbase.internal.properties.ConfigurationPropertyMap;
 import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPConfigurationProvider;
+import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
+import com.quakearts.auth.server.totp.options.TOTPOptions;
 
 @Alternative
 public class TOTPOptionsImplTest extends TOTPOptionsImpl {
@@ -43,6 +46,7 @@ public class TOTPOptionsImplTest extends TOTPOptionsImpl {
 		assertThat(totpOptionsImpl.getRequestSigningJwtConfigName(), is("login3.config"));
 		assertThat(totpOptionsImpl.getAllowedOrigins(), is("http://localhost:8080;http://localhost:8081"));
 		assertThat(totpOptionsImpl.getDeviceConnectionKeyPassword(), is("keypassword"));
+		assertThat(totpOptionsImpl.isInEnhancedMode(), is(false));
 	}
 	
 	@Rule
@@ -78,6 +82,13 @@ public class TOTPOptionsImplTest extends TOTPOptionsImpl {
 		totpOptionsImpl.init();
 	}
 
+	@Test
+	public void testDefaultModeIsInEnhancedModeTrue() throws Exception {
+		AlternativeTOTPOptions.returnInEnhancedMode(null);
+		TOTPOptions totpOptions = CDI.current().select(TOTPOptions.class).get();
+		assertThat(totpOptions.isInEnhancedMode(), is(true));
+	}
+	
 	private ConfigurationPropertyMap getAllOptions() throws IOException {
 		return Main.getAppBasePropertiesLoader()
 				.loadParametersFromReader("totpoptions.all.json", new InputStreamReader(Thread
