@@ -29,4 +29,7 @@
     <string name="counter_at_rest">:00</string>
     <string name="otp_at_rest">000000</string>
     <string name="loading_failed">There was a problem creating the TOTP device. Check your PIN and your Internet connection and try again</string>
+    <string name="google_play_unavailable">Google Play Services are not available on this device. Please download to proceed</string>
+    <string name="google_play_loadingfailed">Google Play Services could not be made available on this device</string>
+    <string name="message_received">A notification message has been received.\nData:\n{0}</string>
 </resources>

@@ -15,6 +15,8 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.quakearts.symbolusclient.utils.*
 import kotlinx.android.synthetic.main.activity_loader.*
 import kotlinx.android.synthetic.main.activity_pin.*
@@ -63,6 +65,28 @@ class LoaderActivity : AppCompatActivity() {
 
         symbolus_logo.setOnClickListener { toggle() }
         hide_controls.setOnTouchListener(delayHideTouchListener)
+
+        checkForPlayServices()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkForPlayServices()
+    }
+
+    private fun checkForPlayServices() {
+        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
+        if (status != ConnectionResult.SUCCESS) {
+            Toast.makeText(this, R.string.google_play_unavailable, Toast.LENGTH_LONG)
+            GoogleApiAvailability.getInstance().makeGooglePlayServicesAvailable(this).continueWith {
+                if(it.exception != null){
+                    runOnUiThread {
+                        Toast.makeText(this, R.string.google_play_loadingfailed, Toast.LENGTH_LONG)
+                        continue_pin_entry.visibility = View.GONE
+                    }
+                }
+            }
+        }
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {

@@ -3,10 +3,15 @@ package com.quakearts.symbolusclient.utils
 import android.Manifest
 import android.app.Application
 import android.content.Context
+import android.os.AsyncTask
 import android.security.KeyPairGeneratorSpec
 import android.telephony.TelephonyManager
 import android.view.animation.Interpolator
 import androidx.core.content.ContextCompat
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
 import com.squareup.moshi.*
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
@@ -58,6 +63,7 @@ object Options{
     const val timeStep = 30000L
     const val totpUrl = "http://10.0.2.2:8082/totp-provisioning"
     const val totpWsUrl = "ws://10.0.2.2:8082/device-connection"
+    const val tokenUrl = "http://10.0.2.2:8083/token"
     const val aliasProperty = "ALIAS"
     const val pbeIterations = 23
     const val resetThreshold = 3
@@ -335,7 +341,52 @@ object DeviceProvisioner {
 
         DeviceStorage.saveDevice(device!!, seed, pin, context)
 
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+            registerFCMToken(deviceId, token, alias)
+        })
+
         return device!!
+    }
+
+    fun registerFCMToken(deviceId:String?, token:String?, alias:String = "default") {
+        if("default" == alias)
+            RegisterFCMTokenTask().execute(deviceId, token)
+        else
+            RegisterFCMTokenTask().execute(deviceId, token, alias)
+    }
+
+    class RegisterFCMTokenTask:AsyncTask<String, Unit, Boolean>() {
+        override fun doInBackground(vararg params: String?): Boolean {
+            val deviceId = params[0]
+            val token = params[1]
+            var body = "deviceId=${deviceId}&token=${token}"
+            if(params.size == 3)
+                body+="&alias=${params[2]}"
+
+            val tokenServiceClient = OkHttpClient()
+            val tokenRegistrationRequest = Request.Builder()
+                .url(Options.tokenUrl).put(
+                    RequestBody.create(MediaType.get("application/x-www-form-urlencoded"),
+                       body )
+                ).build()
+            tokenServiceClient.newCall(tokenRegistrationRequest).execute().use {
+                if(it.code()!= 204)
+                    return false
+            }
+            return true
+        }
+
+        override fun onPostExecute(result: Boolean?) {
+            if(result==null || !result) {
+                throw IOException("There was a problem registering the token")
+            }
+        }
     }
 }
 
@@ -445,7 +496,6 @@ object DeviceStorage {
         cipher.init(mode, key)
         return cipher
     }
-
 }
 
 class BounceInterpolator(private val amplitude:Double, private val frequency:Double) :
@@ -499,6 +549,10 @@ object TOTPApplication {
         return device?.initialCounter
     }
 
+    fun getDeviceId():String? {
+        return device?.id
+    }
+
     fun registerListeners(
         otpAuthorizationRequestListener: DeviceConnectionListener,
         otpSigningRequestListener: DeviceConnectionListener
@@ -520,5 +574,16 @@ object TOTPApplication {
             deviceConnection!!.dispose()
             deviceConnection = null
         }
+    }
+}
+
+class MyFCMService : FirebaseMessagingService() {
+    override fun onNewToken(token: String) {
+        if(TOTPApplication.started())
+            DeviceProvisioner.registerFCMToken(TOTPApplication.getDeviceId(), token)
+    }
+
+    override fun onMessageReceived(message: RemoteMessage) {
+        
     }
 }
