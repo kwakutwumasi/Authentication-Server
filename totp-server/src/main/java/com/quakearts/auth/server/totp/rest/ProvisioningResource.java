@@ -77,7 +77,11 @@ public class ProvisioningResource {
 		Device device;
 		device = new Device();
 		device.setId(deviceId);
-		device.setInitialCounter(System.currentTimeMillis());
+		if(totpOptions.isInEnhancedMode())
+			device.setInitialCounter(System.currentTimeMillis());
+		else
+			device.setInitialCounter(0l);
+		
 		keyGenerator.generateAndStoreIn(device);
 		device.setStatus(Status.INITIATED);
 		device.setCreatedOn(LocalDateTime.now());

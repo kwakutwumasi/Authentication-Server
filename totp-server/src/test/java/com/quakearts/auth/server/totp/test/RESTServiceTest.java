@@ -30,6 +30,7 @@ import com.quakearts.auth.server.totp.alternatives.AlternativeAuthenticationServ
 import com.quakearts.auth.server.totp.alternatives.AlternativeConnectionManager;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceAuthorizationService;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceRequestSigningService;
+import com.quakearts.auth.server.totp.alternatives.AlternativeTOTPOptions;
 import com.quakearts.auth.server.totp.alternatives.AlternativeDeviceManagementService;
 import com.quakearts.auth.server.totp.exception.MessageGenerationException;
 import com.quakearts.auth.server.totp.generator.TOTPGenerator;
@@ -76,12 +77,12 @@ public class RESTServiceTest {
 	@Inject
 	private TOTPGenerator totpGenerator;
 	private static RESTTestClient client;
+	private static Device device1;
 	private static Device device2;
 	private static Device device3;
 
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
-	private static Device device1;
 		
 	@Inject
 	private JWTGeneratorImpl jwtGenerator;
@@ -334,13 +335,13 @@ public class RESTServiceTest {
 		assertThat(administrators.size(), is(4));
 		
 		CountResponse countResponse = client.countDevices();
-		assertThat(countResponse.getCount(), is(10l));
+		assertThat(countResponse.getCount(), is(10L));
 		
 		List<DeviceResponse> deviceResponses = client.getDevices(Status.ACTIVE, 3, 1);
 		assertThat(deviceResponses.size(),is(1));
 		
 		deviceResponses = client.getDevices();
-		assertThat(deviceResponses.size(),is(10));	
+		assertThat(deviceResponses.size(), is(10));	
 		
 		SyncResponse syncResponse = client.synchronize();
 		assertThat(syncResponse, is(notNullValue()));
@@ -357,6 +358,7 @@ public class RESTServiceTest {
 		});
 		
 		assertThat(client.checkConnection("testdevice1").isConnected(), is(true));
+		testInEnhancedModeFalse();
 	}
 
 	private Device provisionTestProvisionDevice1() throws IOException, HttpClientException, IllegalCryptoActionException {
@@ -443,6 +445,34 @@ public class RESTServiceTest {
 		return device3;
 	}
 
+	private void testInEnhancedModeFalse() throws Exception {
+		ProvisioningResponse provisioningResponse;
+		EncryptedValue encryptedValue;
+		ActivationRequest activationRequest;
+		AlternativeTOTPOptions.returnInEnhancedMode(Boolean.FALSE);
+		try {
+			provisioningResponse = client.provision("nonenhanced");
+			assertThat(provisioningResponse.getSeed(), is(notNullValue()));
+			assertThat(provisioningResponse.getInitialCounter(), is(0l));
+			
+			Device device = new Device();
+			device.setId("nonenhanced");
+			device.setInitialCounter(0l);
+			encryptedValue = new EncryptedValue();
+			encryptedValue.setValue(CryptoResource.hexAsByte(provisioningResponse.getSeed()));
+			device.setSeed(encryptedValue);
+			
+			String[] totp = totpGenerator.generateFor(device, System.currentTimeMillis());
+			
+			activationRequest = new ActivationRequest();
+			activationRequest.setToken(totp[0]);
+			
+			client.activate("nonenhanced", activationRequest);
+		} finally {
+			AlternativeTOTPOptions.returnInEnhancedMode(null);
+		}
+	}
+	
 	@Test
 	public void testLoginWithNullDeviceId() throws Exception {
 		expectedException.expect(HttpClientException.class);
@@ -527,7 +557,7 @@ public class RESTServiceTest {
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
 		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
-		authorizationRequest.setOtp(totp2[0]);
+		authorizationRequest.setOtp(totp2[1]==null? totp2[0]:totp2[1]);
 				
 		client.login(authorizationRequest);
 		DeviceRequest deviceRequest1 = new DeviceRequest();

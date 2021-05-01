@@ -100,6 +100,7 @@ public class TOTPGeneratorImplTest {
 		} finally {
 			AlternativeTOTPOptions.returnTimeStep(null);
 			AlternativeTOTPOptions.returnOtpLength(null);
+			AlternativeTOTPOptions.returnInEnhancedMode(null);
 			clearFormatField(totpGenerator);
 		}
 	}

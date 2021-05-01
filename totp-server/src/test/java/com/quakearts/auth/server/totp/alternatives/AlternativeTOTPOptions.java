@@ -327,9 +327,7 @@ public class AlternativeTOTPOptions implements TOTPOptions {
 	@Override
 	public boolean isInEnhancedMode() {
 		if(returnInEnhancedMode != null) {
-			Boolean toreturn = returnInEnhancedMode;
-			returnInEnhancedMode = null;
-			return toreturn;
+			return returnInEnhancedMode;
 		}
 		
 		return wrapped.isInEnhancedMode();
