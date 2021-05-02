@@ -612,7 +612,7 @@ public class RESTServiceTest {
 		String[] totp2 = totpGenerator.generateFor(device2, System.currentTimeMillis());
 		AuthenticationRequest authorizationRequest = new AuthenticationRequest();
 		authorizationRequest.setDeviceId("testadministrator1");
-		authorizationRequest.setOtp(totp2[0]);
+		authorizationRequest.setOtp(totp2[1]==null? totp2[0]:totp2[1]);
 		
 		client.login(authorizationRequest);
 		

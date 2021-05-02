@@ -36,6 +36,7 @@ import com.quakearts.auth.server.totp.channel.ConnectionManager;
 import com.quakearts.auth.server.totp.exception.InvalidInputException;
 import com.quakearts.auth.server.totp.exception.SocketShutdownException;
 import com.quakearts.auth.server.totp.exception.TOTPException;
+import com.quakearts.auth.server.totp.exception.UnconnectedDeviceException;
 import com.quakearts.auth.server.totp.options.TOTPOptions;
 import com.quakearts.auth.server.totp.options.TOTPOptions.PerformancePreferences;
 import com.quakearts.auth.server.totp.utils.MaskUtil;
@@ -207,7 +208,7 @@ public class ConnectionManagerImpl implements ConnectionManager, IncomingBitesPr
 		}
 		
 		if(deviceConnections.isEmpty()) {
-			return;
+			throw new UnconnectedDeviceException("No Edge Servers connected");
 		}
 		
 		long ticket = counter.getAndIncrement();
