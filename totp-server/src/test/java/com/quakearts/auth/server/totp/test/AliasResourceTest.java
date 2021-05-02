@@ -131,8 +131,8 @@ public class AliasResourceTest {
 		
 		await().atMost(Duration.ONE_SECOND).until(()->{
 			return response.value != null
-					&& "The specified device is not connected. Error".equals(((UnconnectedDeviceException) response.value)
-						.getMessage());
+					&& ((AliasCheckResponse)response.value).isActive()
+					&& !((AliasCheckResponse)response.value).isConnected();
 		});
 	
 		assertThat(time, is(1000l));

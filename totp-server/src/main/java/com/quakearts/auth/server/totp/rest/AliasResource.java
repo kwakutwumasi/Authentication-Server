@@ -57,7 +57,9 @@ public class AliasResource {
 								.withActiveAs(optionalDevice.get().getStatus() == Status.ACTIVE)
 								.withConnectedAs(connected)));
 				} catch (TOTPException e) {
-					asyncResponse.resume(e);
+					asyncResponse.resume(new AliasCheckResponse()
+							.withActiveAs(optionalDevice.get().getStatus() == Status.ACTIVE)
+							.withConnectedAs(false));
 				}
 			} else {
 				asyncResponse.resume(new AliasCheckResponse()
