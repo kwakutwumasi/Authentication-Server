@@ -6,7 +6,7 @@
 	"seed.length":32,
 	"secure.random.instance":"SHA1PRNG",
 	"secure.random.provider":"SUN",
-	"time.step":5,
+	"time.step":10,
 	"grace.period":1,
 	"max.attempts":3,
 	"lockout.time":30000,
