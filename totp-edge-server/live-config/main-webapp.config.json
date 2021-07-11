@@ -9,7 +9,7 @@
 			"jackson-jaxrs-json-provider-2.10.1.jar",
 			"jackson-module-jaxb-annotations-2.10.1.jar",
 			"qa-resteasy-cdi-1.0.3.jar",
-			"tomcat-embed-websocket-9.0.33.jar",
+			"tomcat-embed-websocket-9.0.48.jar",
 			"totp-edge-server-0.0.1.jar"
 		]
 	},
