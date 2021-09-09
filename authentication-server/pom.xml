@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quakearts.auth.server</groupId>
 	<artifactId>authentication-server</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 	<build>
 		<plugins>
 			<plugin>
@@ -102,8 +102,8 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.11.0.Final</resteasy-version>
-		<validator-version>6.1.2.Final</validator-version>
+		<resteasy-version>3.15.1.Final</resteasy-version>
+		<validator-version>6.1.7.Final</validator-version>
 	</properties>
 	<dependencies>
 	<!-- QA Appbase -->
@@ -142,7 +142,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.30</version>
+			<version>1.7.32</version>
 		</dependency>
 	<!-- REST EASY -->
 		<dependency>
