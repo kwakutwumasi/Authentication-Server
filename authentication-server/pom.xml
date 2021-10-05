@@ -102,7 +102,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.15.1.Final</resteasy-version>
+		<resteasy-version>3.15.2.Final</resteasy-version>
 		<validator-version>6.1.7.Final</validator-version>
 	</properties>
 	<dependencies>

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quakearts.auth.server</groupId>
 	<artifactId>totp-edge-server</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 	<name>Time Based OTP Edge Server</name>
 	<build>
 		<pluginManagement>
@@ -97,7 +97,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.11.0.Final</resteasy-version>
+		<resteasy-version>3.15.2.Final</resteasy-version>
 	</properties>
 	<dependencies>
 		<!-- QA-Appbase -->
@@ -154,7 +154,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.30</version>
+			<version>1.7.32</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>

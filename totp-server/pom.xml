@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quakearts.auth.server</groupId>
 	<artifactId>totp-server</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 	<name>Time Based OTP Server</name>
 	<description>A time based OTP library, using the algorithms described in RFCs 4226 and 6328. 
 		Provides JAX-RS endpoint for provisioning and authentication</description>
@@ -135,7 +135,7 @@
 		</plugins>
 	</build>
 	<properties>
-		<resteasy-version>3.11.0.Final</resteasy-version>
+		<resteasy-version>3.15.2.Final</resteasy-version>
 	</properties>
 	<dependencies>
 	<!-- QA-Appbase -->
@@ -177,7 +177,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.30</version>
+			<version>1.7.32</version>
 		</dependency>
 	<!--REST Easy-->
 		<dependency>
