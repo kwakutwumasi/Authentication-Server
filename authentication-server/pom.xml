@@ -256,11 +256,6 @@
 			<artifactId>qa-common-tools</artifactId>
 			<version>1.0.1</version>
 		</dependency>
-		<dependency>
-			<groupId>com.quakearts.microservices</groupId>
-			<artifactId>qa-fineract-auth</artifactId>
-			<version>1.1.0</version>
-		</dependency>
 	</dependencies>
 	<repositories>
 	    <repository>
